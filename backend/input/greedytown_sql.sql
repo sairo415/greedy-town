@@ -85,14 +85,14 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `greedytown`.`achivements`
+-- Table `greedytown`.`achievements`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `greedytown`.`achivements` ;
+DROP TABLE IF EXISTS `greedytown`.`achievements` ;
 
-CREATE TABLE IF NOT EXISTS `greedytown`.`achivements` (
-  `achivements_index` BIGINT NOT NULL AUTO_INCREMENT,
-  `achivements_content` VARCHAR(255) NULL,
-  PRIMARY KEY (`achivements_index`))
+CREATE TABLE IF NOT EXISTS `greedytown`.`achievements` (
+  `achievements_index` BIGINT NOT NULL AUTO_INCREMENT,
+  `achievements_content` VARCHAR(255) NULL,
+  PRIMARY KEY (`achievements_index`))
 ENGINE = InnoDB;
 
 
@@ -106,12 +106,12 @@ CREATE TABLE IF NOT EXISTS `greedytown`.`item` (
   `item_name` VARCHAR(255) NULL,
   `item_code` VARCHAR(255) NULL,
   `item_price` BIGINT NULL,
-  `achivements_index` BIGINT NOT NULL,
+  `achievements_index` BIGINT NULL,
   PRIMARY KEY (`item_index`),
-  INDEX `fk_item_achivements1_idx` (`achivements_index` ASC) VISIBLE,
+  INDEX `fk_item_achivements1_idx` (`achievements_index` ASC) VISIBLE,
   CONSTRAINT `fk_item_achivements1`
-    FOREIGN KEY (`achivements_index`)
-    REFERENCES `greedytown`.`achivements` (`achivements_index`)
+    FOREIGN KEY (`achievements_index`)
+    REFERENCES `greedytown`.`achievements` (`achievements_index`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -147,17 +147,17 @@ DROP TABLE IF EXISTS `greedytown`.`success_user_achievements` ;
 
 CREATE TABLE IF NOT EXISTS `greedytown`.`success_user_achievements` (
   `user_index` BIGINT NOT NULL,
-  `achivements_index` BIGINT NOT NULL,
-  PRIMARY KEY (`user_index`, `achivements_index`),
-  INDEX `fk_success_user_achievements_achivements1_idx` (`achivements_index` ASC) VISIBLE,
+  `achievements_index` BIGINT NOT NULL,
+  PRIMARY KEY (`user_index`, `achievements_index`),
+  INDEX `fk_success_user_achievements_achivements1_idx` (`achievements_index` ASC) VISIBLE,
   CONSTRAINT `fk_success_user_achievements_user1`
     FOREIGN KEY (`user_index`)
     REFERENCES `greedytown`.`user` (`user_index`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_success_user_achievements_achivements1`
-    FOREIGN KEY (`achivements_index`)
-    REFERENCES `greedytown`.`achivements` (`achivements_index`)
+    FOREIGN KEY (`achievements_index`)
+    REFERENCES `greedytown`.`achievements` (`achievements_index`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
