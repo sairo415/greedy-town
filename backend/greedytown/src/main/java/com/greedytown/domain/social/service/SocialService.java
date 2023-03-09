@@ -1,5 +1,6 @@
 package com.greedytown.domain.social.service;
 
+import com.greedytown.domain.social.dto.MessageDto;
 import com.greedytown.domain.social.dto.MyFriendDto;
 import com.greedytown.domain.social.dto.RankingDto;
 import com.greedytown.domain.user.model.User;
@@ -15,4 +16,8 @@ public interface SocialService {
     Boolean isFriend(User user,Long friendIndex);
 
     List<MyFriendDto> getMyFriendList(User user);
+
+    List<MyFriendDto> deleteMyFriend(User user,Long frinedIndex);
+
+    Void sendMessage(User user, MessageDto messageDto);
 }
