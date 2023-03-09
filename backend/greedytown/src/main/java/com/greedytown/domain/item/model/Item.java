@@ -1,6 +1,5 @@
 package com.greedytown.domain.item.model;
 
-import com.greedytown.domain.achievements.model.Achievements;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,7 +22,7 @@ public class Item {
     private Long itemPrice;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="block_user_index")
+    @JoinColumn(name="ahichievements_index")
     private Achievements achievementsIndex;
 
 
