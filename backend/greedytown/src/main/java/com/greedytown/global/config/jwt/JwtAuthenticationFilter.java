@@ -36,8 +36,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         LoginRequestDto loginRequestDto = null;
         try {
             loginRequestDto = om.readValue(request.getInputStream(), LoginRequestDto.class);
-            System.out.println(loginRequestDto.getUserEmail());
-            System.out.println(loginRequestDto.getUserPassword());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -69,7 +67,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .withClaim("username", principalDetailis.getUser().getUserEmail())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
-        System.out.println(jwtToken);
         response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX+jwtToken);
     }
 }
