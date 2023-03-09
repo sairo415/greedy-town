@@ -36,11 +36,11 @@ public class ItemController {
     }
 
 
-    @Transactional
-    @ApiOperation(value = "아이템을 구입한다.", notes = "아이템을 구입해보자.")
-    @PostMapping("/market")
-    public void buyStoreItem(@RequestBody @ApiParam(value = "아이템 정보.", required = true) BuyItemDto buyItemDto) throws Exception {
-        return new ResponseEntity<BuyItemReturnDto>(itemService.buyStoreItem(buyItemDto), HttpStatus.OK);
-    }
+//    @Transactional
+//    @ApiOperation(value = "아이템을 구입한다.", notes = "아이템을 구입해보자.")
+//    @PostMapping("/market")
+//    public void buyStoreItem(@RequestBody @ApiParam(value = "아이템 정보.", required = true) BuyItemDto buyItemDto) throws Exception {
+//        return new ResponseEntity<BuyItemReturnDto>(itemService.buyStoreItem(buyItemDto), HttpStatus.OK);
+//    }
 
 }

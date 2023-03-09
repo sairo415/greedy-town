@@ -40,7 +40,7 @@ public class  ItemServiceImpl implements ItemService{
         Long price = BuyItemDto.getItemPrice();
 
         //내 아이템 목록 업데이트하기
-        userRepository
+//        userRepository
 
         return null;
     }
