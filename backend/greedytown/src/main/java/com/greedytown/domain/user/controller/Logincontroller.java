@@ -2,21 +2,17 @@ package com.greedytown.domain.user.controller;
 
 import com.greedytown.domain.user.dto.LoginRequestDto;
 import com.greedytown.domain.user.dto.UserDto;
-import com.greedytown.domain.user.model.User;
-import com.greedytown.domain.user.repository.UserRepository;
+import com.greedytown.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-//@RequestMapping("")
 @RequiredArgsConstructor
 public class Logincontroller {
 
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<?> aliveCheck() {
@@ -28,15 +24,12 @@ public class Logincontroller {
      */
     @PostMapping("/regist")
     public ResponseEntity<?> regist(@RequestBody UserDto userDto) {
-        userDto.setUserPassword(bCryptPasswordEncoder.encode(userDto.getUserPassword()));
-//        boolean success = userService.registUser(memberInfo);
-        User user = User.builder()
-                .userNickname(userDto.getUserNickname())
-                .userEmail(userDto.getUserEmail())
-                .userPassword(userDto.getUserPassword())
-                .build();
-        userRepository.save(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        boolean success = userService.insertUser(userDto);
+        if (success) {
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/login")
