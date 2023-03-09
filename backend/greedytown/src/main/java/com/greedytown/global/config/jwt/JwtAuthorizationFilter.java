@@ -50,6 +50,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                             null, // 패스워드는 모른다. 인증 용도 x
                             principalDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication); // 권한 관리를 위해 세션에 값 저장
+            request.setAttribute("USER", user); // api 호출을 위해 request에 user 정보 저장
         }
         chain.doFilter(request, response);
     }
