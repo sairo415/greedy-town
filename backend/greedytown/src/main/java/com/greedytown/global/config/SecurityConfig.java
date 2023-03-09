@@ -1,37 +1,55 @@
 package com.greedytown.global.config;
 
-import org.springframework.context.annotation.Configuration;
+import com.greedytown.domain.user.repository.UserRepository;
+import com.greedytown.global.config.jwt.JwtAuthenticationFilter;
+import com.greedytown.global.config.jwt.JwtAuthorizationFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
-                .authorizeRequests() // HttpServletRequest를 사용하는 요청들에 대해 접근제한 설정
-//                .antMatchers("/").permitAll() // ""에 대한 요청은 인증 없이 접근 허용
-                .anyRequest().permitAll(); // 이외의 요청은 모두 인증 필요
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
-    //    @Override
-//    protected void configure(HttpSecurity httpSecurity) throws Exception {
-//        httpSecurity
-//                .httpBasic().disable()
-//                .cors().disable()
-//                .csrf().disable()
-//                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                .and()
-//                .authorizeRequests()
-//                .anyRequest().permitAll();
-//    }
-//
-//    @Override
-//    public void configure(WebSecurity webSecurity) {
-//        webSecurity.ignoring().antMatchers("/v2/api-docs", "/swagger-resources/**",
-//                "/swagger-ui/**", "/webjars/**", "/swagger/**", "/sign-api/exception");
-//    }
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                // rest api 사용
+                .csrf().disable()
+                .cors().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .formLogin().disable() // formLogin은 세션 로그인 방식에서 로그인을 자동처리
+                .httpBasic().disable() // httpBasic은 request header에 id와 password값을 직접 날리는 방식
+                // jwt 사용
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))
+                // 페이지 접근 권한 설정
+                .authorizeRequests()
+                .antMatchers("/regist", "/login", "/").permitAll()
+                .antMatchers("/v3/api-docs", "/swagger-resources/**", "/swagger-ui/**", "/webjars/**", "/swagger/**", "/sign-api/exception").permitAll()
+                .anyRequest().authenticated()
+                .and().build();
+    }
 }
