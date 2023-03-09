@@ -8,16 +8,20 @@ import com.greedytown.domain.item.model.ItemUserList;
 import com.greedytown.domain.item.repository.ItemRepository;
 import com.greedytown.domain.item.repository.ItemUserListRepository;
 import com.greedytown.domain.item.service.ItemService;
+import com.greedytown.domain.social.dto.MessageDto;
 import com.greedytown.domain.social.dto.MyFriendDto;
 import com.greedytown.domain.social.dto.RankingDto;
 import com.greedytown.domain.social.model.FriendUserList;
 import com.greedytown.domain.social.model.FriendUserListPK;
+import com.greedytown.domain.social.model.Message;
 import com.greedytown.domain.social.repository.FriendUserListRepository;
+import com.greedytown.domain.social.repository.MessageRepository;
 import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +32,7 @@ public class SocialServiceImpl implements SocialService {
     private final UserRepository userRepository;
     private final FriendUserListRepository friendUserListRepository;
 
+    private final MessageRepository messageRepository;
 
     //랭킹을 본다.
     @Override
@@ -67,14 +72,44 @@ public class SocialServiceImpl implements SocialService {
     @Override
     public List<MyFriendDto> getMyFriendList(User user) {
 
+        return getMyFriends(user);
+
+    }
+
+    @Override
+    public List<MyFriendDto> deleteMyFriend(User user, Long frinedIndex) {
+
+        friendUserListRepository.deleteByUserIndexA_userIndexAndUserIndexB_userIndex(user.getUserIndex(),frinedIndex);
+        friendUserListRepository.deleteByUserIndexB_userIndexAndUserIndexA_userIndex(user.getUserIndex(),frinedIndex);
+
+        return getMyFriends(user);
+    }
+
+    @Override
+    public Void sendMessage(User user, MessageDto messageDto) {
+        Message message = new Message();
+        message.setMessageFrom(user);
+        User friend = userRepository.findUserByUserIndex(messageDto.getMessage_to());
+        message.setMessageTo(friend);
+        message.setMessageWriteTime(LocalDateTime.now());
+        message.setMessageCheck(false);
+        messageRepository.save(message);
+        return null;
+    }
+
+
+    //재사용을 위한 친구 보기
+
+    private List<MyFriendDto> getMyFriends(User user){
+
         List<MyFriendDto> myFriendDtos = new ArrayList<>();
 
         for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexA_userIndex(user.getUserIndex())){
             User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexA().getUserIndex());
             MyFriendDto myFriendDto = MyFriendDto.builder().
-                                      userIndex(user1.getUserIndex()).
-                                      userNickname(user1.getUserNickname()).
-                                      build();
+                    userIndex(user1.getUserIndex()).
+                    userNickname(user1.getUserNickname()).
+                    build();
             myFriendDtos.add(myFriendDto);
         }
         for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexB_userIndex(user.getUserIndex())){
@@ -85,8 +120,6 @@ public class SocialServiceImpl implements SocialService {
                     build();
             myFriendDtos.add(myFriendDto);
         }
-
         return myFriendDtos;
-
     }
 }
