@@ -1,9 +1,14 @@
 package com.greedytown.domain.item.controller;
 
+import com.greedytown.domain.item.dto.AchievementsDto;
 import com.greedytown.domain.item.dto.BuyItemDto;
 import com.greedytown.domain.item.dto.BuyItemReturnDto;
 import com.greedytown.domain.item.dto.ItemDto;
+import com.greedytown.domain.item.model.Achievements;
 import com.greedytown.domain.item.service.ItemService;
+import com.greedytown.domain.user.model.User;
+import com.greedytown.domain.user.repository.UserRepository;
+import com.greedytown.domain.user.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -14,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -36,11 +42,37 @@ public class ItemController {
     }
 
 
-//    @Transactional
-//    @ApiOperation(value = "아이템을 구입한다.", notes = "아이템을 구입해보자.")
-//    @PostMapping("/market")
-//    public void buyStoreItem(@RequestBody @ApiParam(value = "아이템 정보.", required = true) BuyItemDto buyItemDto) throws Exception {
-//        return new ResponseEntity<BuyItemReturnDto>(itemService.buyStoreItem(buyItemDto), HttpStatus.OK);
-//    }
+    @Transactional
+    @ApiOperation(value = "아이템을 구입한다.", notes = "아이템을 구입해보자.")
+    @PostMapping("/market")
+    public ResponseEntity<BuyItemReturnDto> buyStoreItem(@RequestBody @ApiParam(value = "아이템 정보.", required = true) BuyItemDto buyItemDto, HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        buyItemDto.setUserIndex(user.getUserIndex());
+        return new ResponseEntity<BuyItemReturnDto>(itemService.buyStoreItem(buyItemDto), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "내 아이템을 조회한다.", notes = "아이템을 조회해보자.")
+    @GetMapping("/character-custom")
+    public ResponseEntity<BuyItemReturnDto> getMyItemList(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<BuyItemReturnDto>(itemService.getMyItemList(user), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "내 업적을 조회한다.", notes = "업적을 조회해보자.")
+    @GetMapping("/achievement")
+    public ResponseEntity<?> getMyAchievements(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<AchievementsDto>>(itemService.getMyAchievements(user), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "업적을 등록한다.", notes = "업적을 등록해보자.")
+    @PostMapping("/achievement")
+    public ResponseEntity<?> insertMyAchievements(HttpServletRequest request,Long AchievementsIndex) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<AchievementsDto>>(itemService.insertMyAchievements(user,AchievementsIndex), HttpStatus.OK);
+    }
 
 }
