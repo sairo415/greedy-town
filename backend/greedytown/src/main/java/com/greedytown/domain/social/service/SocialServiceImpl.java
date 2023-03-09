@@ -35,7 +35,7 @@ public class SocialServiceImpl implements SocialService {
         List<RankingDto> list = new ArrayList<>();
         for(User user : userRepository.findAllByOrderByUserClearTimeDesc()){
             RankingDto rankingDto = RankingDto.builder().
-                                    userNickname(user.getUserNickName()).
+                                    userNickname(user.getUserNickname()).
                                     clearTime(user.getUserClearTime().toString()).
                                     build();
             list.add(rankingDto);
@@ -73,7 +73,7 @@ public class SocialServiceImpl implements SocialService {
             User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexA().getUserIndex());
             MyFriendDto myFriendDto = MyFriendDto.builder().
                                       userIndex(user1.getUserIndex()).
-                                      userNickname(user1.getUserNickName()).
+                                      userNickname(user1.getUserNickname()).
                                       build();
             myFriendDtos.add(myFriendDto);
         }
@@ -81,7 +81,7 @@ public class SocialServiceImpl implements SocialService {
             User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexA().getUserIndex());
             MyFriendDto myFriendDto = MyFriendDto.builder().
                     userIndex(user1.getUserIndex()).
-                    userNickname(user1.getUserNickName()).
+                    userNickname(user1.getUserNickname()).
                     build();
             myFriendDtos.add(myFriendDto);
         }
