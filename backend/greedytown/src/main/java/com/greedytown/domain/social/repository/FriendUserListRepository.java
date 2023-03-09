@@ -17,6 +17,6 @@ public interface FriendUserListRepository extends JpaRepository<FriendUserList, 
     List<FriendUserList> findAllByUserIndexA_userIndex(Long userIndexA);
     List<FriendUserList> findAllByUserIndexB_userIndex(Long userIndexB);
 
-    Void deleteByUserIndexA_userIndexAndUserIndexB_userIndex(Long userIndexA,Long userIndexB);
-    Void deleteByUserIndexB_userIndexAndUserIndexA_userIndex(Long userIndexA,Long userIndexB);
+    Integer deleteByUserIndexA_userIndexAndUserIndexB_userIndex(Long userIndexA,Long userIndexB);
+    Integer deleteByUserIndexB_userIndexAndUserIndexA_userIndex(Long userIndexA,Long userIndexB);
 }

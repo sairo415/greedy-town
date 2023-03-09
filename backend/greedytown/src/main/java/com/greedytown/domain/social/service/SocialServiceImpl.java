@@ -90,7 +90,9 @@ public class SocialServiceImpl implements SocialService {
         Message message = new Message();
         message.setMessageFrom(user);
         User friend = userRepository.findUserByUserIndex(messageDto.getMessage_to());
+        message.setMessageFrom(user);
         message.setMessageTo(friend);
+        message.setMessageContent(messageDto.getMessage_content());
         message.setMessageWriteTime(LocalDateTime.now());
         message.setMessageCheck(false);
         messageRepository.save(message);
@@ -105,7 +107,7 @@ public class SocialServiceImpl implements SocialService {
         List<MyFriendDto> myFriendDtos = new ArrayList<>();
 
         for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexA_userIndex(user.getUserIndex())){
-            User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexA().getUserIndex());
+            User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexB().getUserIndex());
             MyFriendDto myFriendDto = MyFriendDto.builder().
                     userIndex(user1.getUserIndex()).
                     userNickname(user1.getUserNickname()).

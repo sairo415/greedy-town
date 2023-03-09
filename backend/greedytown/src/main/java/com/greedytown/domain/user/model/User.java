@@ -22,8 +22,9 @@ public class User {
     private String userPassword;
     @Column(columnDefinition = "VARCHAR(255)", unique = true)
     private String userNickname;
+    @Column(columnDefinition = "BIGINT DEFAULT = 0")
     private Long userMoney;
-    @Column(columnDefinition = "TIME")
+    @Column(columnDefinition = "TIME DEFAULT = 0")
     private Date userClearTime;
 
 }
