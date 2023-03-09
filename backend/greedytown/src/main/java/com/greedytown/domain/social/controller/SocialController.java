@@ -1,0 +1,66 @@
+package com.greedytown.domain.social.controller;
+
+import com.greedytown.domain.item.dto.BuyItemDto;
+import com.greedytown.domain.item.dto.BuyItemReturnDto;
+import com.greedytown.domain.item.service.ItemService;
+import com.greedytown.domain.social.dto.MyFriendDto;
+import com.greedytown.domain.social.dto.RankingDto;
+import com.greedytown.domain.social.service.SocialService;
+import com.greedytown.domain.user.model.User;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
+@RestController
+@RequestMapping("/social")
+@RequiredArgsConstructor
+public class SocialController {
+
+
+    @Autowired
+    private SocialService socialService;
+
+    @Autowired
+    public SocialController(SocialService socialService) {this.socialService = socialService;}
+
+
+    @Transactional
+    @ApiOperation(value = "랭킹을 본다.", notes = "전체 랭킹을 본다.")
+    @GetMapping("/ranking")
+    public ResponseEntity<List<RankingDto>> getUserRanking() throws Exception {
+        return new ResponseEntity<List<RankingDto>>(socialService.getUserRanking(), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "친구를 추가한다.", notes = "친구를 추가해보자.")
+    @PostMapping("/friend")
+    public ResponseEntity<?> insertFriend(HttpServletRequest request, Long friendIndex) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<Void>(socialService.insertFriend(user,friendIndex), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "친구인지 확인한다.", notes = "전체 랭킹을 본다.")
+    @GetMapping("/is-friend")
+    public ResponseEntity<?> isFriend(HttpServletRequest request, Long friendIndex) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<Boolean>(socialService.isFriend(user,friendIndex), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "친구 목록을 본다.", notes = "친구 목록을 본다.")
+    @GetMapping("/friend")
+    public ResponseEntity<?> getMyFriendList(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<MyFriendDto>>(socialService.getMyFriendList(user), HttpStatus.OK);
+    }
+
+}

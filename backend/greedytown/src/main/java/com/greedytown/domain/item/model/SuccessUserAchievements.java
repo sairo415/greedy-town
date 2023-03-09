@@ -11,10 +11,10 @@ import javax.persistence.*;
 @Entity
 @Setter
 @Getter
-@IdClass(ItemUserListPK.class)
+@IdClass(SuccessUserAchievementsPK.class)
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemUserList {
+public class SuccessUserAchievements {
 
     @Id
     @ManyToOne
@@ -23,8 +23,9 @@ public class ItemUserList {
 
     @Id
     @ManyToOne
-    @JoinColumn(name="item_index")
-    private Item itemIndex;
+    @JoinColumn(name="achievements_index")
+    private Achievements achievementsIndex;
+
 
 
 
