@@ -16,13 +16,14 @@ import java.util.List;
 public class BuyItemReturnDto {
 
 
-    private List<Item> userItems;
+    private List<ItemDto> userItems;
     private Long userMoney;
 
     @Builder
-    public BuyItemReturnDto(List userItems , Long userMoney ) {
-        this.userItems = new ArrayList<>();
+    public BuyItemReturnDto(Long userMoney, List userItems) {
         this.userMoney = userMoney;
+        this.userItems = userItems;
+        ;
     }
 
 }

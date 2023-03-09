@@ -1,5 +1,6 @@
-package com.greedytown.domain.item.model;
+package com.greedytown.domain.social.model;
 
+import com.greedytown.domain.item.model.ItemUserListPK;
 import com.greedytown.domain.user.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,20 +12,21 @@ import javax.persistence.*;
 @Entity
 @Setter
 @Getter
-@IdClass(ItemUserListPK.class)
+@IdClass(FriendUserListPK.class)
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemUserList {
+public class FriendUserList {
 
     @Id
     @ManyToOne
-    @JoinColumn(name="user_index")
-    private User userIndex;
+    @JoinColumn(name="user_index_a")
+    private User userIndexA;
 
     @Id
     @ManyToOne
-    @JoinColumn(name="item_index")
-    private Item itemIndex;
+    @JoinColumn(name="user_index_b")
+    private User userIndexB;
+
 
 
 
