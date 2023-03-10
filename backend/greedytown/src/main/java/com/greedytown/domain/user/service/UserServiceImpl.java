@@ -29,4 +29,18 @@ public class UserServiceImpl implements UserService {
         }
         return true;
     }
+
+    @Override
+    public boolean duplicatedEmail(String userEmail) {
+        User user = userRepository.findByUserEmail(userEmail);
+        if(user == null) return false;
+        return true;
+    }
+
+    @Override
+    public boolean duplicatedNickname(String userNickname) {
+        User user = userRepository.findByUserNickname(userNickname);
+        if(user == null) return false;
+        return true;
+    }
 }
