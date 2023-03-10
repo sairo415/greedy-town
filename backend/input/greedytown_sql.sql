@@ -215,9 +215,9 @@ DROP TABLE IF EXISTS `greedytown`.`wearing` ;
 CREATE TABLE IF NOT EXISTS `greedytown`.`wearing` (
   `wearing_index` BIGINT NOT NULL AUTO_INCREMENT,
   `user_index` BIGINT NOT NULL,
-  `wearing_head` BIGINT NOT NULL,
-  `wearing_hair` BIGINT NOT NULL,
-  `wearing_dress` BIGINT NOT NULL,
+  `wearing_head` BIGINT NULL,
+  `wearing_hair` BIGINT NULL,
+  `wearing_dress` BIGINT NULL,
   PRIMARY KEY (`wearing_index`),
   INDEX `fk_wearing_user1_idx` (`user_index` ASC) VISIBLE,
   INDEX `fk_wearing_item1_idx` (`wearing_head` ASC) VISIBLE,

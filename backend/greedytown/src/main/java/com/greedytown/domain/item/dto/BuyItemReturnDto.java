@@ -17,13 +17,15 @@ public class BuyItemReturnDto {
 
 
     private List<ItemDto> userItems;
-    private List<WearingDto> userWearings;
+    private WearingDto wearingDto;
     private Long userMoney;
 
     @Builder
-    public BuyItemReturnDto(Long userMoney, List userItems) {
+    public BuyItemReturnDto(Long userMoney, List userItems,WearingDto wearingDto) {
         this.userMoney = userMoney;
         this.userItems = userItems;
+        this.wearingDto = wearingDto;
+
         ;
     }
 

@@ -1,5 +1,6 @@
 package com.greedytown.domain.item.model;
 
+import com.greedytown.domain.user.model.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,16 +16,20 @@ public class Wearing {
     private Long wearingIndex;
 
     @JoinColumn(name="user_index")
-    private Long userIndex;
+    @OneToOne
+    private User userIndex;
 
-    private String itemCode;
+    @JoinColumn(name="wearing_head")
+    @ManyToOne
+    private Item wearingHead;
+    @JoinColumn(name="wearing_hair")
+    @ManyToOne
+    private Item wearingHair;
+    @JoinColumn(name="wearing_dress")
+    @ManyToOne
+    private Item wearingDress;
 
 
-    private Long itemPrice;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="ahichievements_index")
-    private Achievements achievementsIndex;
 
 
 }
