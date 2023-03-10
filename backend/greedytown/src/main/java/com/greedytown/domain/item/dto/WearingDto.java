@@ -16,18 +16,24 @@ import javax.persistence.OneToOne;
 public class WearingDto {
 
     private Long wearingIndex;
-    private String wearingHead;
-    private String wearingTop;
-    private String wearingBottom;
+    private Long wearingHead;
+    private Long wearingHair;
+    private Long wearingDress;
+
+    private String wearingHeadName;
+    private String wearingHairName;
+    private String wearingDressName;
 
 
     @Builder
-    public WearingDto(Long wearingIndex, String wearingHead , String wearingTop , String wearingBottom) {
+        public WearingDto(Long wearingIndex, Long wearingHead , Long wearingHair , Long wearingDress,String wearingHeadName, String wearingHairName, String wearingDressName) {
         this.wearingIndex = wearingIndex;
         this.wearingHead = wearingHead;
-        this.wearingTop = wearingTop;
-        this.wearingBottom = wearingBottom;
-
+        this.wearingHair = wearingHair;
+        this.wearingDress = wearingDress;
+        this.wearingHeadName  = wearingHeadName;
+        this.wearingHairName = wearingHairName;
+        this.wearingDressName = wearingDressName;
     }
 
 }
