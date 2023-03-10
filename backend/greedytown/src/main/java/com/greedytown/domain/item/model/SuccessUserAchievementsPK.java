@@ -8,6 +8,7 @@ import java.io.Serializable;
 @Data
 public class SuccessUserAchievementsPK implements Serializable {
 
-    private Long userIndex;
     private Long achievementsIndex;
+    private Long userIndex;
+
 }

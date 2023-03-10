@@ -17,6 +17,7 @@ public class BuyItemReturnDto {
 
 
     private List<ItemDto> userItems;
+    private List<WearingDto> userWearings;
     private Long userMoney;
 
     @Builder
