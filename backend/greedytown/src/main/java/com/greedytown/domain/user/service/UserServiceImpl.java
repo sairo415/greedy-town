@@ -3,6 +3,8 @@ package com.greedytown.domain.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.greedytown.domain.item.model.Wearing;
+import com.greedytown.domain.item.repository.WearingRepository;
 import com.greedytown.domain.user.dto.UserDto;
 import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
@@ -22,8 +24,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    private final WearingRepository wearingRepository;
+
     @Override
-    public boolean insertUser(UserDto userDto) {
+    public String insertUser(UserDto userDto) {
+        User wearingUser = null;
+        String message = "";
         userDto.setUserPassword(bCryptPasswordEncoder.encode(userDto.getUserPassword()));
         User user = User.builder()
                 .userNickname(userDto.getUserNickname())
@@ -31,12 +37,26 @@ public class UserServiceImpl implements UserService {
                 .userPassword(userDto.getUserPassword())
                 .build();
         try {
-            userRepository.save(user);
+            wearingUser = userRepository.save(user);
         } catch (Exception e) {
-            return false;
+            message = "회원가입 실패";
+            return message;
         }
-        return true;
+        try {
+            Wearing wearing = new Wearing();
+            wearing.setUserIndex(wearingUser);
+            wearingRepository.save(wearing);
+
+        } catch (Exception e){
+            message = "옷입기 실패";
+            return message;
+        }
+        message = "다 성공";
+
+        return message;
     }
+
+
 
     @Override
     public boolean duplicatedEmail(String userEmail) {

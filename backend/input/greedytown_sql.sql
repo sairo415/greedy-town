@@ -57,11 +57,10 @@ CREATE TABLE IF NOT EXISTS `greedytown`.`user` (
   `user_nickname` VARCHAR(255) NULL DEFAULT NULL,
   `user_money` BIGINT NULL DEFAULT NULL,
   `user_clear_time` TIME NULL DEFAULT NULL,
-  `user_nick_name` VARCHAR(255) NULL DEFAULT NULL,
   PRIMARY KEY (`user_index`),
-  UNIQUE INDEX `UK_iawdd6oe19m976uwhajmeqeup` (`user_nick_name` ASC) VISIBLE)
+  UNIQUE INDEX `user_email_UNIQUE` (`user_email` ASC) VISIBLE,
+  UNIQUE INDEX `user_nickname_UNIQUE` (`user_nickname` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_as_cs;
 
@@ -78,14 +77,10 @@ CREATE TABLE IF NOT EXISTS `greedytown`.`friend_user_list` (
   INDEX `fk_friend_user_list_user2_idx` (`user_index_b` ASC) VISIBLE,
   CONSTRAINT `fk_friend_user_list_user1`
     FOREIGN KEY (`user_index_a`)
-    REFERENCES `greedytown`.`user` (`user_index`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    REFERENCES `greedytown`.`user` (`user_index`),
   CONSTRAINT `fk_friend_user_list_user2`
     FOREIGN KEY (`user_index_b`)
-    REFERENCES `greedytown`.`user` (`user_index`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `greedytown`.`user` (`user_index`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_as_cs;
@@ -118,7 +113,6 @@ CREATE TABLE IF NOT EXISTS `greedytown`.`item` (
     FOREIGN KEY (`block_user_index`)
     REFERENCES `greedytown`.`achievements` (`achievements_index`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_as_cs;
 
@@ -139,9 +133,7 @@ CREATE TABLE IF NOT EXISTS `greedytown`.`item_user_list` (
     REFERENCES `greedytown`.`item` (`item_index`),
   CONSTRAINT `fk_item_user_list_user1`
     FOREIGN KEY (`user_index`)
-    REFERENCES `greedytown`.`user` (`user_index`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `greedytown`.`user` (`user_index`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_as_cs;
@@ -167,6 +159,27 @@ CREATE TABLE IF NOT EXISTS `greedytown`.`message` (
     REFERENCES `greedytown`.`user` (`user_index`),
   CONSTRAINT `fk_message_user2`
     FOREIGN KEY (`message_to`)
+    REFERENCES `greedytown`.`user` (`user_index`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_as_cs;
+
+
+-- -----------------------------------------------------
+-- Table `greedytown`.`succeess_user_achievements`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`succeess_user_achievements` ;
+
+CREATE TABLE IF NOT EXISTS `greedytown`.`succeess_user_achievements` (
+  `achievements_index` BIGINT NOT NULL,
+  `user_index` BIGINT NOT NULL,
+  PRIMARY KEY (`achievements_index`, `user_index`),
+  INDEX `FK8gyjv29a06ki8exlaexoibmqs` (`user_index` ASC) VISIBLE,
+  CONSTRAINT `FK7mx0730yq7ybi8acnus7ccul3`
+    FOREIGN KEY (`achievements_index`)
+    REFERENCES `greedytown`.`achievements` (`achievements_index`),
+  CONSTRAINT `FK8gyjv29a06ki8exlaexoibmqs`
+    FOREIGN KEY (`user_index`)
     REFERENCES `greedytown`.`user` (`user_index`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
@@ -202,12 +215,22 @@ DROP TABLE IF EXISTS `greedytown`.`wearing` ;
 CREATE TABLE IF NOT EXISTS `greedytown`.`wearing` (
   `wearing_index` BIGINT NOT NULL AUTO_INCREMENT,
   `user_index` BIGINT NOT NULL,
-  `wearing_head` BIGINT NOT NULL,
+  `wearing_head` BIGINT NULL,
+  `wearing_hair` BIGINT NULL,
+  `wearing_dress` BIGINT NULL,
   PRIMARY KEY (`wearing_index`),
   INDEX `fk_wearing_user1_idx` (`user_index` ASC) VISIBLE,
   INDEX `fk_wearing_item1_idx` (`wearing_head` ASC) VISIBLE,
+  INDEX `fk_wearing_item2_idx` (`wearing_hair` ASC) VISIBLE,
+  INDEX `fk_wearing_item3_idx` (`wearing_dress` ASC) VISIBLE,
   CONSTRAINT `fk_wearing_item1`
     FOREIGN KEY (`wearing_head`)
+    REFERENCES `greedytown`.`item` (`item_index`),
+  CONSTRAINT `fk_wearing_item2`
+    FOREIGN KEY (`wearing_hair`)
+    REFERENCES `greedytown`.`item` (`item_index`),
+  CONSTRAINT `fk_wearing_item3`
+    FOREIGN KEY (`wearing_dress`)
     REFERENCES `greedytown`.`item` (`item_index`),
   CONSTRAINT `fk_wearing_user1`
     FOREIGN KEY (`user_index`)

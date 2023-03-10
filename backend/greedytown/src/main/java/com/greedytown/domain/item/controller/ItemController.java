@@ -1,9 +1,6 @@
 package com.greedytown.domain.item.controller;
 
-import com.greedytown.domain.item.dto.AchievementsDto;
-import com.greedytown.domain.item.dto.BuyItemDto;
-import com.greedytown.domain.item.dto.BuyItemReturnDto;
-import com.greedytown.domain.item.dto.ItemDto;
+import com.greedytown.domain.item.dto.*;
 import com.greedytown.domain.item.model.Achievements;
 import com.greedytown.domain.item.service.ItemService;
 import com.greedytown.domain.user.model.User;
@@ -74,5 +71,16 @@ public class ItemController {
         User user = (User) request.getAttribute("USER");
         return new ResponseEntity<List<AchievementsDto>>(itemService.insertMyAchievements(user,AchievementsIndex), HttpStatus.OK);
     }
+
+    @Transactional
+    @ApiOperation(value = "캐릭터 커스터마이징 한다.", notes = "캐릭터를 꾸며보자.")
+    @PostMapping("/character-custom")
+    public ResponseEntity<?> changeMyDress(HttpServletRequest request, WearingDto wearingDto) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<BuyItemReturnDto>(itemService.changeMyDress(user,wearingDto), HttpStatus.OK);
+    }
+
+
+
 
 }

@@ -6,7 +6,7 @@ import java.util.Map;
 
 public interface UserService {
 
-    boolean insertUser(UserDto userDto);
+    String insertUser(UserDto userDto);
     boolean duplicatedEmail(String userEmail);
     boolean duplicatedNickname(String userNickname);
     Map<String, String> reissue(String refreshToken);

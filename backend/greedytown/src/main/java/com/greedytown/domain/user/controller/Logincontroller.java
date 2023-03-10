@@ -55,13 +55,8 @@ public class Logincontroller {
     @ApiOperation(value = "회원 가입", notes = "회원가입을 한다.")
     public ResponseEntity<?> regist(@RequestBody UserDto userDto) {
         Map<String, String> response = new HashMap<>();
-        boolean success = userService.insertUser(userDto);
-        if (success) {
-            response.put("message", "success");
-        } else {
-            response.put("message", "fail");
-        }
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        String message = userService.insertUser(userDto);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
     @PostMapping("/login")

@@ -5,6 +5,7 @@ import com.greedytown.domain.item.dto.BuyItemReturnDto;
 import com.greedytown.domain.item.service.ItemService;
 import com.greedytown.domain.social.dto.MessageDto;
 import com.greedytown.domain.social.dto.MyFriendDto;
+import com.greedytown.domain.social.dto.MyMessageDto;
 import com.greedytown.domain.social.dto.RankingDto;
 import com.greedytown.domain.social.service.SocialService;
 import com.greedytown.domain.user.model.User;
@@ -82,6 +83,37 @@ public class SocialController {
         return new ResponseEntity<Void>(socialService.sendMessage(user,messageDto), HttpStatus.OK);
     }
 
+    @Transactional
+    @ApiOperation(value = "내 메세지를 조회한다.", notes = "내 메세지를 보자.")
+    @GetMapping("/message")
+    public ResponseEntity<?> getMyMessage(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<MyMessageDto>>(socialService.getMyMessage(user), HttpStatus.OK);
+    }
+
+
+    @Transactional
+    @ApiOperation(value = "메세지를 삭제한다.", notes = "내 메세지를 삭제하자.")
+    @DeleteMapping("/message")
+    public ResponseEntity<?> deleteMessage(Long messageIndex) throws Exception {
+        return new ResponseEntity<Void>(socialService.deleteMessage(messageIndex), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "내 메세지를 전부 삭제한다.", notes = "내 메세지를 전부 삭제하자.")
+    @DeleteMapping("/delete-all-message")
+    public ResponseEntity<?> deleteAllMessage(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<Void>(socialService.deleteAllMessage(user), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "메세지 수를 본다.", notes = "읽지 않은 메세지 수가 몇개인지 한번 봐보자.")
+    @GetMapping("/alarm")
+    public ResponseEntity<?> getMyNewMessage(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<Long>(socialService.getMyNewMessage(user), HttpStatus.OK);
+    }
 
 
 
