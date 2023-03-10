@@ -24,6 +24,7 @@ public class User {
     private String userNickname;
     @Column(columnDefinition = "BIGINT DEFAULT = 0")
     private Long userMoney;
+    @Column(columnDefinition = "DATE")
     private Date userJoinDate;
 
 }
