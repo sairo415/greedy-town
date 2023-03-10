@@ -10,6 +10,7 @@ import com.greedytown.domain.item.repository.ItemUserListRepository;
 import com.greedytown.domain.item.service.ItemService;
 import com.greedytown.domain.social.dto.MessageDto;
 import com.greedytown.domain.social.dto.MyFriendDto;
+import com.greedytown.domain.social.dto.MyMessageDto;
 import com.greedytown.domain.social.dto.RankingDto;
 import com.greedytown.domain.social.model.FriendUserList;
 import com.greedytown.domain.social.model.FriendUserListPK;
@@ -89,14 +90,53 @@ public class SocialServiceImpl implements SocialService {
     public Void sendMessage(User user, MessageDto messageDto) {
         Message message = new Message();
         message.setMessageFrom(user);
-        User friend = userRepository.findUserByUserIndex(messageDto.getMessage_to());
+        User friend = userRepository.findUserByUserIndex(messageDto.getMessageTo());
         message.setMessageFrom(user);
         message.setMessageTo(friend);
-        message.setMessageContent(messageDto.getMessage_content());
+        message.setMessageContent(messageDto.getMessageContent());
         message.setMessageWriteTime(LocalDateTime.now());
         message.setMessageCheck(false);
         messageRepository.save(message);
         return null;
+    }
+
+    @Override
+    public List<MyMessageDto> getMyMessage(User user) {
+
+        List<MyMessageDto> list = new ArrayList<>();
+
+        for(Message message : messageRepository.findAllByMessageTo_UserIndex(user.getUserIndex())){
+            User fromUser = userRepository.findUserByUserIndex(message.getMessageFrom().getUserIndex());
+            MyMessageDto messageDto = MyMessageDto.builder().
+                                      messageIndex(message.getMessageIndex()).
+                                      messageContent(message.getMessageContent()).
+                                      messageFrom(fromUser.getUserIndex()).
+                                      messageFromNickname(fromUser.getUserNickname()).
+                                      build();
+            list.add(messageDto);
+            //메세지 읽음 표시를 한다.
+            message.setMessageCheck(Boolean.TRUE);
+        }
+
+        return list;
+    }
+
+    @Override
+    public Void deleteMessage(Long messageIndex) {
+        messageRepository.deleteById(messageIndex);
+        return null;
+    }
+
+    @Override
+    public Void deleteAllMessage(User user) {
+        messageRepository.deleteAllByMessageTo_UserIndex(user.getUserIndex());
+        return null;
+    }
+
+    @Override
+    public Long getMyNewMessage(User user) {
+
+        return messageRepository.countAllByMessageTo_UserIndexAndMessageCheckFalse(user.getUserIndex());
     }
 
 
