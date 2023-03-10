@@ -2,6 +2,8 @@ package com.greedytown.global.config.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
 import com.greedytown.global.config.auth.PrincipalDetails;
@@ -37,9 +39,14 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
         String token = request.getHeader(JwtProperties.HEADER_STRING)
                 .replace(JwtProperties.TOKEN_PREFIX, "");
-
-        String username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(token)
-                .getClaim("username").asString();
+        String username = null;
+        try {
+            DecodedJWT userJwt = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(token);
+            username = userJwt.getClaim("username").asString();
+        } catch (TokenExpiredException expiredException) {
+            response.sendError(401); // 토큰 만료되었으면 401 반환
+            return;
+        }
 
         if(username != null) {
             User user = userRepository.findByUserEmail(username);
