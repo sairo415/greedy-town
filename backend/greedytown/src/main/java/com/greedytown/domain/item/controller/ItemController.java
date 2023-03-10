@@ -75,4 +75,14 @@ public class ItemController {
         return new ResponseEntity<List<AchievementsDto>>(itemService.insertMyAchievements(user,AchievementsIndex), HttpStatus.OK);
     }
 
+    @Transactional
+    @ApiOperation(value = "캐릭터 커스터마이징 한다.", notes = "캐릭터를 꾸며보자.")
+    @PostMapping("/character-custom")
+    public ResponseEntity<?> changeMyDress(HttpServletRequest request,Long AchievementsIndex) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<AchievementsDto>>(itemService.insertMyAchievements(user,AchievementsIndex), HttpStatus.OK);
+    }
+
+
+
 }
