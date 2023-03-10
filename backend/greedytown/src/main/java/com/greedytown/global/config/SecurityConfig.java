@@ -6,6 +6,7 @@ import com.greedytown.global.config.jwt.JwtAuthorizationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final RedisTemplate redisTemplate;
 
     @Autowired
     private UserRepository userRepository;
@@ -43,7 +45,7 @@ public class SecurityConfig {
                 .formLogin().disable() // formLogin은 세션 로그인 방식에서 로그인을 자동처리
                 .httpBasic().disable() // httpBasic은 request header에 id와 password값을 직접 날리는 방식
                 // jwt 사용
-                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), redisTemplate))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))
                 // 페이지 접근 권한 설정
                 .authorizeRequests()

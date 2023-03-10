@@ -3,12 +3,14 @@ package com.greedytown.domain.user.controller;
 import com.greedytown.domain.user.dto.LoginRequestDto;
 import com.greedytown.domain.user.dto.UserDto;
 import com.greedytown.domain.user.service.UserService;
+import com.greedytown.global.config.jwt.JwtProperties;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +60,23 @@ public class Logincontroller {
     }
 
     @PostMapping("/login")
+    @ApiOperation(value = "로그인", notes = "로그인을 한다.")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PostMapping("/reissue")
+    @ApiOperation(value = "토큰 재발급", notes = "accessToken을 재발급한다.")
+    public ResponseEntity<?> reissueToken(HttpServletRequest request) {
+        String refreshToken = request.getHeader(JwtProperties.HEADER_STRING);
+        Map<String, String> response = new HashMap<>();
+        if(refreshToken == null || !refreshToken.startsWith(JwtProperties.TOKEN_PREFIX)) {
+            response.put("message", "리프레시 토큰 없음");
+        } else {
+            refreshToken = refreshToken.replace(JwtProperties.TOKEN_PREFIX, "");
+            response = userService.reissue(refreshToken);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

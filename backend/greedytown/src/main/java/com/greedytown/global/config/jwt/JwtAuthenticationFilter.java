@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greedytown.domain.user.dto.LoginRequestDto;
 import com.greedytown.global.config.auth.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,11 +19,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
         인증 요청 시 실행되는 함수 (/login)
@@ -60,13 +63,22 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         PrincipalDetails principalDetailis = (PrincipalDetails) authResult.getPrincipal();
 
 
-        String jwtToken = JWT.create()
+        String acessToken = JWT.create()
                 .withSubject(principalDetailis.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.EXPIRATION_TIME))
-                .withClaim("id", principalDetailis.getUser().getUserIndex())
+                .withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.ACCESS_EXPIRATION_TIME))
+                .withClaim("id", principalDetailis.getUser().getUserSeq())
                 .withClaim("username", principalDetailis.getUser().getUserEmail())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
-        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX+jwtToken);
+        String refreshToken = JWT.create()
+                .withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.REFRESH_EXPIRATION_TIME))
+                .sign(Algorithm.HMAC512(JwtProperties.SECRET));
+        // RefreshToken을 Redis에 저장 (expirationTime 설정을 통해 자동 삭제 처리)
+        redisTemplate.opsForValue()
+                .set("RT:" + principalDetailis.getUsername(), refreshToken, JwtProperties.REFRESH_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
+
+        String jwtToken = JwtProperties.TOKEN_PREFIX+acessToken + " " + JwtProperties.TOKEN_PREFIX+refreshToken;
+
+        response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
     }
 }
