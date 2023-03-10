@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))
                 // 페이지 접근 권한 설정
                 .authorizeRequests()
-                .antMatchers("/regist", "/login", "/").permitAll()
+                .antMatchers("/*").permitAll()
                 .antMatchers("/v3/api-docs", "/swagger-resources/**", "/swagger-ui/**", "/webjars/**", "/swagger/**", "/sign-api/exception").permitAll()
                 .anyRequest().authenticated()
                 .and().build();
