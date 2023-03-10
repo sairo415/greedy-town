@@ -15,16 +15,15 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userIndex;
-    @Column(columnDefinition = "VARCHAR(255)", unique = true)
+    private Long userSeq;
+    @Column(columnDefinition = "VARCHAR(100)", unique = true)
     private String userEmail;
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(100)")
     private String userPassword;
-    @Column(columnDefinition = "VARCHAR(255)", unique = true)
+    @Column(columnDefinition = "VARCHAR(30)", unique = true)
     private String userNickname;
     @Column(columnDefinition = "BIGINT DEFAULT = 0")
     private Long userMoney;
-    @Column(columnDefinition = "TIME DEFAULT = 0")
-    private Date userClearTime;
+    private Date userJoinDate;
 
 }
