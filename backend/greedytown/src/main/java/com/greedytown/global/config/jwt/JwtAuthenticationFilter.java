@@ -63,7 +63,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         PrincipalDetails principalDetailis = (PrincipalDetails) authResult.getPrincipal();
 
 
-        String acessToken = JWT.create()
+        String accessToken = JWT.create()
                 .withSubject(principalDetailis.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.ACCESS_EXPIRATION_TIME))
                 .withClaim("id", principalDetailis.getUser().getUserSeq())
@@ -77,7 +77,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         redisTemplate.opsForValue()
                 .set("RT:" + principalDetailis.getUsername(), refreshToken, JwtProperties.REFRESH_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
 
-        String jwtToken = JwtProperties.TOKEN_PREFIX+acessToken + " " + JwtProperties.TOKEN_PREFIX+refreshToken;
+        String jwtToken = JwtProperties.TOKEN_PREFIX+accessToken + "_AND_" + JwtProperties.TOKEN_PREFIX+refreshToken;
 
         response.addHeader(JwtProperties.HEADER_STRING, jwtToken);
     }

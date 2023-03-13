@@ -1,7 +1,9 @@
 package com.greedytown.domain.user.controller;
 
 import com.greedytown.domain.user.dto.LoginRequestDto;
+import com.greedytown.domain.user.dto.TokenDto;
 import com.greedytown.domain.user.dto.UserDto;
+import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.service.UserService;
 import com.greedytown.global.config.jwt.JwtProperties;
 import io.swagger.annotations.ApiOperation;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,27 +59,45 @@ public class Logincontroller {
     public ResponseEntity<?> regist(@RequestBody UserDto userDto) {
         Map<String, String> response = new HashMap<>();
         String message = userService.insertUser(userDto);
-        return new ResponseEntity<>(message, HttpStatus.OK);
+        response.put("message", message);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    @ApiOperation(value = "로그인", notes = "로그인을 한다.")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    @ApiOperation(value = "로그인", notes = "로그인을 하고 token을 발급한다.")
+    public ResponseEntity<?> login(HttpServletResponse response, @RequestBody LoginRequestDto loginRequestDto) {
+        String jwtToken = response.getHeader(JwtProperties.HEADER_STRING);
+        String[] tokens = jwtToken.split("_AND_");
+        String accessToken = tokens[0];
+        String refreshToken = tokens[1];
+        TokenDto tokenDto = TokenDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+        return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
 
     @PostMapping("/reissue")
     @ApiOperation(value = "토큰 재발급", notes = "accessToken을 재발급한다.")
-    public ResponseEntity<?> reissueToken(HttpServletRequest request) {
-        String refreshToken = request.getHeader(JwtProperties.HEADER_STRING);
+    public ResponseEntity<?> reissueToken(TokenDto tokenDto) {
+        String refreshToken = tokenDto.getRefreshToken();
         Map<String, String> response = new HashMap<>();
         if(refreshToken == null || !refreshToken.startsWith(JwtProperties.TOKEN_PREFIX)) {
-            response.put("message", "리프레시 토큰 없음");
+            response.put("message", "리프레시 토큰을 보내주세요.");
         } else {
             refreshToken = refreshToken.replace(JwtProperties.TOKEN_PREFIX, "");
-            response = userService.reissue(refreshToken);
+            tokenDto.setRefreshToken(refreshToken);
+            response = userService.reissue(tokenDto);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/logout")
+    @ApiOperation(value = "토큰 재발급", notes = "accessToken을 재발급한다.")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        User user = (User) request.getAttribute("USER");
+        String accessToken = request.getHeader(JwtProperties.HEADER_STRING);
+        Map<String, String> response = userService.logout(user, accessToken);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
