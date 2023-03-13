@@ -20,7 +20,7 @@ public class Item {
     private Integer itemPrice;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="achievements_seq")
+    @JoinColumn(name="ahichievementsSeq")
     private Achievements achievementsSeq;
 
     @ManyToOne
