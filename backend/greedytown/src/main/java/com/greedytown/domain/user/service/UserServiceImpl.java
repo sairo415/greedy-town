@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.greedytown.domain.item.model.Wearing;
 import com.greedytown.domain.item.repository.WearingRepository;
+import com.greedytown.domain.social.model.Stat;
 import com.greedytown.domain.user.dto.TokenDto;
 import com.greedytown.domain.user.dto.UserDto;
 import com.greedytown.domain.user.model.User;
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String insertUser(UserDto userDto) {
-        User wearingUser = null;
+        User creatingUser = null;
         String message = "";
         userDto.setUserPassword(bCryptPasswordEncoder.encode(userDto.getUserPassword()));
         User user = User.builder()
@@ -43,18 +44,18 @@ public class UserServiceImpl implements UserService {
                 .userPassword(userDto.getUserPassword())
                 .build();
         try {
-            wearingUser = userRepository.save(user);
+            creatingUser = userRepository.save(user);
         } catch (Exception e) {
             message = "회원가입 실패";
             return message;
         }
         try {
-            Wearing wearing = new Wearing();
-            wearing.setUserSeq(wearingUser);
-            wearingRepository.save(wearing);
+            Stat stat = new Stat();
+            stat.setUserSeq(creatingUser.getUserSeq());
+            stat.setUserClearTime(null);
 
         } catch (Exception e){
-            message = "옷입기 실패";
+            message = "스탯 실패";
             return message;
         }
         message = "다 성공";
