@@ -5,6 +5,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.greedytown.domain.item.model.Wearing;
 import com.greedytown.domain.item.repository.WearingRepository;
+import com.greedytown.domain.social.model.Stat;
+import com.greedytown.domain.social.repository.StatRepository;
+import com.greedytown.domain.user.dto.StatDto;
 import com.greedytown.domain.user.dto.TokenDto;
 import com.greedytown.domain.user.dto.UserDto;
 import com.greedytown.domain.user.model.User;
@@ -28,12 +31,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private final WearingRepository wearingRepository;
     private final RedisTemplate redisTemplate;
+
+    private final StatRepository statRepository;
 
     @Override
     public String insertUser(UserDto userDto) {
-        User wearingUser = null;
+        User registUser = null;
         String message = "";
         userDto.setUserPassword(bCryptPasswordEncoder.encode(userDto.getUserPassword()));
         User user = User.builder()
@@ -43,18 +47,18 @@ public class UserServiceImpl implements UserService {
                 .userJoinDate(new Date())
                 .build();
         try {
-            wearingUser = userRepository.save(user);
+            registUser = userRepository.save(user);
         } catch (Exception e) {
             message = "회원가입 실패";
             return message;
         }
         try {
-            Wearing wearing = new Wearing();
-            wearing.setUserSeq(wearingUser);
-            wearingRepository.save(wearing);
+            Stat stat = new Stat();
+            stat.setUserSeq(registUser);
+            statRepository.save(stat);
 
         } catch (Exception e){
-            message = "옷입기 실패";
+            message = "스탯 실패";
             return message;
         }
         message = "다 성공";
@@ -141,5 +145,17 @@ public class UserServiceImpl implements UserService {
             response.put("message", "fail");
             return response;
         }
+    }
+
+    @Override
+    public StatDto updateStat(User user, StatDto statDto) {
+        
+        Stat stat = new Stat();
+        stat.setUserClearTime(statDto.getUserClearTime());
+        stat.setUserSeq(user);
+        statRepository.save(stat);
+
+        
+        return statDto;
     }
 }
