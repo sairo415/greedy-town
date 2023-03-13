@@ -40,6 +40,7 @@ public class UserServiceImpl implements UserService {
                 .userNickname(userDto.getUserNickname())
                 .userEmail(userDto.getUserEmail())
                 .userPassword(userDto.getUserPassword())
+                .userJoinDate(new Date())
                 .build();
         try {
             wearingUser = userRepository.save(user);
