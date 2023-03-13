@@ -10,13 +10,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AchievementsDto {
 
-    private Long AchievementsIndex;
-    private String Achievements_content;
+    private Long AchievementsSeq;
+    private String AchievementsContent;
 
     @Builder
-    public AchievementsDto(Long AchievementsIndex , String Achievements_content ) {
-        this.AchievementsIndex = AchievementsIndex;
-        this.Achievements_content = Achievements_content;
+    public AchievementsDto(Long AchievementsSeq , String AchievementsContent ) {
+        this.AchievementsSeq = AchievementsSeq;
+        this.AchievementsContent = AchievementsContent;
 
     }
 

@@ -12,19 +12,19 @@ public interface SocialService {
 
     List<RankingDto> getUserRanking();
 
-    Void insertFriend(User user, Long friendIndex);
+    Void insertFriend(User user, Long friendSeq);
 
-    Boolean isFriend(User user,Long friendIndex);
+    Boolean isFriend(User user,Long friendSeq);
 
     List<MyFriendDto> getMyFriendList(User user);
 
-    List<MyFriendDto> deleteMyFriend(User user,Long frinedIndex);
+    List<MyFriendDto> deleteMyFriend(User user,Long friendSeq);
 
     Void sendMessage(User user, MessageDto messageDto);
 
     List<MyMessageDto> getMyMessage(User user);
 
-    Void deleteMessage(Long messageIndex);
+    Void deleteMessage(Long messageSeq);
 
     Void deleteAllMessage(User user);
 

@@ -1,19 +1,10 @@
 package com.greedytown.domain.social.service;
 
-import com.greedytown.domain.item.dto.BuyItemDto;
-import com.greedytown.domain.item.dto.BuyItemReturnDto;
-import com.greedytown.domain.item.dto.ItemDto;
-import com.greedytown.domain.item.model.Item;
-import com.greedytown.domain.item.model.ItemUserList;
-import com.greedytown.domain.item.repository.ItemRepository;
-import com.greedytown.domain.item.repository.ItemUserListRepository;
-import com.greedytown.domain.item.service.ItemService;
 import com.greedytown.domain.social.dto.MessageDto;
 import com.greedytown.domain.social.dto.MyFriendDto;
 import com.greedytown.domain.social.dto.MyMessageDto;
 import com.greedytown.domain.social.dto.RankingDto;
 import com.greedytown.domain.social.model.FriendUserList;
-import com.greedytown.domain.social.model.FriendUserListPK;
 import com.greedytown.domain.social.model.Message;
 import com.greedytown.domain.social.repository.FriendUserListRepository;
 import com.greedytown.domain.social.repository.MessageRepository;
@@ -50,9 +41,9 @@ public class SocialServiceImpl implements SocialService {
     }
 
     @Override
-    public Void insertFriend(User user, Long friendIndex) {
+    public Void insertFriend(User user, Long friendSeq) {
         FriendUserList friendUserList = new FriendUserList();
-        User friend = userRepository.findUserByUserIndex(friendIndex);
+        User friend = userRepository.findUserByUserSeq(friendSeq);
         friendUserList.setUserIndexA(user);
         friendUserList.setUserIndexB(friend);
         friendUserListRepository.save(friendUserList);
@@ -60,12 +51,12 @@ public class SocialServiceImpl implements SocialService {
     }
 
     @Override
-    public Boolean isFriend(User user, Long friendIndex) {
-        User friend = userRepository.findUserByUserIndex(friendIndex);
-        Boolean check = friendUserListRepository.existsByUserIndexA_UserIndexAndUserIndexB_UserIndex(user.getUserIndex(),friend.getUserIndex());
+    public Boolean isFriend(User user, Long friendSeq) {
+        User friend = userRepository.findUserByUserSeq(friendSeq);
+        Boolean check = friendUserListRepository.existsByUserIndexA_UserIndexAndUserIndexB_UserIndex(user.getUserSeq(),friend.getUserSeq());
         if(check) return true;
 //        user.getUserIndex();
-        check = friendUserListRepository.existsByUserIndexB_UserIndexAndUserIndexA_UserIndex(user.getUserIndex(),friend.getUserIndex());
+        check = friendUserListRepository.existsByUserIndexB_UserIndexAndUserIndexA_UserIndex(user.getUserSeq(),friend.getUserSeq());
         if(check) return true;
         return false;
     }
@@ -80,8 +71,8 @@ public class SocialServiceImpl implements SocialService {
     @Override
     public List<MyFriendDto> deleteMyFriend(User user, Long frinedIndex) {
 
-        friendUserListRepository.deleteByUserIndexA_userIndexAndUserIndexB_userIndex(user.getUserIndex(),frinedIndex);
-        friendUserListRepository.deleteByUserIndexB_userIndexAndUserIndexA_userIndex(user.getUserIndex(),frinedIndex);
+        friendUserListRepository.deleteByUserIndexA_userIndexAndUserIndexB_userIndex(user.getUserSeq(),frinedIndex);
+        friendUserListRepository.deleteByUserIndexB_userIndexAndUserIndexA_userIndex(user.getUserSeq(),frinedIndex);
 
         return getMyFriends(user);
     }
@@ -90,7 +81,7 @@ public class SocialServiceImpl implements SocialService {
     public Void sendMessage(User user, MessageDto messageDto) {
         Message message = new Message();
         message.setMessageFrom(user);
-        User friend = userRepository.findUserByUserIndex(messageDto.getMessageTo());
+        User friend = userRepository.findUserByUserSeq(messageDto.getMessageTo());
         message.setMessageFrom(user);
         message.setMessageTo(friend);
         message.setMessageContent(messageDto.getMessageContent());
@@ -105,12 +96,12 @@ public class SocialServiceImpl implements SocialService {
 
         List<MyMessageDto> list = new ArrayList<>();
 
-        for(Message message : messageRepository.findAllByMessageTo_UserIndex(user.getUserIndex())){
-            User fromUser = userRepository.findUserByUserIndex(message.getMessageFrom().getUserIndex());
+        for(Message message : messageRepository.findAllByMessageTo_UserIndex(user.getUserSeq())){
+            User fromUser = userRepository.findUserByUserSeq(message.getMessageFrom().getUserSeq());
             MyMessageDto messageDto = MyMessageDto.builder().
-                                      messageIndex(message.getMessageIndex()).
+                                      messageSeq(message.getMessageSeq()).
                                       messageContent(message.getMessageContent()).
-                                      messageFrom(fromUser.getUserIndex()).
+                                      messageFrom(fromUser.getUserSeq()).
                                       messageFromNickname(fromUser.getUserNickname()).
                                       build();
             list.add(messageDto);
@@ -129,14 +120,14 @@ public class SocialServiceImpl implements SocialService {
 
     @Override
     public Void deleteAllMessage(User user) {
-        messageRepository.deleteAllByMessageTo_UserIndex(user.getUserIndex());
+        messageRepository.deleteAllByMessageTo_UserIndex(user.getUserSeq());
         return null;
     }
 
     @Override
     public Long getMyNewMessage(User user) {
 
-        return messageRepository.countAllByMessageTo_UserIndexAndMessageCheckFalse(user.getUserIndex());
+        return messageRepository.countAllByMessageTo_UserIndexAndMessageCheckFalse(user.getUserSeq());
     }
 
 
@@ -146,18 +137,18 @@ public class SocialServiceImpl implements SocialService {
 
         List<MyFriendDto> myFriendDtos = new ArrayList<>();
 
-        for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexA_userIndex(user.getUserIndex())){
-            User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexB().getUserIndex());
+        for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexA_userIndex(user.getUserSeq())){
+            User user1 = userRepository.findUserByUserSeq(friendUserList.getUserIndexB().getUserIndex());
             MyFriendDto myFriendDto = MyFriendDto.builder().
-                    userIndex(user1.getUserIndex()).
+                    userSeq(user1.getUserSeq()).
                     userNickname(user1.getUserNickname()).
                     build();
             myFriendDtos.add(myFriendDto);
         }
-        for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexB_userIndex(user.getUserIndex())){
+        for(FriendUserList friendUserList : friendUserListRepository.findAllByUserIndexB_userIndex(user.getUserSeq())){
             User user1 = userRepository.findUserByUserIndex(friendUserList.getUserIndexA().getUserIndex());
             MyFriendDto myFriendDto = MyFriendDto.builder().
-                    userIndex(user1.getUserIndex()).
+                    userSeq(user1.getUserSeq()).
                     userNickname(user1.getUserNickname()).
                     build();
             myFriendDtos.add(myFriendDto);

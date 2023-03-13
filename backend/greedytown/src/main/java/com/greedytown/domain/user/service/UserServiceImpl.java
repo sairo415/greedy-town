@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
         }
         try {
             Wearing wearing = new Wearing();
-            wearing.setUserIndex(wearingUser);
+            wearing.setUserSeq(wearingUser);
             wearingRepository.save(wearing);
 
         } catch (Exception e){
