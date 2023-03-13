@@ -20,6 +20,8 @@ USE `greedytown` ;
 -- -----------------------------------------------------
 -- Table `greedytown`.`achievements`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`achievements` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`achievements` (
   `achievements_seq` BIGINT NOT NULL,
   `achievements_name` VARCHAR(30) NULL DEFAULT NULL,
@@ -33,15 +35,18 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`user`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`user` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`user` (
   `user_seq` BIGINT NOT NULL AUTO_INCREMENT,
-  `user_email` VARCHAR(100) NOT NULL,
   `user_password` VARCHAR(100) NOT NULL,
+  `user_email` VARCHAR(100) NOT NULL,
   `user_nickname` VARCHAR(30) NOT NULL,
   `user_money` BIGINT NULL DEFAULT '0',
   `user_join_date` DATE NULL DEFAULT NULL,
   PRIMARY KEY (`user_seq`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_as_cs;
 
@@ -49,10 +54,12 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`friend_user_list`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`friend_user_list` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`friend_user_list` (
   `friend_seq` BIGINT NOT NULL,
-  `friend_from` BIGINT NULL,
-  `friend_to` BIGINT NULL,
+  `friend_from` BIGINT NOT NULL,
+  `friend_to` BIGINT NOT NULL,
   `friend_accept` TINYINT NULL DEFAULT '0',
   `friend_request_date` DATE NULL DEFAULT NULL,
   PRIMARY KEY (`friend_seq`),
@@ -72,6 +79,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`item_color`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`item_color` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`item_color` (
   `item_color_seq` SMALLINT NOT NULL,
   `item_color_name` VARCHAR(30) NULL DEFAULT NULL,
@@ -84,6 +93,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`item_type`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`item_type` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`item_type` (
   `item_type_seq` SMALLINT NOT NULL,
   `item_type_name` VARCHAR(20) NULL DEFAULT NULL,
@@ -96,6 +107,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`item`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`item` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`item` (
   `item_seq` BIGINT NOT NULL,
   `item_name` VARCHAR(200) NULL DEFAULT NULL,
@@ -124,6 +137,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`item_user_list`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`item_user_list` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`item_user_list` (
   `user_seq` BIGINT NOT NULL,
   `item_seq` BIGINT NOT NULL,
@@ -144,6 +159,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`message`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`message` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`message` (
   `message_seq` BIGINT NOT NULL,
   `message_from` BIGINT NOT NULL,
@@ -168,6 +185,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`money_log`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`money_log` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`money_log` (
   `money_log_seq` BIGINT NOT NULL,
   `money_log_time` DATETIME NULL DEFAULT NULL,
@@ -187,15 +206,15 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`stat`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`stat` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`stat` (
   `user_seq` BIGINT NOT NULL,
   `user_clear_time` TIME NULL DEFAULT NULL,
   PRIMARY KEY (`user_seq`),
   CONSTRAINT `fk_stat_user1`
     FOREIGN KEY (`user_seq`)
-    REFERENCES `greedytown`.`user` (`user_seq`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `greedytown`.`user` (`user_seq`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_as_cs;
@@ -204,6 +223,8 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`success_user_achievements`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`success_user_achievements` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`success_user_achievements` (
   `user_seq` BIGINT NOT NULL,
   `achievements_seq` BIGINT NOT NULL,
@@ -224,10 +245,12 @@ COLLATE = utf8mb4_0900_as_cs;
 -- -----------------------------------------------------
 -- Table `greedytown`.`wearing`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `greedytown`.`wearing` ;
+
 CREATE TABLE IF NOT EXISTS `greedytown`.`wearing` (
   `wearing_seq` BIGINT NOT NULL,
   `user_seq` BIGINT NOT NULL,
-  `item_seq` BIGINT NOT NULL,
+  `item_seq` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`wearing_seq`),
   INDEX `fk_wearing_item1_idx` (`item_seq` ASC) VISIBLE,
   INDEX `fk_wearing_user1_idx` (`user_seq` ASC) VISIBLE,
