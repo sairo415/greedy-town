@@ -12,7 +12,7 @@ public class Achievements {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long achievementsIndex;
+    private Long achievementsSeq;
 
     private String achievementsContent;
 

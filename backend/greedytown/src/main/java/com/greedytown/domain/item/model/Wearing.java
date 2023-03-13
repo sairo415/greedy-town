@@ -13,21 +13,17 @@ public class Wearing {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long wearingIndex;
+    private Long wearingSeq;
 
-    @JoinColumn(name="user_index")
+    @JoinColumn(name="userSeq")
     @OneToOne
-    private User userIndex;
+    private User userSeq;
 
-    @JoinColumn(name="wearing_head")
+    @JoinColumn(name="itemSeq")
     @ManyToOne
-    private Item wearingHead;
-    @JoinColumn(name="wearing_hair")
-    @ManyToOne
-    private Item wearingHair;
-    @JoinColumn(name="wearing_dress")
-    @ManyToOne
-    private Item wearingDress;
+    private Item itemSeq;
+
+
 
 
 

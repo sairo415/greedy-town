@@ -19,7 +19,7 @@ public class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long messageIndex;
+    private Long messageSeq;
 
     @JoinColumn(name = "message_from")
     @ManyToOne

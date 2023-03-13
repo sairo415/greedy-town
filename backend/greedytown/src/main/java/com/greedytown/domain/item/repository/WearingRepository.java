@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WearingRepository extends JpaRepository<Wearing, Long> {
     
-    Wearing findByUserIndex_UserIndex(Long UserIndex);
+    Wearing findByUserSeq_UserSeq(Long UserSeq);
 }

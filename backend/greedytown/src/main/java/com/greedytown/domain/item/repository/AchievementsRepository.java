@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface AchievementsRepository extends JpaRepository<Achievements, Long> {
     
-    Achievements findByAchievementsIndex(Long achievementsIndex);
+    Achievements findByAchievementsSeq(Long achievementsSeq);
 }

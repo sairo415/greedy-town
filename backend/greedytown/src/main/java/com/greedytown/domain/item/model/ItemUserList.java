@@ -18,13 +18,13 @@ public class ItemUserList {
 
     @Id
     @ManyToOne
-    @JoinColumn(name="user_index")
-    private User userIndex;
+    @JoinColumn(name="userSeq")
+    private User userSeq;
 
     @Id
     @ManyToOne
-    @JoinColumn(name="item_index")
-    private Item itemIndex;
+    @JoinColumn(name="itemSeq")
+    private Item itemSeq;
 
 
 

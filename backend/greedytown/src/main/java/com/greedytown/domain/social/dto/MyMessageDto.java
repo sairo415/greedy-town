@@ -10,15 +10,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MyMessageDto {
 
-    private Long messageIndex;
+    private Long messageSeq;
     private Long messageFrom;
     private String messageFromNickname;
     private String messageContent;
 
     @Builder
-    public MyMessageDto(Long messageIndex,Long messageFrom,String messageFromNickname, String messageContent) {
+    public MyMessageDto(Long messageSeq,Long messageFrom,String messageFromNickname, String messageContent) {
 
-        this.messageIndex = messageIndex;
+        this.messageSeq = messageSeq;
         this.messageFrom = messageFrom;
         this.messageFromNickname = messageFromNickname;
         this.messageContent = messageContent;

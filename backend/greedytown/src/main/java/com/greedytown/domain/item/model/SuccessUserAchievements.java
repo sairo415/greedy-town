@@ -18,13 +18,13 @@ public class SuccessUserAchievements {
 
     @Id
     @ManyToOne
-    @JoinColumn(name="achievements_index")
-    private Achievements achievementsIndex;
+    @JoinColumn(name="achievementsSeq")
+    private Achievements achievementsSeq;
 
     @Id
     @ManyToOne
-    @JoinColumn(name="user_index")
-    private User userIndex;
+    @JoinColumn(name="userSeq")
+    private User userSeq;
 
 
 

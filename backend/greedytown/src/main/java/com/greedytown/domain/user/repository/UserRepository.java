@@ -11,7 +11,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByOrderByUserClearTimeDesc();
 
-    User findUserByUserIndex(Long userIndex);
+    User findUserByUserSeq(Long userSeq);
 
     User findByUserEmail(String userEmail);
 

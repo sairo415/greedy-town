@@ -15,25 +15,15 @@ import javax.persistence.OneToOne;
 @NoArgsConstructor
 public class WearingDto {
 
-    private Long wearingIndex;
-    private Long wearingHead;
-    private Long wearingHair;
-    private Long wearingDress;
-
-    private String wearingHeadName;
-    private String wearingHairName;
-    private String wearingDressName;
+    private Long wearingSeq;
+    private ItemDto itemDto;
 
 
     @Builder
-        public WearingDto(Long wearingIndex, Long wearingHead , Long wearingHair , Long wearingDress,String wearingHeadName, String wearingHairName, String wearingDressName) {
-        this.wearingIndex = wearingIndex;
-        this.wearingHead = wearingHead;
-        this.wearingHair = wearingHair;
-        this.wearingDress = wearingDress;
-        this.wearingHeadName  = wearingHeadName;
-        this.wearingHairName = wearingHairName;
-        this.wearingDressName = wearingDressName;
+        public WearingDto(Long wearingSeq, ItemDto itemDto ) {
+        this.wearingSeq = wearingSeq;
+        this.itemDto = itemDto;
+
     }
 
 }

@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ItemUserListRepository extends JpaRepository<ItemUserList, Long> {
-    List<ItemUserList> findItemUserListsByUserIndex(User user);
+    List<ItemUserList> findItemUserListsByUserSeq_UserSeq(Long userSeq);
 
 }
