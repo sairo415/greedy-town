@@ -7,6 +7,7 @@ import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,16 +50,22 @@ public class  ItemServiceImpl implements ItemService{
         itemUserListRepository.save(itemUserList);
         WearingDto wearingDto = new WearingDto();
         //아이템 리턴
-        return getMyWearingDress(user,wearingDto);
+        BuyItemReturnDto buyItemReturnDto = new BuyItemReturnDto();
+        getMyDress(user,buyItemReturnDto);
+        return getMyWearingDress(user,buyItemReturnDto);
+
     }
 
     //내 아이템을 본다.
     @Override
     public BuyItemReturnDto getMyItemList(User user) {
         //지금 입은 옷 찾기
-        WearingDto wearingDto = new WearingDto();
+        BuyItemReturnDto buyItemReturnDto = new BuyItemReturnDto();
+        //지금 입은 옷 보기
+        getMyWearingDress(user,buyItemReturnDto);
+        //전체 아이템 보기
+        return getMyDress(user,buyItemReturnDto);
 
-        return getMyWearingDress(user,wearingDto);
     }
 
     @Override
@@ -80,48 +87,68 @@ public class  ItemServiceImpl implements ItemService{
     }
 
 
+    @Transactional
     @Override
-    public BuyItemReturnDto changeMyDress(User user, WearingDto wearingDto) {
+    public BuyItemReturnDto changeMyDress(User user, List<WearingDto> wearingDtos) {
 
-        return getMyWearingDress(user,wearingDto);
+        BuyItemReturnDto buyItemReturnDto = new BuyItemReturnDto();
+        //내 전체 아이템
+        getMyDress(user,buyItemReturnDto);
+        //여기서 내 옷 입어주기
+
+        for(WearingDto wearingNow : wearingDtos) {
+            System.out.println(wearingNow.getItemDto().getItemTypeSeq().getClass()+ " 이치헌");
+            System.out.println(user.getUserSeq().getClass()+ " 이승진");
+            wearingRepository.deleteByItemSeq_ItemTypeSeq_ItemTypeSeqAndUserSeq_UserSeq(wearingNow.getItemDto().getItemTypeSeq() , user.getUserSeq());
+            Wearing wearing = new Wearing();
+            Item item = itemRepository.findByItemSeq(wearingNow.getItemDto().getItemSeq());
+            wearing.setItemSeq(item);
+            wearing.setUserSeq(user);
+            wearingRepository.save(wearing);
+
+        }
+
+        return getMyWearingDress(user,buyItemReturnDto);
     }
 
 
 
 
     //재사용을 위한 내 옷 보기
-    private BuyItemReturnDto getMyWearingDress(User user ,WearingDto wearingDto){
+    private BuyItemReturnDto getMyWearingDress(User user,BuyItemReturnDto buyItemReturnDto){
 
-        BuyItemReturnDto buyItemReturnDto = new BuyItemReturnDto();
+        buyItemReturnDto.setWearingDtos(new ArrayList<>());
 
-        Wearing wearing =  wearingRepository.findByUserSeq_UserSeq(user.getUserSeq());
-        Item item = itemRepository.findByItemSeq(wearingDto.getItemDto().getItemSeq());
+        List<WearingDto> wearingList = buyItemReturnDto.getWearingDtos();
 
-        wearing.setItemSeq(item);
+        //내가 입고 있는 아이템 정보 습득
+        for(Wearing wearing : wearingRepository.findAllByUserSeq_UserSeq(user.getUserSeq())){
+            //아이템 정보
+            Item item = itemRepository.findByItemSeq(wearing.getItemSeq().getItemSeq());
 
-        ItemDto itemDto = ItemDto.builder().
-                          itemSeq(item.getItemSeq()).
-                          itemName(item.getItemName()).
-                          itemColorSeq(item.getItemColorSeq().getItemColorSeq()).
-                          itemColorName(item.getItemColorSeq().getItemColorName()).
-                          itemTypeSeq(item.getItemTypeSeq().getItemTypeSeq()).
-                          itemTypeName(item.getItemTypeSeq().getItemTypeName()).
-                          build();
+            ItemDto itemDto = ItemDto.builder().
+                              itemSeq(item.getItemSeq()).
+                              itemPrice(item.getItemPrice()).
+                              itemTypeSeq(item.getItemTypeSeq().getItemTypeSeq()).
+                              itemTypeName(item.getItemTypeSeq().getItemTypeName()).
+                              itemColorSeq(item.getItemColorSeq().getItemColorSeq()).
+                              itemColorName(item.getItemColorSeq().getItemColorName()).
+                              build();
 
-        wearingDto = WearingDto.builder().
-                wearingSeq(wearing.getWearingSeq()).
-                itemDto(itemDto).
-                build();
+            WearingDto wearingDto = WearingDto.builder().
+                                    itemDto(itemDto).
+                                    wearingSeq(wearing.getWearingSeq()).
+                                    build();
 
-        buyItemReturnDto.setWearingDto(wearingDto);
-
-        getMyDress(user,wearingDto,buyItemReturnDto);
+            wearingList.add(wearingDto);
+        }
 
         return buyItemReturnDto;
     }
 
     //재사용을 위한 아이템 보기
-    private Void getMyDress(User user,WearingDto wearingDto,BuyItemReturnDto buyItemReturnDto){
+    private BuyItemReturnDto getMyDress(User user, BuyItemReturnDto buyItemReturnDto){
+
 
         buyItemReturnDto.setUserMoney(user.getUserMoney());
         buyItemReturnDto.setUserItems(new ArrayList());
@@ -138,14 +165,9 @@ public class  ItemServiceImpl implements ItemService{
                     achievementsSeq(item.getAchievementsSeq()).
                     build();
             //입고 있는 옷이면 가지고 있는 옷에서 빼주기.
-            if(item.getItemSeq()==wearingDto.getItemDto().getItemSeq()) continue;
-
             list.add(itemDto);
         }
-
-
-        return null;
-
+        return buyItemReturnDto;
     }
 
     //재사용을 위한 업적 보기

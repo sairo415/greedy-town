@@ -8,18 +8,20 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MyFriendDto {
+public class FriendUserListDto {
+
 
     private Long friendSeq;
-    private Long userSeq;
-    private String userNickname;
+
+    private Long friendFrom;
+
 
     @Builder
-    public MyFriendDto(Long friendSeq,Long userSeq , String userNickname ) {
+    public FriendUserListDto(Long friendSeq, Long friendFrom ) {
+
+
         this.friendSeq = friendSeq;
-        this.userSeq = userSeq;
-        this.userNickname = userNickname;
+        this.friendFrom = friendFrom;
 
     }
-
 }

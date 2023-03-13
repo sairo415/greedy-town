@@ -3,10 +3,7 @@ package com.greedytown.domain.social.controller;
 import com.greedytown.domain.item.dto.BuyItemDto;
 import com.greedytown.domain.item.dto.BuyItemReturnDto;
 import com.greedytown.domain.item.service.ItemService;
-import com.greedytown.domain.social.dto.MessageDto;
-import com.greedytown.domain.social.dto.MyFriendDto;
-import com.greedytown.domain.social.dto.MyMessageDto;
-import com.greedytown.domain.social.dto.RankingDto;
+import com.greedytown.domain.social.dto.*;
 import com.greedytown.domain.social.service.SocialService;
 import com.greedytown.domain.user.model.User;
 import io.swagger.annotations.ApiOperation;
@@ -90,6 +87,16 @@ public class SocialController {
         User user = (User) request.getAttribute("USER");
         return new ResponseEntity<Void>(socialService.deleteMyFriendAlarmList(user,fromFriend), HttpStatus.OK);
     }
+
+
+    @Transactional
+    @ApiOperation(value = "친구 요청을 수락한다.", notes = "친구 요청을 수락한다.")
+    @PostMapping("/friend-alarm-accept")
+    public ResponseEntity<?> acceptFrinedRequest(HttpServletRequest request, @RequestBody @ApiParam(value = "아이템 정보.", required = true)FriendUserListDto friendUserListDto) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<MyFriendDto>>(socialService.acceptFrinedRequest(user,friendUserListDto), HttpStatus.OK);
+    }
+
 
 
 
