@@ -23,7 +23,7 @@ public class User {
 
     @Column(columnDefinition = "VARCHAR(30)", unique = true)
     private String userNickname;
-    @Column(columnDefinition = "BIGINT DEFAULT = 0")
+    @Column(columnDefinition = "BIGINT DEFAULT 0")
     private Long userMoney;
     @Column(columnDefinition = "DATE")
     private Date userJoinDate;
