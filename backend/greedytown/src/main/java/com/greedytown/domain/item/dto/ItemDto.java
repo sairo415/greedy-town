@@ -21,16 +21,16 @@ public class ItemDto {
 
     private Achievements achievementsSeq;
 
-    private Short itemColorSeq;
+    private Integer itemColorSeq;
     private String itemColorName;
 
-    private Short itemTypeSeq;
+    private Integer itemTypeSeq;
     private String itemTypeName;
 
 
 
     @Builder
-    public ItemDto(Long itemSeq, String itemName  , Integer itemPrice , Achievements achievementsSeq,Short itemColorSeq,String itemColorName, Short itemTypeSeq, String itemTypeName) {
+    public ItemDto(Long itemSeq, String itemName  , Integer itemPrice , Achievements achievementsSeq,Integer itemColorSeq,String itemColorName, Integer itemTypeSeq, String itemTypeName) {
         this.itemSeq = itemSeq;
         this.itemName = itemName;
         this.itemPrice = itemPrice;

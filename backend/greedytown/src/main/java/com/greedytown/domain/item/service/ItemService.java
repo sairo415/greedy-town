@@ -18,5 +18,5 @@ public interface ItemService {
 
     List<AchievementsDto> insertMyAchievements(User user,Long AchievementsIndex);
 
-    BuyItemReturnDto changeMyDress(User user, WearingDto wearingDto);
+    BuyItemReturnDto changeMyDress(User user, List<WearingDto> wearingDto);
 }

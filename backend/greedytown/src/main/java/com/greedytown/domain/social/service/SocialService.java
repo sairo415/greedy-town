@@ -1,9 +1,6 @@
 package com.greedytown.domain.social.service;
 
-import com.greedytown.domain.social.dto.MessageDto;
-import com.greedytown.domain.social.dto.MyFriendDto;
-import com.greedytown.domain.social.dto.MyMessageDto;
-import com.greedytown.domain.social.dto.RankingDto;
+import com.greedytown.domain.social.dto.*;
 import com.greedytown.domain.user.model.User;
 
 import java.util.List;
@@ -33,4 +30,6 @@ public interface SocialService {
     List<MyFriendDto> getMyFriendAlarmList(User user);
 
     Void deleteMyFriendAlarmList(User user, Long fromFriend);
+
+    List<MyFriendDto> acceptFrinedRequest(User user, FriendUserListDto friendUserListDto);
 }
