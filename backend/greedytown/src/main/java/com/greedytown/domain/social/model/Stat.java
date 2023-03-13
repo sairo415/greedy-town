@@ -6,6 +6,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 
@@ -16,13 +17,14 @@ import java.util.Objects;
 @NoArgsConstructor
 public class Stat {
     @Id
-    @Column(name="user_seq")
-    private Long userSeq;
+    @Column(name="stat_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long statSeq;
 
     @MapsId
     @OneToOne
     @JoinColumn(name="user_seq")
-    private User user;
+    private User userSeq;
 
     @Column(columnDefinition = "TIME")
     private Timestamp userClearTime;

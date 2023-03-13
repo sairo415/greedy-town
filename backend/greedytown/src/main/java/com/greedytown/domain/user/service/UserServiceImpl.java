@@ -6,6 +6,8 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.greedytown.domain.item.model.Wearing;
 import com.greedytown.domain.item.repository.WearingRepository;
 import com.greedytown.domain.social.model.Stat;
+import com.greedytown.domain.social.repository.StatRepository;
+import com.greedytown.domain.user.dto.StatDto;
 import com.greedytown.domain.user.dto.TokenDto;
 import com.greedytown.domain.user.dto.UserDto;
 import com.greedytown.domain.user.model.User;
@@ -15,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import javax.transaction.Transactional;
 import java.util.Date;
@@ -30,29 +31,31 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private final WearingRepository wearingRepository;
     private final RedisTemplate redisTemplate;
+
+    private final StatRepository statRepository;
 
     @Override
     public String insertUser(UserDto userDto) {
-        User creatingUser = null;
+        User registUser = null;
         String message = "";
         userDto.setUserPassword(bCryptPasswordEncoder.encode(userDto.getUserPassword()));
         User user = User.builder()
                 .userNickname(userDto.getUserNickname())
                 .userEmail(userDto.getUserEmail())
                 .userPassword(userDto.getUserPassword())
+                .userJoinDate(new Date())
                 .build();
         try {
-            creatingUser = userRepository.save(user);
+            registUser = userRepository.save(user);
         } catch (Exception e) {
             message = "회원가입 실패";
             return message;
         }
         try {
             Stat stat = new Stat();
-            stat.setUserSeq(creatingUser.getUserSeq());
-            stat.setUserClearTime(null);
+            stat.setUserSeq(registUser);
+            statRepository.save(stat);
 
         } catch (Exception e){
             message = "스탯 실패";
@@ -89,17 +92,12 @@ public class UserServiceImpl implements UserService {
             response.put("message", "리프레시 토큰 만료");
         }
         // 레디스에서 리프레시 토큰 찾기
-        DecodedJWT accessJwt = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(tokenDto.getAccessToken());
-        String userEmail1 = accessJwt.getClaim("username").toString();
-        String userEmail2 = accessJwt.getClaim("username").asString();
-        System.out.println(userEmail1);
-        System.out.println(userEmail2);
-        User user = userRepository.findByUserEmail(userEmail1);
-        String refreshToken = (String)redisTemplate.opsForValue().get("RT:" + userEmail1);
-
-        // 로그아웃해서 레디스에 리프레시 토큰이 없으면
-        if(ObjectUtils.isEmpty(refreshToken)) {
-            response.put("message", "Refresh Token 정보가 유효하지 않습니다.");
+        User user = userRepository.findByUserEmail(tokenDto.getUserEmail());
+        String refreshToken = "";
+        try {
+            refreshToken = (String)redisTemplate.opsForValue().get("RT:" + tokenDto.getUserEmail());
+        } catch (NullPointerException n) { // 로그아웃해서 레디스에 리프레시 토큰이 없으면
+            response.put("message", "Refresh Token 또는 이메일 정보가 유효하지 않습니다.");
             return response;
         }
         // 레디스에 저장된 리프레시 토큰과 일치하지 않으면
@@ -109,10 +107,10 @@ public class UserServiceImpl implements UserService {
         }
         // access token 재발급
         String accessToken = JWT.create()
-                .withSubject(userEmail1)
+                .withSubject(user.getUserEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis()+JwtProperties.ACCESS_EXPIRATION_TIME))
                 .withClaim("id", user.getUserSeq())
-                .withClaim("username", userEmail1)
+                .withClaim("username", user.getUserEmail())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
         response.put("message", "success");
         response.put("accessToken", JwtProperties.TOKEN_PREFIX+accessToken);
@@ -147,5 +145,17 @@ public class UserServiceImpl implements UserService {
             response.put("message", "fail");
             return response;
         }
+    }
+
+    @Override
+    public StatDto updateStat(User user, StatDto statDto) {
+        
+        Stat stat = new Stat();
+        stat.setUserClearTime(statDto.getUserClearTime());
+        stat.setUserSeq(user);
+        statRepository.save(stat);
+
+        
+        return statDto;
     }
 }

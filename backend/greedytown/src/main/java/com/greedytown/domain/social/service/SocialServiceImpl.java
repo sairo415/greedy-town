@@ -32,7 +32,7 @@ public class SocialServiceImpl implements SocialService {
     public List<RankingDto> getUserRanking() {
         List<RankingDto> list = new ArrayList<>();
         for(Stat stat : statRepository.findAllByOrderByUserClearTimeDesc()){
-            User user = userRepository.findUserByUserSeq(stat.getUserSeq());
+            User user = userRepository.findUserByUserSeq(stat.getUserSeq().getUserSeq());
             RankingDto rankingDto = RankingDto.builder().
                                     userNickname(user.getUserNickname()).
                                     clearTime(stat.getUserClearTime().toString()).

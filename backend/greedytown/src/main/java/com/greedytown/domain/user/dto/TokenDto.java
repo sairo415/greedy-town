@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 public class TokenDto {
 
-    String accessToken;
     String refreshToken;
+    String userEmail;
 }
