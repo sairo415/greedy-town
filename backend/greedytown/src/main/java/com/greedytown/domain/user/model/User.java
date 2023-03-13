@@ -16,10 +16,11 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userSeq;
-    @Column(columnDefinition = "VARCHAR(100)", unique = true)
-    private String userEmail;
     @Column(columnDefinition = "VARCHAR(100)")
     private String userPassword;
+    @Column(columnDefinition = "VARCHAR(100)", unique = true)
+    private String userEmail;
+
     @Column(columnDefinition = "VARCHAR(30)", unique = true)
     private String userNickname;
     @Column(columnDefinition = "BIGINT DEFAULT 0")
