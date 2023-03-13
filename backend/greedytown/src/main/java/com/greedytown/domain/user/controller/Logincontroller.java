@@ -93,7 +93,7 @@ public class Logincontroller {
     }
 
     @GetMapping("/logout")
-    @ApiOperation(value = "토큰 재발급", notes = "accessToken을 재발급한다.")
+    @ApiOperation(value = "로그아웃", notes = "로그아웃 하고 토큰을 삭제한다.")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         User user = (User) request.getAttribute("USER");
         String accessToken = request.getHeader(JwtProperties.HEADER_STRING);
