@@ -21,15 +21,15 @@ public class FriendUserList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long frindSeq;
+    private Long friendSeq;
 
-    @ManyToOne
     @JoinColumn(name="friend_from")
+    @ManyToOne
     private User friendFrom;
 
 
-    @ManyToOne
     @JoinColumn(name="friend_to")
+    @ManyToOne
     private User friendTo;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")

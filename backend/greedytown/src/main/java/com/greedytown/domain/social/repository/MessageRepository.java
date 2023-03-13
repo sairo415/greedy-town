@@ -10,10 +10,10 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    List<Message> findAllByMessageTo_UserIndex(Long userIndex);
+    List<Message> findAllByMessageTo_UserSeq(Long userSeq);
 
-    Long deleteAllByMessageTo_UserIndex(Long userIndex);
+    Long deleteAllByMessageTo_UserSeq(Long userSeq);
 
-    Long countAllByMessageTo_UserIndexAndMessageCheckFalse(Long userIndex);
+    Long countAllByMessageTo_UserSeqAndMessageCheckFalse(Long userSeq);
 
 }
