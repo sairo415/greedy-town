@@ -10,13 +10,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MyFriendDto {
 
-    private Long userIndex;
+    private Long userSeq;
     private String userNickname;
 
     @Builder
-    public MyFriendDto(Long userIndex , String userNickname ) {
+    public MyFriendDto(Long userSeq , String userNickname ) {
 
-        this.userIndex = userIndex;
+        this.userSeq = userSeq;
         this.userNickname = userNickname;
 
     }

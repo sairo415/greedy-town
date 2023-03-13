@@ -28,8 +28,7 @@ public class  ItemServiceImpl implements ItemService{
         List<ItemDto> itemDtoList = new ArrayList<>();
         for(Item item : itemRepository.findAll()){
             ItemDto itemDto = ItemDto.builder().
-                    itemIndex(item.getItemIndex()).
-                    itemCode(item.getItemCode()).
+                    itemSeq(item.getItemSeq()).
                     itemPrice(item.getItemPrice()).
                     itemName(item.getItemName()).build();
             itemDtoList.add(itemDto);
@@ -40,24 +39,26 @@ public class  ItemServiceImpl implements ItemService{
     public BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto){
 
         //내 돈 없애기
-        Long price = buyItemDto.getItemPrice();
-        User user = userRepository.findById(buyItemDto.getUserIndex()).get();
+        Integer price = buyItemDto.getItemPrice();
+        User user = userRepository.findById(buyItemDto.getUserSeq()).get();
         user.setUserMoney(user.getUserMoney()-price);
-        Item item = itemRepository.findById(buyItemDto.getItemIndex()).get();
+        Item item = itemRepository.findById(buyItemDto.getItemSeq()).get();
         //내 아이템 목록 업데이트하기
         ItemUserList itemUserList = new ItemUserList(user,item);
 
         itemUserListRepository.save(itemUserList);
         WearingDto wearingDto = new WearingDto();
         //아이템 리턴
-        return getMyDress(user,wearingDto);
+        return getMyWearingDress(user,wearingDto);
     }
 
     //내 아이템을 본다.
     @Override
     public BuyItemReturnDto getMyItemList(User user) {
+        //지금 입은 옷 찾기
         WearingDto wearingDto = new WearingDto();
-        return getMyDress(user,wearingDto);
+
+        return getMyWearingDress(user,wearingDto);
     }
 
     @Override
@@ -70,9 +71,9 @@ public class  ItemServiceImpl implements ItemService{
 
         SuccessUserAchievements succeessUserAchievements = new SuccessUserAchievements();
         Achievements achievements = achievementsRepository.findById(AchievementsIndex).get();
-        user = userRepository.findById(user.getUserIndex()).get();
-        succeessUserAchievements.setAchievementsIndex(achievements);
-        succeessUserAchievements.setUserIndex(user);
+        user = userRepository.findById(user.getUserSeq()).get();
+        succeessUserAchievements.setAchievementsSeq(achievements);
+        succeessUserAchievements.setUserSeq(user);
         successUserAchievementsRepository.save(succeessUserAchievements);
 
         return getAchievements(user);
@@ -82,70 +83,68 @@ public class  ItemServiceImpl implements ItemService{
     @Override
     public BuyItemReturnDto changeMyDress(User user, WearingDto wearingDto) {
 
-        return getMyDress(user,wearingDto);
+        return getMyWearingDress(user,wearingDto);
     }
 
 
 
 
     //재사용을 위한 내 옷 보기
-    private Void getMyWearingDress(User user, BuyItemReturnDto buyItemReturnDto,WearingDto wearingDto){
+    private BuyItemReturnDto getMyWearingDress(User user ,WearingDto wearingDto){
 
+        BuyItemReturnDto buyItemReturnDto = new BuyItemReturnDto();
 
-        Wearing wearing =  wearingRepository.findByUserIndex_UserIndex(user.getUserIndex());
-        Item head = itemRepository.findByItemIndex(wearingDto.getWearingHead());
-        Item hair = itemRepository.findByItemIndex(wearingDto.getWearingHair());
-        Item dress =  itemRepository.findByItemIndex(wearingDto.getWearingDress());
-        wearing.setWearingHead(head);
-        wearing.setWearingHair(hair);
-        wearing.setWearingDress(dress);
+        Wearing wearing =  wearingRepository.findByUserSeq_UserSeq(user.getUserSeq());
+        Item item = itemRepository.findByItemSeq(wearingDto.getItemDto().getItemSeq());
+
+        wearing.setItemSeq(item);
+
+        ItemDto itemDto = ItemDto.builder().
+                          itemSeq(item.getItemSeq()).
+                          itemName(item.getItemName()).
+                          itemColorSeq(item.getItemColorSeq().getItemColorSeq()).
+                          itemColorName(item.getItemColorSeq().getItemColorName()).
+                          itemTypeSeq(item.getItemTypeSeq().getItemTypeSeq()).
+                          itemTypeName(item.getItemTypeSeq().getItemTypeName()).
+                          build();
 
         wearingDto = WearingDto.builder().
-                wearingIndex(wearing.getWearingIndex()).
-                wearingHead(head==null ? null : wearing.getWearingHead().getItemIndex()).
-                wearingHair(hair==null ? null :wearing.getWearingHair().getItemIndex()).
-                wearingDress(dress==null ? null :wearing.getWearingDress().getItemIndex()).
-                wearingHeadName(head==null ? "없음" :  itemRepository.findById(wearing.getWearingHead().getItemIndex()).get().getItemName()).
-                wearingHairName(hair==null ? "없음" : itemRepository.findById(wearing.getWearingHair().getItemIndex()).get().getItemName()).
-                wearingDressName(dress==null ? "없음" : itemRepository.findById(wearing.getWearingDress().getItemIndex()).get().getItemName()).
+                wearingSeq(wearing.getWearingSeq()).
+                itemDto(itemDto).
                 build();
 
         buyItemReturnDto.setWearingDto(wearingDto);
 
-        return null;
+        getMyDress(user,wearingDto,buyItemReturnDto);
+
+        return buyItemReturnDto;
     }
 
     //재사용을 위한 아이템 보기
-    private BuyItemReturnDto getMyDress(User user,WearingDto wearingDto){
+    private Void getMyDress(User user,WearingDto wearingDto,BuyItemReturnDto buyItemReturnDto){
 
+        buyItemReturnDto.setUserMoney(user.getUserMoney());
+        buyItemReturnDto.setUserItems(new ArrayList());
         //아이템 넣어주고 return
-        BuyItemReturnDto buyItemReturnDto = BuyItemReturnDto.builder().
-                userMoney(user.getUserMoney()).
-                userItems(new ArrayList()).
-                build();
 
         List<ItemDto> list = buyItemReturnDto.getUserItems();
 
-        for(ItemUserList li : itemUserListRepository.findItemUserListsByUserIndex(user)){
-            Item item = itemRepository.findById(li.getItemIndex().getItemIndex()).get();
+        for(ItemUserList li : itemUserListRepository.findItemUserListsByUserSeq_UserSeq(user.getUserSeq())){
+            Item item = itemRepository.findById(li.getItemSeq().getItemSeq()).get();
             ItemDto itemDto = ItemDto.builder().
-                    itemIndex(item.getItemIndex()).
+                    itemSeq(item.getItemSeq()).
                     itemPrice(item.getItemPrice()).
                     itemName(item.getItemName()).
-                    itemCode(item.getItemCode()).
-                    achievementsIndex(item.getAchievementsIndex()).
+                    achievementsSeq(item.getAchievementsSeq()).
                     build();
             //입고 있는 옷이면 가지고 있는 옷에서 빼주기.
-            if(item.getItemIndex()==wearingDto.getWearingHead()) continue;
-            else if(item.getItemIndex()==wearingDto.getWearingHair()) continue;
-            else if(item.getItemIndex()==wearingDto.getWearingDress()) continue;
+            if(item.getItemSeq()==wearingDto.getItemDto().getItemSeq()) continue;
+
             list.add(itemDto);
         }
 
 
-        getMyWearingDress(user,buyItemReturnDto,wearingDto);
-
-        return buyItemReturnDto;
+        return null;
 
     }
 
@@ -155,11 +154,11 @@ public class  ItemServiceImpl implements ItemService{
 
         List<AchievementsDto> list = new ArrayList<>();
 
-        for(SuccessUserAchievements su : successUserAchievementsRepository.findAllByUserIndex_UserIndex(user.getUserIndex())){
-            Achievements achievements = achievementsRepository.findByAchievementsIndex(su.getAchievementsIndex().getAchievementsIndex());
+        for(SuccessUserAchievements su : successUserAchievementsRepository.findAllByUserSeq_UserSeq(user.getUserSeq())){
+            Achievements achievements = achievementsRepository.findByAchievementsSeq(su.getAchievementsSeq().getAchievementsSeq());
             AchievementsDto achievementsDto = AchievementsDto.builder().
-                    Achievements_content(achievements.getAchievementsContent()).
-                    AchievementsIndex(achievements.getAchievementsIndex())
+                    AchievementsContent(achievements.getAchievementsContent()).
+                    AchievementsSeq(achievements.getAchievementsSeq())
                     .build();
             list.add(achievementsDto);
         }

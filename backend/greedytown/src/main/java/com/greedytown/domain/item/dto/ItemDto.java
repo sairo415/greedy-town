@@ -15,23 +15,31 @@ import javax.persistence.OneToOne;
 @NoArgsConstructor
 public class ItemDto {
 
-    private Long itemIndex;
+    private Long itemSeq;
     private String itemName;
-    private String itemCode;
-    private Long itemPrice;
+    private Integer itemPrice;
 
-    @OneToOne
-    @JoinColumn(name="achievements_index")
-    private Achievements achievementsIndex;
+    private Achievements achievementsSeq;
+
+    private Short itemColorSeq;
+    private String itemColorName;
+
+    private Short itemTypeSeq;
+    private String itemTypeName;
+
 
 
     @Builder
-    public ItemDto(Long itemIndex, String itemName , String itemCode , Long itemPrice , Achievements achievementsIndex) {
-        this.itemIndex = itemIndex;
+    public ItemDto(Long itemSeq, String itemName  , Integer itemPrice , Achievements achievementsSeq,Short itemColorSeq,String itemColorName, Short itemTypeSeq, String itemTypeName) {
+        this.itemSeq = itemSeq;
         this.itemName = itemName;
-        this.itemCode = itemCode;
         this.itemPrice = itemPrice;
-        this.achievementsIndex = achievementsIndex;
+        this.achievementsSeq = achievementsSeq;
+        this.itemColorSeq =itemColorSeq;
+        this.itemColorName = itemColorName;
+        this.itemTypeSeq = itemTypeSeq;
+        this.itemTypeName = itemTypeName;
+
     }
 
 }

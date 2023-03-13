@@ -9,6 +9,6 @@ import java.io.Serializable;
 @Data
 public class ItemUserListPK  implements Serializable {
 
-    private Long userIndex;
-    private Long itemIndex;
+    private Long userSeq;
+    private Long itemSeq;
 }

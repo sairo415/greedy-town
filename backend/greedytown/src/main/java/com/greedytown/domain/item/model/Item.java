@@ -12,18 +12,24 @@ public class Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long itemIndex;
+    private Long itemSeq;
 
     private String itemName;
 
-    private String itemCode;
 
-
-    private Long itemPrice;
+    private Integer itemPrice;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="ahichievements_index")
-    private Achievements achievementsIndex;
+    @JoinColumn(name="ahichievementsSeq")
+    private Achievements achievementsSeq;
+
+    @ManyToOne
+    @JoinColumn(name="itemTypeSeq")
+    private ItemType itemTypeSeq;
+
+    @ManyToOne
+    @JoinColumn(name="itemColorSeq")
+    private ItemColor itemColorSeq;
 
 
 }

@@ -16,15 +16,15 @@ import java.util.List;
 public class BuyItemDto {
 
 
-    private Long itemIndex;
-    private Long itemPrice;
-    private Long userIndex;
+    private Long itemSeq;
+    private Integer itemPrice;
+    private Long userSeq;
 
     @Builder
-    public BuyItemDto(Long itemIndex ,Long itemPrice, Long userIndex ) {
-        this.itemIndex = itemIndex;
+    public BuyItemDto(Long itemSeq ,Integer itemPrice, Long userSeq ) {
+        this.itemSeq = itemSeq;
         this.itemPrice = itemPrice;
-        this.userIndex = userIndex;
+        this.userSeq = userSeq;
 
     }
 
