@@ -45,17 +45,17 @@ public class SocialController {
     @Transactional
     @ApiOperation(value = "친구를 추가한다.", notes = "친구를 추가해보자.")
     @PostMapping("/friend")
-    public ResponseEntity<?> insertFriend(HttpServletRequest request, Long friendIndex) throws Exception {
+    public ResponseEntity<?> insertFriend(HttpServletRequest request, Long friendSeq) throws Exception {
         User user = (User) request.getAttribute("USER");
-        return new ResponseEntity<Void>(socialService.insertFriend(user,friendIndex), HttpStatus.OK);
+        return new ResponseEntity<Void>(socialService.insertFriend(user,friendSeq), HttpStatus.OK);
     }
 
     @Transactional
     @ApiOperation(value = "친구인지 확인한다.", notes = "전체 랭킹을 본다.")
     @GetMapping("/is-friend")
-    public ResponseEntity<?> isFriend(HttpServletRequest request, Long friendIndex) throws Exception {
+    public ResponseEntity<?> isFriend(HttpServletRequest request, Long friendSeq) throws Exception {
         User user = (User) request.getAttribute("USER");
-        return new ResponseEntity<Boolean>(socialService.isFriend(user,friendIndex), HttpStatus.OK);
+        return new ResponseEntity<Boolean>(socialService.isFriend(user,friendSeq), HttpStatus.OK);
     }
 
     @Transactional
@@ -70,10 +70,28 @@ public class SocialController {
     @Transactional
     @ApiOperation(value = "친구를 삭제한다.", notes = "친구를 삭제해보자.")
     @DeleteMapping("/friend")
-    public ResponseEntity<?> deleteMyFriend(HttpServletRequest request,Long friendIndex) throws Exception {
+    public ResponseEntity<?> deleteMyFriend(HttpServletRequest request,Long friendSeq) throws Exception {
         User user = (User) request.getAttribute("USER");
-        return new ResponseEntity<List<MyFriendDto>>(socialService.deleteMyFriend(user,friendIndex), HttpStatus.OK);
+        return new ResponseEntity<List<MyFriendDto>>(socialService.deleteMyFriend(user,friendSeq), HttpStatus.OK);
     }
+
+    @Transactional
+    @ApiOperation(value = "친구 요청을 본다.", notes = "친구 요청을 보자.")
+    @GetMapping("/friend-alarm")
+    public ResponseEntity<?> getMyFriendAlarmList(HttpServletRequest request) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<List<MyFriendDto>>(socialService.getMyFriendAlarmList(user), HttpStatus.OK);
+    }
+
+    @Transactional
+    @ApiOperation(value = "친구 요청을 삭제한다.", notes = "친구 요청을 삭제한다.")
+    @DeleteMapping("/friend-alarm")
+    public ResponseEntity<?> deleteMyFriendAlarmList(HttpServletRequest request,Long fromFriend) throws Exception {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<Void>(socialService.deleteMyFriendAlarmList(user,fromFriend), HttpStatus.OK);
+    }
+
+
 
     @Transactional
     @ApiOperation(value = "메세지를 보낸다.", notes = "친구한테 메세지를 보내보자.")
@@ -114,6 +132,7 @@ public class SocialController {
         User user = (User) request.getAttribute("USER");
         return new ResponseEntity<Long>(socialService.getMyNewMessage(user), HttpStatus.OK);
     }
+
 
 
 
