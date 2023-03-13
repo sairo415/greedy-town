@@ -29,4 +29,8 @@ public interface SocialService {
     Void deleteAllMessage(User user);
 
     Long getMyNewMessage(User user);
+
+    List<MyFriendDto> getMyFriendAlarmList(User user);
+
+    Void deleteMyFriendAlarmList(User user, Long fromFriend);
 }

@@ -10,13 +10,15 @@ import java.util.List;
 @Repository
 public interface FriendUserListRepository extends JpaRepository<FriendUserList, Long> {
 
-    Boolean existsByUserIndexA_UserIndexAndUserIndexB_UserIndex(Long userIndexA, Long userIndexB);
+    Boolean existsByFriendFrom_UserSeqAndFriendTo_UserSeqAndFriendAcceptIsTrue(Long friendFrom, Long friendTo);
 
-    Boolean existsByUserIndexB_UserIndexAndUserIndexA_UserIndex(Long userIndexB, Long userIndexA);
+    Boolean existsByFriendTo_UserSeqAndFriendFrom_UserSeqAndFriendAcceptIsTrue(Long friendTo, Long friendFrom);
 
-    List<FriendUserList> findAllByUserIndexA_userIndex(Long userIndexA);
-    List<FriendUserList> findAllByUserIndexB_userIndex(Long userIndexB);
+    List<FriendUserList>findAllByFriendFrom_UserSeqAndFriendAcceptIsTrue(Long friendTo);
+    List<FriendUserList> findAllByFriendTo_UserSeqAndFriendAcceptIsTrue(Long friendFrom);
 
-    Integer deleteByUserIndexA_userIndexAndUserIndexB_userIndex(Long userIndexA,Long userIndexB);
-    Integer deleteByUserIndexB_userIndexAndUserIndexA_userIndex(Long userIndexA,Long userIndexB);
+    List<FriendUserList> findAllByFriendTo_UserSeqAndFriendAcceptIsFalse(Long friendFrom);
+
+    Integer deleteByFriendFrom_userSeqAndFriendTo_userSeq(Long fromFriend,Long toFriend);
+    Integer deleteByFriendTo_userSeqAndFriendFrom_userSeq(Long fromFriend,Long toFriend);
 }
