@@ -14,11 +14,17 @@ public interface FriendUserListRepository extends JpaRepository<FriendUserList, 
 
     Boolean existsByFriendTo_UserSeqAndFriendFrom_UserSeqAndFriendAcceptIsTrue(Long friendTo, Long friendFrom);
 
-    List<FriendUserList>findAllByFriendFrom_UserSeqAndFriendAcceptIsTrue(Long friendTo);
-    List<FriendUserList> findAllByFriendTo_UserSeqAndFriendAcceptIsTrue(Long friendFrom);
+    //요청 보기
+    List<FriendUserList>findAllByFriendTo_UserSeqAndFriendAcceptIsFalse(Long friendTo);
 
-    List<FriendUserList> findAllByFriendTo_UserSeqAndFriendAcceptIsFalse(Long friendFrom);
+    //내 친구 목록 보기
+    List<FriendUserList> findAllByFriendTo_UserSeqAndFriendAcceptIsTrue(Long friendFrom);
+    List<FriendUserList> findAllByFriendFrom_UserSeqAndFriendAcceptIsTrue(Long friendFrom);
+    
 
     Integer deleteByFriendFrom_userSeqAndFriendTo_userSeq(Long fromFriend,Long toFriend);
     Integer deleteByFriendTo_userSeqAndFriendFrom_userSeq(Long fromFriend,Long toFriend);
+
+
+
 }
