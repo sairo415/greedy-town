@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Warrior : MonoBehaviour
 {
-    // 플레이어의 이동속도
+    // 플레이어의 스탯 관련 변수들
     public float speed;
+    public int maxHealth;
+    public int health;
 
     float horizontalAxis;
     float verticalAxis;
@@ -23,10 +25,38 @@ public class Warrior : MonoBehaviour
     // 회전격 버튼
     bool spinDown;
 
+    // 구르기 버튼
+    bool dodgeDown;
+
+    // 구르기 중에는 다른거 막자
+    bool isDodge;
+
+    // 궁극기 버튼
+    bool ultiDown;
+
+    // 궁극기 시전중
+    public bool isUlti;
+
+    // 궁쿨
+    float ultiCoolTime = 10f;
+
+    // 궁 시전후 대기 시간
+    float ultiDelay;
+
+    // 궁 시전 가능
+    bool isReadyToShotUlti;
+
+    // 구르기 방향 고정
+    Vector3 dodgeVector;
+
     // 물리 바디 선언
     Rigidbody rigid;
     // 애니메이션 선언
     Animator anim;
+    // 메인 카메라 변수
+    public Camera followCamera;
+    // 벽에 닿았는지 알려주는 변수
+    bool isBorder;
 
 
     // 이동하는 벡터 선언
@@ -51,6 +81,10 @@ public class Warrior : MonoBehaviour
         Attack();
         // 회전격 로직
         SpinAttack();
+        // 구르기 관련 로직
+        Dodge();
+        // 궁극기
+        Ultimate();
     }
 
     void GetInput()
@@ -62,37 +96,73 @@ public class Warrior : MonoBehaviour
         attackDown = Input.GetButtonDown("Fire1");
         // 회전격
         spinDown = Input.GetButtonDown("Fire2");
+        // 구르기
+        dodgeDown = Input.GetButtonDown("Jump");
+        // 궁극기
+        ultiDown = Input.GetButtonDown("Ultimate");
     }
 
 
     void Move()
     {
-        // 이동하는 벡터값을 키보드 값을 바탕으로 정해주자
-        // y축으로는 이동하지 않으니 0으로 고정하고 모든 값을 평균치로 만들어주자
-        moveVector = new Vector3(horizontalAxis, 0, verticalAxis).normalized;
 
-        transform.position += moveVector * speed * Time.deltaTime;
+        if (!isUlti && !isBorder)
+        {
+            // 이동하는 벡터값을 키보드 값을 바탕으로 정해주자
+            // y축으로는 이동하지 않으니 0으로 고정하고 모든 값을 평균치로 만들어주자
+            moveVector = new Vector3(horizontalAxis, 0, verticalAxis).normalized;
 
-        anim.SetBool("isWalk", moveVector != Vector3.zero);
+            transform.position += moveVector * speed * Time.deltaTime;
+            anim.SetBool("isWalk", moveVector != Vector3.zero);
+        }
+
+    }
+
+    void StopToWall()
+    {
+        isBorder = Physics.Raycast(transform.position, transform.forward, 2, LayerMask.GetMask("Wall"));
+    }
+
+    void FixedUpdate()
+    {
+        StopToWall();
     }
 
     void Turn()
     {
-        transform.LookAt(transform.position + moveVector);
-    }
+        if(!isUlti)
+            transform.LookAt(transform.position + moveVector);
 
+        if (!isUlti && !isDodge)
+        {
+            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
+            // RaycastHit 정보를 받아주자
+            RaycastHit rayHit;
+            // out: return과 같이 반환값을 주어진 변수에 저장하는 키워드
+            // 아래의 경우는 반환값이 rayHit에 저장
+            if (Physics.Raycast(ray, out rayHit, 100))
+            {
+                // point : rayHit이 찍히는 위치
+                Vector3 nextVector = rayHit.point - transform.position;
+                nextVector.y = 0;
+                transform.LookAt(transform.position + nextVector);
+            }
+        }
+        
+    }
+    
     void Attack()
     {
         attackDelay += Time.deltaTime;
 
-        // 일반 공격 공속은 0.7초당 한번으로 ㄱ
-        float attackRate = 0.7f;
+        // 일반 공격 공속은 1초당 한번으로 ㄱ
+        float attackRate = 1f;
 
         isReadyToAttack = attackRate < attackDelay;
 
-        if (attackDown && isReadyToAttack)
+        if (attackDown && isReadyToAttack && !isDodge && !isUlti)
         {
-            sword.Use();
+            sword.BaseAttack();
             anim.SetTrigger("doAttack");
             attackDelay = 0;
         }
@@ -106,11 +176,53 @@ public class Warrior : MonoBehaviour
 
         isReadyToAttack = spinAttackRate < attackDelay;
 
-        if (spinDown && isReadyToAttack)
+        if (spinDown && isReadyToAttack && !isDodge && !isUlti)
         {
-            sword.Use();
+            sword.SpinAttack();
             anim.SetTrigger("doSpinAttack");
             attackDelay = 0;
         }
+    }
+
+    void Dodge()
+    {
+        if (dodgeDown && !isUlti && moveVector != Vector3.zero)
+        {
+            isDodge = true;
+            dodgeVector = moveVector;
+            anim.SetTrigger("doDodge");
+            speed *= 2.5f;
+
+            Invoke("DodgeOut", 0.2f);
+        }
+    }
+
+    void DodgeOut()
+    {
+        isDodge = false;
+        speed *= 2f / 5;
+    }
+
+    void Ultimate()
+    {
+        ultiDelay += Time.deltaTime;
+
+        isReadyToShotUlti = ultiCoolTime < ultiDelay;
+
+
+        if (ultiDown && !isDodge && isReadyToShotUlti)
+        {
+            isUlti = true;
+            anim.SetTrigger("doUlti");
+            sword.Ultimate();
+            ultiDelay = 0;
+
+            Invoke("StopUlti", 2.1f);
+        }
+    }
+
+    void StopUlti()
+    {
+        isUlti = false;
     }
 }
