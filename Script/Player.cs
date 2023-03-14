@@ -217,6 +217,18 @@ public class Player : MonoBehaviour
             anim.SetBool("isJump", true);
             anim.SetTrigger("doJump");
             isJump = true;
+
+            // Jump Poser = 15
+            rigid.AddForce(Vector3.up * 40, ForceMode.Impulse);
+            anim.SetBool("isJump", true);
+            anim.SetTrigger("doJump");
+            isJump = false;
+
+            // Jump Poser = 15
+            rigid.AddForce(Vector3.up * 40, ForceMode.Impulse);
+            anim.SetBool("isJump", true);
+            anim.SetTrigger("doJump");
+            isJump = true;
         }
     }
 
