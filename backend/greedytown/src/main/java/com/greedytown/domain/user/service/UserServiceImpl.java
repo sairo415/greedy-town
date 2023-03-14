@@ -150,10 +150,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public StatDto updateStat(User user, StatDto statDto) {
-        
+
+        System.out.println(statDto.getUserClearTime());
         Stat stat = new Stat();
         stat.setUserClearTime(statDto.getUserClearTime());
-        stat.setUserSeq(user);
+        stat.setStatSeq(user.getUserSeq());
         statRepository.save(stat);
 
         
