@@ -3,8 +3,6 @@ package com.greedytown.domain.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.greedytown.domain.item.model.Wearing;
-import com.greedytown.domain.item.repository.WearingRepository;
 import com.greedytown.domain.social.model.Stat;
 import com.greedytown.domain.social.repository.StatRepository;
 import com.greedytown.domain.user.dto.StatDto;
@@ -14,6 +12,7 @@ import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
 import com.greedytown.global.config.jwt.JwtProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final StatRepository statRepository;
 
     @Override
+    @Transactional
     public String insertUser(UserDto userDto) {
         User registUser = null;
         String message = "";
@@ -50,6 +51,7 @@ public class UserServiceImpl implements UserService {
             registUser = userRepository.save(user);
         } catch (Exception e) {
             message = "회원가입 실패";
+            log.error("회원가입 실패");
             return message;
         }
         try {
@@ -59,6 +61,7 @@ public class UserServiceImpl implements UserService {
 
         } catch (Exception e){
             message = "스탯 실패";
+            log.error("스탯 실패");
             return message;
         }
         message = "다 성공";
@@ -71,15 +74,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean duplicatedEmail(String userEmail) {
         User user = userRepository.findByUserEmail(userEmail);
-        if(user == null) return false;
-        return true;
+        return user != null;
     }
 
     @Override
     public boolean duplicatedNickname(String userNickname) {
         User user = userRepository.findByUserNickname(userNickname);
-        if(user == null) return false;
-        return true;
+        return user != null;
     }
 
     @Override
@@ -97,7 +98,7 @@ public class UserServiceImpl implements UserService {
         try {
             refreshToken = (String)redisTemplate.opsForValue().get("RT:" + tokenDto.getUserEmail());
         } catch (NullPointerException n) { // 로그아웃해서 레디스에 리프레시 토큰이 없으면
-            response.put("message", "Refresh Token 또는 이메일 정보가 유효하지 않습니다.");
+            response.put("message", "Refresh Token이 유효하지 않습니다.");
             return response;
         }
         // 레디스에 저장된 리프레시 토큰과 일치하지 않으면
