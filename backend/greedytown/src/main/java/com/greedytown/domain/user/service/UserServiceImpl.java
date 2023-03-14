@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
         try {
             refreshToken = (String)redisTemplate.opsForValue().get("RT:" + tokenDto.getUserEmail());
         } catch (NullPointerException n) { // 로그아웃해서 레디스에 리프레시 토큰이 없으면
-            response.put("message", "Refresh Token 또는 이메일 정보가 유효하지 않습니다.");
+            response.put("message", "Refresh Token이 유효하지 않습니다.");
             return response;
         }
         // 레디스에 저장된 리프레시 토큰과 일치하지 않으면
