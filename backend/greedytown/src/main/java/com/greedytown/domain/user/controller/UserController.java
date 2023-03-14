@@ -26,6 +26,7 @@ public class UserController {
     @ApiOperation(value = "스탯 업데이트", notes = "스탯 업데이트를 해보자.")
     @PatchMapping("/stat")
     public ResponseEntity<?> updateStat(HttpServletRequest request, @RequestBody @ApiParam(value = "아이템 정보.", required = true) StatDto statDto) {
+
         User user = (User) request.getAttribute("USER");
         return new ResponseEntity<StatDto>(userService.updateStat(user,statDto), HttpStatus.OK);
     }
