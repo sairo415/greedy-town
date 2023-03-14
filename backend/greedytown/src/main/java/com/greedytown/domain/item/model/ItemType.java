@@ -3,10 +3,7 @@ package com.greedytown.domain.item.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Setter
@@ -15,7 +12,8 @@ public class ItemType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Short itemTypeSeq;
+    @Column(columnDefinition = "SMALLINT")
+    private Integer itemTypeSeq;
 
     private String itemTypeName;
 

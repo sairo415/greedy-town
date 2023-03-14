@@ -1,9 +1,6 @@
 package com.greedytown.domain.social.service;
 
-import com.greedytown.domain.social.dto.MessageDto;
-import com.greedytown.domain.social.dto.MyFriendDto;
-import com.greedytown.domain.social.dto.MyMessageDto;
-import com.greedytown.domain.social.dto.RankingDto;
+import com.greedytown.domain.social.dto.*;
 import com.greedytown.domain.social.model.FriendUserList;
 import com.greedytown.domain.social.model.Message;
 import com.greedytown.domain.social.model.Stat;
@@ -35,7 +32,7 @@ public class SocialServiceImpl implements SocialService {
     public List<RankingDto> getUserRanking() {
         List<RankingDto> list = new ArrayList<>();
         for(Stat stat : statRepository.findAllByOrderByUserClearTimeDesc()){
-            User user = userRepository.findUserByUserSeq(stat.getUserSeq());
+            User user = userRepository.findUserByUserSeq(stat.getUserSeq().getUserSeq());
             RankingDto rankingDto = RankingDto.builder().
                                     userNickname(user.getUserNickname()).
                                     clearTime(stat.getUserClearTime().toString()).
@@ -77,8 +74,7 @@ public class SocialServiceImpl implements SocialService {
     @Override
     public List<MyFriendDto> deleteMyFriend(User user, Long friendSeq) {
 
-        friendUserListRepository.deleteByFriendFrom_userSeqAndFriendTo_userSeq(user.getUserSeq(),friendSeq);
-        friendUserListRepository.deleteByFriendTo_userSeqAndFriendFrom_userSeq(user.getUserSeq(),friendSeq);
+        friendUserListRepository.deleteById(friendSeq);
 
         return getMyFriends(user);
     }
@@ -140,10 +136,14 @@ public class SocialServiceImpl implements SocialService {
     @Override
     public List<MyFriendDto> getMyFriendAlarmList(User user) {
         List<MyFriendDto> myFriendDtos = new ArrayList<>();
+
         for(FriendUserList fu : friendUserListRepository.findAllByFriendTo_UserSeqAndFriendAcceptIsFalse(user.getUserSeq())){
-            User fromUser = userRepository.findUserByUserSeq(fu.getFriendSeq());
+
+            User fromUser = userRepository.findUserByUserSeq(fu.getFriendFrom().getUserSeq());
+
             MyFriendDto myFriendDto = MyFriendDto.builder().
                                       userNickname(fromUser.getUserNickname()).
+                                      friendSeq(fu.getFriendSeq()).
                                       userSeq(fromUser.getUserSeq()).
                                       build();
             myFriendDtos.add(myFriendDto);
@@ -155,6 +155,20 @@ public class SocialServiceImpl implements SocialService {
     public Void deleteMyFriendAlarmList(User user, Long fromFriend) {
         friendUserListRepository.deleteByFriendFrom_userSeqAndFriendTo_userSeq(fromFriend , user.getUserSeq());
         return null;
+    }
+
+    @Override
+    public List<MyFriendDto> acceptFrinedRequest(User user, FriendUserListDto friendUserListDto) {
+
+        FriendUserList friendUserList = new FriendUserList();
+        friendUserList.setFriendAccept(true);
+        friendUserList.setFriendFrom(user);
+        User friend = userRepository.findUserByUserSeq(friendUserListDto.getFriendFrom());
+        friendUserList.setFriendTo(friend);
+        friendUserList.setFriendSeq(friendUserListDto.getFriendSeq());
+        friendUserListRepository.save(friendUserList);
+
+        return getMyFriends(user);
     }
 
 
@@ -169,6 +183,7 @@ public class SocialServiceImpl implements SocialService {
             MyFriendDto myFriendDto = MyFriendDto.builder().
                     userSeq(fromFriend.getUserSeq()).
                     userNickname(fromFriend.getUserNickname()).
+                    friendSeq(friendUserList.getFriendSeq()).
                     build();
             myFriendDtos.add(myFriendDto);
         }
@@ -177,6 +192,7 @@ public class SocialServiceImpl implements SocialService {
             MyFriendDto myFriendDto = MyFriendDto.builder().
                     userSeq(toFriend.getUserSeq()).
                     userNickname(toFriend.getUserNickname()).
+                    friendSeq(friendUserList.getFriendSeq()).
                     build();
             myFriendDtos.add(myFriendDto);
         }

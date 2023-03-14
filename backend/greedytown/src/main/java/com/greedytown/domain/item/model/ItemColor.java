@@ -3,10 +3,7 @@ package com.greedytown.domain.item.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Setter
@@ -14,8 +11,9 @@ import javax.persistence.Id;
 public class ItemColor {
 
     @Id
+    @Column(columnDefinition = "SMALLINT")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Short itemColorSeq;
+    private Integer itemColorSeq;
 
     private String itemColorName;
 
