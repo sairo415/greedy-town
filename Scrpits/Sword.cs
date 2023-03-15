@@ -56,14 +56,13 @@ public class Sword : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
 
         meleeArea.enabled = true;
-
-        yield return new WaitForSeconds(0.1f);
         trailEffect.enabled = true;
 
-        yield return new WaitForSeconds(0.7f);
-
-        meleeArea.enabled = false;
+        yield return new WaitForSeconds(0.5f);
         trailEffect.enabled = false;
+
+        yield return new WaitForSeconds(0.1f);
+        meleeArea.enabled = false;
 
         yield break;
     }
