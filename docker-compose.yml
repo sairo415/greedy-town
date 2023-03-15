@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  spring:
+    # image: openjdk:11-jdk
+    build: ./backend/greedytown
+    container_name: backend_spring
+    env_file:
+      - ./backend/backend.env
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+      - redis
+    links:
+      - mysql
+      - redis
+    networks:
+      - blog
+  redis:
+    image: redis
+    container_name: db_redis
+    ports:
+      - 6379:6379
+
+  mysql:
+    image: mysql:8.0.31
+    container_name: db_mysql
+    ports:
+      - 3305:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=greedytown
+      - TZ=Asia/Seoul
+      - MYSQL_DATABASE=greedytown
+      - MYSQL_USER=greedytown
+      - MYSQL_PASSWORD=greedytown
+    networks:
+      - blog
+
+networks:
+  blog:
+    driver: bridge
+
