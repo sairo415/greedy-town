@@ -19,7 +19,8 @@ public class BlackDragon : MonoBehaviour
     public BoxCollider baseAttackArea;
 
     // 불덩이 내뱉기
-    public GameObject fireBall;
+    // public GameObject fireBall;
+    [SerializeField] ParticleSystem fireBall;
 
     public Rigidbody rigid;
     public BoxCollider boxCollider;
@@ -35,6 +36,7 @@ public class BlackDragon : MonoBehaviour
     // 불 쏠 위치(입)
     public Transform mouth;
 
+    float extraRotateSpeed = 5f;
 
     void Awake()
     {
@@ -61,8 +63,12 @@ public class BlackDragon : MonoBehaviour
 
         if (!nav.isStopped)
         {
-            print(target.position);
+
             nav.SetDestination(target.position);
+            Vector3 lookRotate = target.position - transform.position;
+            transform.rotation = Quaternion.Slerp(transform.rotation,
+                                                Quaternion.LookRotation(lookRotate),
+                                                extraRotateSpeed * Time.deltaTime);
         }
 
         if (isLook)
@@ -77,25 +83,36 @@ public class BlackDragon : MonoBehaviour
     void FixedUpdate()
     {
         Targeting();
+        FreezeVelocity();
+    }
+
+    void FreezeVelocity()
+    {
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
     }
 
     void Targeting()
     {
-        isLook = false;
-        print("Chasing");
-        float targetRadius = 3f;
-        float targetRange = 3.5f;
-
-        RaycastHit[] rayHits =
-                Physics.SphereCastAll(transform.position,
-                                        targetRadius,
-                                        transform.forward,
-                                        targetRange,
-                                        LayerMask.GetMask("Player"));
-
-        if (rayHits.Length > 0)
+        if (!isFly)
         {
-            StartCoroutine(DoAttack());
+            isLook = false;
+            float targetRadius = 3f;
+            float targetRange = 6f;
+
+            RaycastHit[] rayHits =
+                    Physics.SphereCastAll(transform.position + transform.forward * 5f,
+                                            targetRadius,
+                                            transform.forward,
+                                            targetRange,
+                                            LayerMask.GetMask("Player"));
+
+            if (rayHits.Length > 0)
+            {
+                nav.isStopped = true;
+                StartCoroutine(DoAttack());
+                isLook = true;
+            }
         }
     }
 
@@ -112,16 +129,15 @@ public class BlackDragon : MonoBehaviour
             case 0:
             case 1:
             case 2:
+                //StartCoroutine(BaseAttack());
+                //break;
             case 3:
             case 4:
-                StartCoroutine(BaseAttack());
-                print("기본 공격중");
-                break;
             case 5:
             case 6:
+                //StartCoroutine(FireShot());
+                //break;
             case 7:
-                StartCoroutine(FireShot());
-                break;
             case 8:
             case 9:
                 StartCoroutine(TakeOff());
@@ -130,26 +146,47 @@ public class BlackDragon : MonoBehaviour
 
     }
 
-    //IEnumerator Flying()
-    //{
-    //    yield return new WaitForSeconds(0.1f);
+    IEnumerator Flying()
+    {
+        yield return new WaitForSeconds(0.1f);
 
-    //    int ranAction = Random.Range(0, 6);
-    //}
+        int ranAction = Random.Range(0, 6);
+    }
 
     IEnumerator BaseAttack()
     {
         yield return new WaitForSeconds(0.1f);
         nav.isStopped = false;
         anim.SetBool("isRun", true);
+
+        // 플레이어 위치를 네비게이션 시스템으로 설정하고 이동하도록 함
+        nav.SetDestination(target.position);
+
+        // 플레이어를 바라보도록 회전
+        Vector3 lookRotate = target.position - transform.position;
+        transform.rotation = Quaternion.Slerp(transform.rotation,
+                                              Quaternion.LookRotation(lookRotate),
+                                              extraRotateSpeed * Time.deltaTime);
+
+        // 일정 거리 안에 도달하면 공격 시작
+        while (Vector3.Distance(transform.position, target.position) > 2f)
+        {
+            yield return null;
+        }
+
+        nav.isStopped = true;
+        StartCoroutine(DoAttack());
     }
 
 
 
     IEnumerator DoAttack()
     {
+        anim.SetBool("isRun", false);
         yield return new WaitForSeconds(0.1f);
         anim.SetTrigger("doBaseAttack");
+        rigid.velocity = Vector3.zero;
+
 
         yield return new WaitForSeconds(0.5f);
         baseAttackArea.enabled = true;
@@ -158,36 +195,52 @@ public class BlackDragon : MonoBehaviour
         baseAttackArea.enabled = false;
 
         yield return new WaitForSeconds(0.5f);
-        anim.SetBool("isRun", false);
         isLook = true;
-        nav.isStopped = true;
+        StopAllCoroutines();
 
-        // StartCoroutine(Think());
+        StartCoroutine(Think());
     }
 
     IEnumerator FireShot()
     {
         isLook = false;
         anim.SetTrigger("doFire");
-        yield return new WaitForSeconds(0.1f);
-        Instantiate(fireBall, mouth.position, mouth.rotation);
+        yield return new WaitForSeconds(0.5f);
+        Instantiate(fireBall, mouth.position, mouth.rotation).Play();
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         isLook = true;
         StartCoroutine(Think());
     }
 
     IEnumerator TakeOff()
     {
+        nav.isStopped = true;
         boxCollider.enabled = false;
 
         yield return new WaitForSeconds(0.1f);
+        rigid.useGravity = false;
         anim.SetTrigger("doFly");
 
-        transform.position += Vector3.up * 2f;
+        transform.position += Vector3.up * 20f;
 
         yield return new WaitForSeconds(2.5f);
         anim.SetBool("isFly", true);
 
+        yield return new WaitForSeconds(5f);
+        anim.SetBool("isFly", false);
+
+        rigid.useGravity = true;
+
+        yield return new WaitForSeconds(3f);
+        StartCoroutine(DoDie());
     }
+
+    IEnumerator DoDie()
+    {
+        yield return new WaitForSeconds(0.5f);
+        anim.SetTrigger("doDie");
+        StopAllCoroutines();
+    }
+
 }
