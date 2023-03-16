@@ -21,10 +21,11 @@ public class HUD : MonoBehaviour
     //정보들이 다 업데이트 된 후에
     void LateUpdate()
     {
-        //Debug.Log(GameManager.instance.exp);
+        if (Time.timeScale == 0)
+            return;
+
         switch (type)
         {
-            
             case InfoType.Exp:
                 mySlider.value = GameManager.instance.exp / (float)GameManager.instance.nextExp[GameManager.instance.level];
                 break;

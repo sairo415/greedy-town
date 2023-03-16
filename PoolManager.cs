@@ -57,4 +57,19 @@ public class PoolManager : MonoBehaviour
         
         return select;
     }
+
+    //임시 근접 무기 할당 -> 근접은 활성화 비활성화를 주기적으로 하는 것 들이 있어서 위의 것 처럼 하기엔 애매해짐
+    public GameObject GetMelee(int index)
+    {
+        List<GameObject>[] pools = weaponPools;
+        GameObject[] prefabs = weaponPrefabs;
+
+        // 못 찾았으면?
+        //새롭게 생성하고 할당 -> 이전 거는 자식에서 가져다 알아서 쓰고 있음
+        GameObject select = Instantiate(prefabs[index], transform);//풀 매니저 아래서 관리하겠다.
+        select.SetActive(false);
+        pools[index].Add(select);
+
+        return select;
+    }
 }

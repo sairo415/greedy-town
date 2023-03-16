@@ -23,11 +23,11 @@ public class Hammer : MonoBehaviour
         GetComponent<Transform>().Rotate(new Vector3(90, 0, 0));
     }
 
-    public void Init(float damage, int per, Vector3 dir)
+    public void Init(float damage, int per, Vector3 dir, float speed)
     {
         this.damage = damage;
         this.per = per;
-        rigid.velocity = dir * 15; //15는 속력
+        rigid.velocity = dir * speed; //15는 속력
         target = GameManager.instance.player.GetComponent<Rigidbody>();
 
     }

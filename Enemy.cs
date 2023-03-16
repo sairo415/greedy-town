@@ -26,7 +26,7 @@ public class Enemy : MonoBehaviour
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
-        //mater = GetComponent<Renderer>().material;
+        mater = GetComponent<Renderer>().material;
         coll = GetComponent<Collider>();
         anim = GetComponent<Animator>();
         wait = new WaitForFixedUpdate();
@@ -65,8 +65,7 @@ public class Enemy : MonoBehaviour
 
     public void Init(SpawnData data)
     {
-        //Debug.Log(materials.Length);
-        //mater.color = colors[data.spriteType];
+        mater.color = colors[data.spriteType];
 
         speed = data.speed;
         damage = data.damage;

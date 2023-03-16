@@ -35,18 +35,18 @@ public class Reposition : MonoBehaviour
             case "Ground":
                 if(diffX > diffZ)
                 {
-                    transform.Translate(Vector3.right * dirX * 60);
+                    transform.Translate(Vector3.right * dirX * 90);
                 }
                 else if (diffX < diffZ)
                 {
-                    transform.Translate(Vector3.forward * dirZ * 60);
+                    transform.Translate(Vector3.forward * dirZ * 90);
                 }
                 break;
 
             case "Enemy":
                 if (coll.enabled)
                 {
-                    transform.Translate(playerDir * 25 + new Vector3(Random.Range(-3f,3f),0, Random.Range(-3f, 3f)));
+                    transform.position = playerPos + (playerDir * 45 + new Vector3(Random.Range(-3f,3f),0, Random.Range(-3f,3f)));
                 }
                 break; 
         }

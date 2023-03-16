@@ -70,6 +70,29 @@ public class GameManager : MonoBehaviour
             level++;
             exp = 0;
             //레벨업 로직
+            LevelUp();
+        }
+    }
+
+    public void LevelUp()
+    {
+        Time.timeScale = 0;
+
+        GameObject augment = canvas.transform.Find("LevelUp").gameObject;
+
+        int max = augment.transform.childCount;
+        List<int> list = new List<int>();
+        while (list.Count < 3)
+        {
+            int now = Random.Range(0, max);
+            if (!list.Contains(now))
+                list.Add(now);
+        }
+
+
+        foreach (int num in list)
+        {
+            augment.transform.GetChild(num).gameObject.SetActive(true);
         }
     }
 
@@ -90,6 +113,9 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1;
         canvas.transform.Find("Title").gameObject.SetActive(false);
         canvas.transform.Find("Start").gameObject.SetActive(false);
+
+        //처음에 무기 넣어줄 겸 레벨업 한 번
+        LevelUp();
     }
     public void ReStart()
     {
