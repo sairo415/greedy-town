@@ -11,5 +11,12 @@ public class Follow : MonoBehaviour
     void Update()
     {
         transform.position = target.position + offset;
+
+        switch(offset)
+        {
+        transform.position = target.position - offset;
+    }
+        
+
     }
 }
