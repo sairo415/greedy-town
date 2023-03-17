@@ -10,6 +10,12 @@ public class Follow : MonoBehaviour
 
     void Update()
     {
+        int attack = 1;
+
+        transform.position = target.position + offset;
+        transform.position = target.position + offset;
+        transform.position = target.position + offset;
+        transform.position = target.position + offset;
         transform.position = target.position + offset;
     }
 }
