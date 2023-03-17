@@ -62,6 +62,9 @@ public class Warrior : MonoBehaviour
     // 이동하는 벡터 선언
     Vector3 moveVector;
 
+    // 시선 벡터 선언
+    Vector3 lookVector;
+
 
     void Awake()
     {
@@ -145,7 +148,9 @@ public class Warrior : MonoBehaviour
                 // point : rayHit이 찍히는 위치
                 Vector3 nextVector = rayHit.point - transform.position;
                 nextVector.y = 0;
-                transform.LookAt(transform.position + nextVector);
+                lookVector = transform.position + nextVector;
+                transform.LookAt(lookVector);
+
             }
         }
         
@@ -189,18 +194,26 @@ public class Warrior : MonoBehaviour
         if (dodgeDown && !isUlti && moveVector != Vector3.zero)
         {
             isDodge = true;
-            dodgeVector = moveVector;
+            dodgeVector = lookVector;
             anim.SetTrigger("doDodge");
-            speed *= 2.5f;
+
+
+            // speed *= 2.0f;
+            Invoke("GetDodge", 0.1f);
 
             Invoke("DodgeOut", 0.2f);
         }
     }
 
+    void GetDodge()
+    {
+        speed *= 2.0f;
+    }
+
     void DodgeOut()
     {
         isDodge = false;
-        speed *= 2f / 5;
+        speed *= 0.5f;
     }
 
     void Ultimate()

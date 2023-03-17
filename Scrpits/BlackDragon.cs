@@ -49,6 +49,8 @@ public class BlackDragon : MonoBehaviour
         nav.isStopped = true;
         // 보기 시작
         isLook = true;
+        // 아직 감지 x
+        isDetected = false;
         // 패턴
         StartCoroutine(Think());
     }
@@ -82,7 +84,8 @@ public class BlackDragon : MonoBehaviour
 
     void FixedUpdate()
     {
-        Targeting();
+        if (!isDetected)
+            Targeting();
         FreezeVelocity();
     }
 
@@ -97,8 +100,8 @@ public class BlackDragon : MonoBehaviour
         if (!isFly)
         {
             isLook = false;
-            float targetRadius = 3f;
-            float targetRange = 6f;
+            float targetRadius = 10f;
+            float targetRange = 5f;
 
             RaycastHit[] rayHits =
                     Physics.SphereCastAll(transform.position + transform.forward * 5f,
@@ -110,6 +113,7 @@ public class BlackDragon : MonoBehaviour
             if (rayHits.Length > 0)
             {
                 nav.isStopped = true;
+                isDetected = true;
                 StartCoroutine(DoAttack());
                 isLook = true;
             }
@@ -129,8 +133,8 @@ public class BlackDragon : MonoBehaviour
             case 0:
             case 1:
             case 2:
-                //StartCoroutine(BaseAttack());
-                //break;
+                StartCoroutine(BaseAttack());
+                break;
             case 3:
             case 4:
             case 5:
@@ -197,6 +201,7 @@ public class BlackDragon : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         isLook = true;
         StopAllCoroutines();
+        isDetected = false;
 
         StartCoroutine(Think());
     }
