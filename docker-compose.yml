@@ -8,7 +8,7 @@ services:
       - ./backend/backend.env
     ports:
       - 8080:8080
-    command: chmod +x ./gradlew && ./gradlew bootJar && java -jar /app.jar #sleep infinity
+    # command: chmod +x ./gradlew && ./gradlew bootJar && java -jar /app.jar #sleep infinity
     depends_on:
       - db_mysql
       - db_redis
