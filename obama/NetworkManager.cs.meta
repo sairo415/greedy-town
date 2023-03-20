@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 5de3d3b35a995204a9a823c02aebcee7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - DisconnectPanel: {fileID: 2012881754799121793, guid: 7716b90798225e546863061ed338343c, type: 3}
+  - NicknameInput: {fileID: 472889663840737202, guid: 65da5d38c56eb8745afb9b883e2946c6, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
