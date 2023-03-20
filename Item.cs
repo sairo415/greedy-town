@@ -45,7 +45,29 @@ public class Item : MonoBehaviour
                 {
                     GameObject newWeapon = new GameObject();
                     weapon = newWeapon.AddComponent<Weapon>();
-                    weapon.Init(data);
+                    weapon.Init(data, true);
+                }
+                else
+                {
+                    float nextDamage = data.baseDamage;
+                    int nextCount = 0;
+                    float nextCoolTime = data.baseCoolTime * data.coolTimes[level];
+
+                    //데미지는 배수로 증가
+                    nextDamage += data.baseDamage * data.damages[level];
+                    nextCount += data.counts[level];
+
+                    weapon.LevelUp(nextDamage, nextCount, nextCoolTime);
+                }
+                break;
+            case ItemData.ItemType.Effect:
+                if(level == 0)
+                {
+                    //GameObject newWeapon = GameObject.Find("Weapon " + data.itemId);
+                    GameObject newWeapon = GameObject.Find("Support").transform.Find("Weapon " + data.itemId).gameObject;
+                    weapon = newWeapon.GetComponent<Weapon>();
+                    weapon.Init(data, false);
+                    newWeapon.SetActive(true);
                 }
                 else
                 {

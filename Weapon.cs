@@ -10,6 +10,7 @@ public class Weapon : MonoBehaviour
     public int count;//몇개를 배치할거냐 -> 근접 or 관통 수?
     public float speed;//회전 속도, 투사체 속도 등 전반적인 속도
     public float coolTime;//발사 간격, 회전 간격 등
+    public float durations;//지속시간
 
     float timer;
     Player player;
@@ -61,17 +62,21 @@ public class Weapon : MonoBehaviour
 
         transform.parent.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
     }
-
-    public void Init(ItemData data)
+    
+    public void Init(ItemData data, bool isNew)
     {
-        name = "Weapon " + data.itemId;
-        transform.parent = GameObject.Find("Support").transform;
-        transform.localPosition = Vector3.zero;
+        if (isNew)
+        {
+            name = "Weapon " + data.itemId;
+            transform.parent = GameObject.Find("Support").transform;
+            transform.localPosition = Vector3.zero;
+        }
 
         id = data.itemId;
         damage = data.baseDamage;
         count = data.baseCount;
         coolTime = data.baseCoolTime;
+        durations = data.durations;
 
         for(int i = 0; i< GameManager.instance.pool.weaponPrefabs.Length; i++)
         {
@@ -86,7 +91,6 @@ public class Weapon : MonoBehaviour
             case 0:
                 speed = 1200;
                 Batch();
-                StartCoroutine("ActiveWeapon");
                 break;
             case 1:
                 speed = 15;
@@ -95,6 +99,13 @@ public class Weapon : MonoBehaviour
                 break;
         }
 
+        if (data.itemType == ItemData.ItemType.Melee || data.itemType == ItemData.ItemType.Effect)
+        {
+            transform.gameObject.SetActive(true);
+            StartCoroutine("ActiveWeapon");
+        }
+
+        //나중에 추가된 무기들도 gear 버프를 적용시키기위해서
         transform.parent.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
     }
 
@@ -123,6 +134,7 @@ public class Weapon : MonoBehaviour
             hammer.Rotate(rotVec);
             hammer.Translate(hammer.forward * 1.3f, Space.World);
             hammer.GetComponent<Hammer>().Init(damage, -1);//근접무기 -> 무한관통
+            hammer.GetComponent<Hammer>().InitRotate(new Vector3(90f, 0, 0));
         }
     }
 
@@ -140,6 +152,7 @@ public class Weapon : MonoBehaviour
         shoot.GetComponent<Hammer>().Init(damage, count, dir, speed);
     }
 
+
     //근데 이런 식이면 Get 함수에서 꼬일 것 같은데?
     IEnumerator ActiveWeapon()
     {
@@ -147,7 +160,7 @@ public class Weapon : MonoBehaviour
         foreach (Transform child in transform)
             child.gameObject.SetActive(true);
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(durations);
 
         //active false
         foreach (Transform child in transform)

@@ -80,38 +80,43 @@ public class Enemy : MonoBehaviour
         if (!isLive)
             return;
 
+        //무기에 공격 받으면
         if (other.CompareTag("Hammer"))
         {
-
-
-            health -= other.GetComponent<Hammer>().damage;
-            StartCoroutine(KnockBack());
-
-            if (health > 0)
-            {
-                anim.SetTrigger("Hit");
-            }
-            else
-            {
-                anim.SetBool("Dead", true);
-                isLive = false;
-                coll.enabled = false;
-                rigid.isKinematic = true;
-
-                GameManager.instance.kill++;
-                GameManager.instance.GetExp();
-            }
+            TakeDamage(other.GetComponent<Hammer>().damage);
         }
         
     }
 
     void OnCollisionStay(Collision collision)
     {
+        //애니메이션이 끝나면 attack을 false로 초기화한다.
         if (collision.gameObject.tag == "Player" && !isAttack)
         {
             isAttack = true;
             GameManager.instance.GetDamage(damage);
             anim.SetTrigger("Attack");
+        }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        health -= damage;
+        StartCoroutine(KnockBack());
+
+        if (health > 0)
+        {
+            anim.SetTrigger("Hit");
+        }
+        else
+        {
+            anim.SetBool("Dead", true);
+            isLive = false;
+            coll.enabled = false;
+            rigid.isKinematic = true;
+
+            GameManager.instance.kill++;
+            GameManager.instance.GetExp();
         }
     }
 
@@ -123,9 +128,9 @@ public class Enemy : MonoBehaviour
         Vector3 dir = transform.position - playerPos;
 
         rigid.AddForce(dir.normalized * 2, ForceMode.Impulse);
-
     }
 
+    //밑에는 애니메이션 끝나고 실행되는 함수
     void Attack()
     {
         isAttack = false;

@@ -59,6 +59,7 @@ public class PoolManager : MonoBehaviour
     }
 
     //임시 근접 무기 할당 -> 근접은 활성화 비활성화를 주기적으로 하는 것 들이 있어서 위의 것 처럼 하기엔 애매해짐
+    // 이거 망치 밸런스 문제상 망치를 성서처럼 떨어뜨리고 속도를 늦추던가 할까
     public GameObject GetMelee(int index)
     {
         List<GameObject>[] pools = weaponPools;

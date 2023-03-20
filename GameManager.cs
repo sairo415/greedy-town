@@ -74,6 +74,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //캔버스에서 증강체 3개를 가져오는 방식
     public void LevelUp()
     {
         Time.timeScale = 0;
@@ -114,9 +115,11 @@ public class GameManager : MonoBehaviour
         canvas.transform.Find("Title").gameObject.SetActive(false);
         canvas.transform.Find("Start").gameObject.SetActive(false);
 
-        //처음에 무기 넣어줄 겸 레벨업 한 번
-        LevelUp();
+        
+        GameObject augment = canvas.transform.Find("LevelUp").gameObject;
+        augment.transform.GetChild(1).gameObject.GetComponent<Item>().OnClick();
     }
+
     public void ReStart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
