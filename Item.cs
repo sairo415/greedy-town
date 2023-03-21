@@ -49,21 +49,13 @@ public class Item : MonoBehaviour
                 }
                 else
                 {
-                    float nextDamage = data.baseDamage;
-                    int nextCount = 0;
-                    float nextCoolTime = data.baseCoolTime * data.coolTimes[level];
-
-                    //데미지는 배수로 증가
-                    nextDamage += data.baseDamage * data.damages[level];
-                    nextCount += data.counts[level];
-
-                    weapon.LevelUp(nextDamage, nextCount, nextCoolTime);
+                    //level-1인 이유는 1렙때 0번째 배열의 계수를 가져다쓰니까
+                    weapon.LevelUp(data.baseDamage * data.damages[level-1], data.counts[level-1], data.baseCoolTime * data.coolTimes[level-1]);
                 }
                 break;
             case ItemData.ItemType.Effect:
                 if(level == 0)
                 {
-                    //GameObject newWeapon = GameObject.Find("Weapon " + data.itemId);
                     GameObject newWeapon = GameObject.Find("Support").transform.Find("Weapon " + data.itemId).gameObject;
                     weapon = newWeapon.GetComponent<Weapon>();
                     weapon.Init(data, false);
@@ -71,15 +63,7 @@ public class Item : MonoBehaviour
                 }
                 else
                 {
-                    float nextDamage = data.baseDamage;
-                    int nextCount = 0;
-                    float nextCoolTime = data.baseCoolTime * data.coolTimes[level];
-
-                    //데미지는 배수로 증가
-                    nextDamage += data.baseDamage * data.damages[level];
-                    nextCount += data.counts[level];
-
-                    weapon.LevelUp(nextDamage, nextCount, nextCoolTime);
+                    weapon.LevelUp(data.baseDamage * data.damages[level-1], 0, data.baseCoolTime * data.coolTimes[level-1]);
                 }
                 break;
             case ItemData.ItemType.Glove:

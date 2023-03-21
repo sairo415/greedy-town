@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 
     [Header("# Game Control")]
     public float gameTime;
-    public float maxGameTime = 2 * 10f;
+    public float maxGameTime = 30 * 10f;
 
     [Header("# Player Info")]
     public int health;
@@ -41,13 +41,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
     void Update()
     {
         gameTime += Time.deltaTime;
@@ -117,7 +110,9 @@ public class GameManager : MonoBehaviour
 
         
         GameObject augment = canvas.transform.Find("LevelUp").gameObject;
-        augment.transform.GetChild(1).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+
+        //LevelUp();
     }
 
     public void ReStart()

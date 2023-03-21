@@ -127,7 +127,7 @@ public class Enemy : MonoBehaviour
         Vector3 playerPos = GameManager.instance.player.transform.position;
         Vector3 dir = transform.position - playerPos;
 
-        rigid.AddForce(dir.normalized * 2, ForceMode.Impulse);
+        rigid.AddForce(dir.normalized * 100, ForceMode.Impulse);
     }
 
     //밑에는 애니메이션 끝나고 실행되는 함수

@@ -8,18 +8,27 @@ public class Particle : MonoBehaviour
 
     List<ParticleCollisionEvent> colEvents = new List<ParticleCollisionEvent>();
     float damage;
+    Weapon weapon;
 
     void Start()
     {
         ps = GetComponent<ParticleSystem>();
-        damage = transform.root.GetComponent<Weapon>().damage;
+
+        Transform parent = transform.parent;
+        while(!parent.TryGetComponent(out Weapon wea))
+        {
+            parent = parent.parent;
+        }
+        weapon = parent.GetComponent<Weapon>();
     }
+
 
     void OnParticleCollision(GameObject other)
     {
         if(other.TryGetComponent(out Enemy enemy))
         {
-            enemy.TakeDamage(damage);
+            Debug.Log(transform.name+" "+weapon.damage);
+            enemy.TakeDamage(weapon.damage);
         }
     }
 }

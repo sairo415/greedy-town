@@ -47,6 +47,7 @@ public class EffectMaker : _ObjectsMakeBase
                 for (int i = 0; i < m_makeObjs.Length; i++)
                 {
                     GameObject m_obj = Instantiate(m_makeObjs[i], m_pos, m_rot);
+                    m_obj.transform.parent = transform;
                     m_obj.tag = "Hammer";
                     Hammer hammer = m_obj.AddComponent<Hammer>();
                     hammer.Init(10, -1);
