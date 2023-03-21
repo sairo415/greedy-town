@@ -238,4 +238,30 @@ public class Warrior : MonoBehaviour
     {
         isUlti = false;
     }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "BossAttack")
+        {
+            bool isBossAttack = other.name == "Explosion";
+            StartCoroutine(OnDamage(isBossAttack));
+        }
+    }
+
+    IEnumerator OnDamage(bool isBossAttack)
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        if (isBossAttack)
+        {
+            rigid.AddForce(transform.forward * -100, ForceMode.Impulse);
+        }
+
+        print("is Attacked!!");
+
+        yield return new WaitForSeconds(3f);
+
+        if (isBossAttack)
+            rigid.velocity = Vector3.zero;
+    }
 }
