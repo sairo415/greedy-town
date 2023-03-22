@@ -133,7 +133,7 @@ public class Warrior : MonoBehaviour
 
     void Turn()
     {
-        if(!isUlti)
+        if (!isUlti)
             transform.LookAt(transform.position + moveVector);
 
         if (!isUlti && !isDodge)
@@ -153,9 +153,9 @@ public class Warrior : MonoBehaviour
 
             }
         }
-        
+
     }
-    
+
     void Attack()
     {
         attackDelay += Time.deltaTime;
@@ -241,11 +241,20 @@ public class Warrior : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "BossAttack")
+        if (other.tag == "BossAttack" || other.tag == "BossAttackOver")
         {
             bool isBossAttack = other.name == "Explosion";
             StartCoroutine(OnDamage(isBossAttack));
         }
+    }
+
+    void OnParticleTrigger()
+    {
+        //if (other.tag == "BossAttack" || other.tag == "BossAttackOver")
+        //{
+          //  bool isBossAttack = other.name == "Explosion";
+            StartCoroutine(OnDamage(false));
+        //}
     }
 
     IEnumerator OnDamage(bool isBossAttack)

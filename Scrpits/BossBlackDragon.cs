@@ -10,8 +10,16 @@ public class BossBlackDragon : MonoBehaviour
     public int currentHealth;
     public bool isDead;
     public bool isFlying = false;
+    public bool isLanding = false;
+    public bool isStartFlying = false;
 
+    // Attack1
     public GameObject flameStrikePrefab;
+    public GameObject iceFieldPrefab;
+    public GameObject TailAttackPrefab;
+
+    // Attack2
+    public GameObject iceBallPrefab;
 
     // 보스의 현재 행동
     private BossState currentState;
@@ -39,6 +47,7 @@ public class BossBlackDragon : MonoBehaviour
     public bool isLook;
 
     public Transform mouth;
+    public Transform TailRegion;
 
     Vector3 lookVector;
 
@@ -76,7 +85,7 @@ public class BossBlackDragon : MonoBehaviour
 
     void Update()
     {
-        if (!isFlying)
+        if (!isFlying && !isLanding && !isStartFlying)
         {
             // 현재 보스 몬스터 상태에 따른 행동 처리
             switch (currentState)
@@ -95,11 +104,19 @@ public class BossBlackDragon : MonoBehaviour
                     break;
                 case BossState.Attack2:
                     // Attack2 상태에서의 행동 처리
-                    currentState = BossState.Idle;
+                    if (!isAttack)
+                    {
+                        isAttack = true;
+                        ShotIceBall();
+                    }
                     break;
                 case BossState.Attack3:
                     // Attack3 상태에서의 행동 처리
-                    currentState = BossState.Idle;
+                    if (!isAttack)
+                    {
+                        isAttack = true;
+                        TailAttack();
+                    }
                     break;
                 case BossState.Dead:
                     // Dead 상태에서의 행동 처리
@@ -113,56 +130,63 @@ public class BossBlackDragon : MonoBehaviour
             }
         }
 
-        else if (isFlying)
+
+        // 날면서 이동중
+        else if (isFlying && !isLanding && !isStartFlying)
         {
+            isLook = false;
+
             Vector3 direction = ToGo.position - transform.position;
+
+            transform.LookAt(ToGo.position + direction);
             float distance = direction.magnitude;
 
             float moveDistance = Mathf.Min(distance, Time.deltaTime * 20f);
 
             transform.Translate(direction.normalized * moveDistance, Space.World);
 
-            if (transform.position == ToGo.position)
+            if (distance < 1f)
             {
+                // update 막기 위함
+                isLanding = true;
                 anim.SetBool("isFlyMove", false);
-                isFlying = false;
+                anim.SetBool("isFly", false);
+                StartCoroutine(Land());
             }
         }
 
+        else if ((target.position - transform.position).magnitude <= 10f)
+        {
+            currentState = BossState.Attack3;
+        }
 
-        if (isLook)
+
+        // 땅에 서서 캐릭터 추적
+        if (isLook && !isLanding && !isStartFlying)
         {
             float horizontal = Input.GetAxisRaw("Horizontal");
             float vertical = Input.GetAxisRaw("Vertical");
             lookVector = new Vector3(horizontal, 0, vertical);
             transform.LookAt(target.position + lookVector);
         }
+    }
 
-        //IEnumerator GoNewPlace()
-        //{
-        //    yield return new WaitForSeconds(0.1f);
-        //    int ranIdx = Random.Range(0, 6);
 
-        //    ToGo = bossDomains[ranIdx].transform;
-
-        //    Vector3 direction = ToGo.position - transform.position;
-        //    float distance = direction.magnitude;
-
-        //    float moveDistane = Mathf.Min(distance, Time.deltaTime * 20f);
-
-        //    anim.SetBool("isFlyMove", true);
-        //    isFlying = true;
-        //    transform.Translate(direction.normalized * moveDistane, Space.World);
-
-        //    yield return new WaitForSeconds(3f);
-        //    anim.SetBool("isFlyMove", false);
-        //    isFlying = false;
-        //}
+    // 땅에 착지하는 코루틴
+    IEnumerator Land()
+    {
+        yield return new WaitForSeconds(3f);
+        isFlying = false;
+        isLook = true;
+        currentState = BossState.Idle;
+        boxCollider.enabled = true;
+        isLanding = false;
     }
 
     void FixedUpdate()
     {
         FreezeVelocity();
+
     }
 
     void FreezeVelocity()
@@ -189,15 +213,16 @@ public class BossBlackDragon : MonoBehaviour
                 case BossState.Idle:
                     int ranAction = Random.Range(0, 100);
 
-                    if (ranAction < 30)
+                    if (ranAction < 25)
                     {
-                        currentState = BossState.Attack1;
+                        currentState = BossState.Attack3;
                     }
                     else if (ranAction < 60)
                     {
-                        currentState = BossState.Attack2;
+                        currentState = BossState.Attack3;
                     }
-                    else if (ranAction < 80) {
+                    else if (ranAction < 80)
+                    {
                         currentState = BossState.Attack3;
                     }
                     else if (ranAction < 100)
@@ -246,27 +271,82 @@ public class BossBlackDragon : MonoBehaviour
     {
         yield return new WaitForSeconds(0.1f);
         isLook = false;
+        // boxCollider.enabled = false;
         anim.SetTrigger("doAttack1");
-        fallingSpots[idx].SetActive(true);
+        GameObject iceField = Instantiate(iceFieldPrefab, fallingSpots[idx].transform.position, Quaternion.Euler(0f, 0f, 0f));
+        // fallingSpots[idx].SetActive(true);
+        iceField.SetActive(true);
 
-        yield return new WaitForSeconds(1f);
-        fallingSpots[idx].SetActive(false);
+        yield return new WaitForSeconds(2f);
+        // fallingSpots[idx].SetActive(false);
+        Destroy(iceField);
         GameObject flameStrike = Instantiate(flameStrikePrefab, fallingSpots[idx].transform.position, fallingSpots[idx].transform.rotation);
         flameStrike.SetActive(true);
 
         yield return new WaitForSeconds(0.5f);
-        explosions[idx].SetActive(true);
+        // explosions[idx].SetActive(true);
 
         yield return new WaitForSeconds(1.5f);
 
-        explosions[idx].SetActive(false);
+        // explosions[idx].SetActive(false);
         Destroy(flameStrike);
+        // boxCollider.enabled = true;
         isLook = true;
     }
 
 
+    void ShotIceBall()
+    {
+        StartCoroutine(IceBall());
+    }
+
+    IEnumerator IceBall()
+    {
+        yield return new WaitForSeconds(0.1f);
+        isLook = false;
+        anim.SetTrigger("doFire");
+
+        yield return new WaitForSeconds(0.5f);
+        GameObject IceBall = Instantiate(iceBallPrefab, mouth.position, mouth.rotation);
+        Rigidbody rigidIce = IceBall.GetComponent<Rigidbody>();
+        rigidIce.velocity = transform.forward * 75f;
+
+        yield return new WaitForSeconds(2f);
+        isLook = true;
+        isAttack = false;
+        currentState = BossState.Idle;
+
+        yield return new WaitForSeconds(3f);
+        Destroy(IceBall);
+    }
+
+    void TailAttack()
+    {
+        StartCoroutine(DoTailAttack());
+    }
+
+    IEnumerator DoTailAttack()
+    {
+        yield return new WaitForSeconds(0.1f);
+        isLook = false;
+        anim.SetTrigger("doTailAttack");
+
+        yield return new WaitForSeconds(0.5f);
+        GameObject TailSlash = Instantiate(TailAttackPrefab, TailRegion.position, TailRegion.rotation);
+
+
+        yield return new WaitForSeconds(2f);
+        isLook = true;
+        isAttack = false;
+        currentState = BossState.Idle;
+        Destroy(TailSlash);
+
+    }
+
     void TakeOff()
     {
+        isStartFlying = true;
+        boxCollider.enabled = false;
         anim.SetTrigger("doFly");
 
         StartCoroutine(MakeFlying());
@@ -274,7 +354,8 @@ public class BossBlackDragon : MonoBehaviour
 
     IEnumerator MakeFlying()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2.3f);
+        isStartFlying = false;
         currentState = BossState.Flying;
     }
 
@@ -286,10 +367,20 @@ public class BossBlackDragon : MonoBehaviour
 
         ToGo = bossDomains[ranIdx].transform;
 
+        Vector3 direction = ToGo.position - transform.position;
+
+        while (direction.magnitude < 10f)
+        {
+            int newRanIdx = Random.Range(0, 6);
+
+            ToGo = bossDomains[newRanIdx].transform;
+        }
+
         isFlying = true;
         anim.SetBool("isFlyMove", true);
 
     }
+
 
     void OnCollisionEnter(Collision collision)
     {
