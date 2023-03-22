@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Follow : MonoBehaviour
+public class BossFollow : MonoBehaviour
 {
     // 따라갈 목표와 위치 오프셋을 public 변수로 선언
     public Transform target;
@@ -11,12 +11,5 @@ public class Follow : MonoBehaviour
     void Update()
     {
         transform.position = target.position + offset;
-
-        switch(offset)
-        {
-        transform.position = target.position - offset;
-    }
-        
-
     }
 }

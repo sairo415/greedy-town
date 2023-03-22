@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class BossBoss : MonoBehaviour
 {
     // 체력과 컴포넌트를 담을 변수 선언
     public int maxHealth;
@@ -25,20 +25,21 @@ public class Enemy : MonoBehaviour
     // OnTriggerEnter() 함수에 태그 비교 조건을 작성
     void OnTriggerEnter(Collider other)
     {
-        if(other.tag == "PlayerAttack")
+        if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
         {
-            Debug.Log("123123123123");
+            Debug.Log("Monster AAAYA");
+
             //Player player = other.GetComponent<Player>();
             //Debug.Log(player.wSkillDamage);
             //curHealth -= player.wSkillDamage;
             curHealth -= 20;
 
-            // 현재 위치에 피격 위치를 빼서 반작용 구하기
-            Vector3 reactVec = transform.position - other.transform.position;
-
             // 적과 닿았을 때 삭제되도록 Destroy() 호출
-            Destroy(other.gameObject);
-            other.gameObject.SetActive(false);
+            if(other.tag == "PlayerAttack")
+            {
+                Destroy(other.gameObject);
+                other.gameObject.SetActive(false);
+            }
 
             //StartCoroutine(OnDamage(reactVec, false));
         }
