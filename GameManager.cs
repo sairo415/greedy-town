@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
 
     [Header("# Game Object")]
     public PoolManager pool;
-    public Player player;
+    public VamsuPlayer player;
     public GameObject canvas;
 
     private void Awake()
@@ -110,7 +110,7 @@ public class GameManager : MonoBehaviour
 
         
         GameObject augment = canvas.transform.Find("LevelUp").gameObject;
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(18).gameObject.GetComponent<Item>().OnClick();
 
         //LevelUp();
     }

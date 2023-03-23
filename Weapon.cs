@@ -13,7 +13,7 @@ public class Weapon : MonoBehaviour
     public float durations;//지속시간
 
     float timer;
-    Player player;
+    VamsuPlayer player;
 
     void Awake()
     {
@@ -31,7 +31,8 @@ public class Weapon : MonoBehaviour
 
             switch (id)
             {
-               case 0:
+                case 0:
+                case 11:
                     transform.Rotate(Vector3.down * speed * Time.deltaTime);
                     break;
                 case 1:
@@ -59,7 +60,7 @@ public class Weapon : MonoBehaviour
         {
             Batch();
         }
-
+        
         transform.parent.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
     }
     
@@ -94,6 +95,9 @@ public class Weapon : MonoBehaviour
                 break;
             case 1:
                 speed = 15;
+                break;
+            case 11:
+                speed = 150;
                 break;
             default:
                 break;

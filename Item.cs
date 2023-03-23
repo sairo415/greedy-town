@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -56,7 +57,16 @@ public class Item : MonoBehaviour
             case ItemData.ItemType.Effect:
                 if(level == 0)
                 {
-                    GameObject newWeapon = GameObject.Find("Support").transform.Find("Weapon " + data.itemId).gameObject;
+                    GameObject newWeapon;
+                    try
+                    {
+                        newWeapon = GameObject.Find("Support").transform.Find("Weapon " + data.itemId).gameObject;
+                    }
+                    catch(NullReferenceException ex)
+                    {
+                        //Debug.Log(ex.Data);
+                        newWeapon = GameObject.Find("Player").transform.Find("Weapon " + data.itemId).gameObject;
+                    }
                     weapon = newWeapon.GetComponent<Weapon>();
                     weapon.Init(data, false);
                     newWeapon.SetActive(true);
