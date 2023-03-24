@@ -101,7 +101,7 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        health -= damage;
+        health -= (damage * (1 + GameManager.instance.extraDamage));
         StartCoroutine(KnockBack());
 
         if (health > 0)

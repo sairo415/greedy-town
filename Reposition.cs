@@ -35,11 +35,11 @@ public class Reposition : MonoBehaviour
             case "Ground":
                 if(diffX > diffZ)
                 {
-                    transform.Translate(Vector3.right * dirX * 90);
+                    transform.Translate(Vector3.right * dirX * 120);
                 }
                 else if (diffX < diffZ)
                 {
-                    transform.Translate(Vector3.forward * dirZ * 90);
+                    transform.Translate(Vector3.forward * dirZ * 120);
                 }
                 break;
 

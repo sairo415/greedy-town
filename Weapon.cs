@@ -64,6 +64,16 @@ public class Weapon : MonoBehaviour
         transform.parent.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
     }
     
+    public void LevelMax()
+    {
+        EffectMaker[] makers = GetComponentsInChildren<EffectMaker>();
+        foreach (EffectMaker maker in makers)
+        {
+            maker.m_makeCount *= 2;
+            maker.m_makeDelay /= 2;
+        }
+    }
+
     public void Init(ItemData data, bool isNew)
     {
         if (isNew)
@@ -169,7 +179,7 @@ public class Weapon : MonoBehaviour
         //active false
         foreach (Transform child in transform)
             child.gameObject.SetActive(false);
-        yield return new WaitForSeconds(coolTime);//끈 채로 쿨타임 기다리고
+        yield return new WaitForSeconds(coolTime * (1 - GameManager.instance.extraCoolDown));//끈 채로 쿨타임 기다리고
 
         StartCoroutine("ActiveWeapon");
     }

@@ -74,6 +74,10 @@ public class Item : MonoBehaviour
                 else
                 {
                     weapon.LevelUp(data.baseDamage * data.damages[level-1], 0, data.baseCoolTime * data.coolTimes[level-1]);
+                    if(level == data.damages.Length)//6¿Ã ∏∏∑æ
+                    {
+                        weapon.LevelMax();
+                    }
                 }
                 break;
             case ItemData.ItemType.Glove:
@@ -97,7 +101,7 @@ public class Item : MonoBehaviour
 
         level++;
 
-        if(level == data.damages.Length)
+        if(level == data.damages.Length + 1)
         {
             GetComponent<Button>().interactable = false;
         }

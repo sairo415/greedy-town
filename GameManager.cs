@@ -12,11 +12,11 @@ public class GameManager : MonoBehaviour
     public float maxGameTime = 30 * 10f;
 
     [Header("# Player Info")]
-    public int health;
-    public int maxHealth;
+    public float health;
+    public float maxHealth;
     public int level;
     public int kill;
-    public int exp;
+    public float exp;
     //각 레벨당 요구량
     public int[] nextExp;
 
@@ -25,12 +25,23 @@ public class GameManager : MonoBehaviour
     public VamsuPlayer player;
     public GameObject canvas;
 
+    //10퍼센트 -> 0.1로 치환
+    [Header("# Player Stat")]
+    public float extraDamage;//ok
+    public float extraHealth;//ok
+    public float extraSpeed;//ok
+    public float extraArmor;//ok
+    public float extraCoolDown;
+    public float extraExp;//ok
+    public float extraGold;
+
     private void Awake()
     {
         Time.timeScale = 0;
         instance = this;
-        maxHealth = 100;
+        maxHealth = 100 * (1+ extraHealth);
         health = maxHealth;
+        player.speed *= (1 + extraSpeed);
         canvas = GameObject.Find("Canvas");
 
 
@@ -57,8 +68,8 @@ public class GameManager : MonoBehaviour
 
     public void GetExp()
     {
-        exp++;
-        if(exp == nextExp[level])
+        exp += (1+ extraExp);
+        if(exp >= nextExp[level])
         {
             level++;
             exp = 0;
@@ -92,7 +103,7 @@ public class GameManager : MonoBehaviour
 
     public void GetDamage(int damage)
     {
-        health -= damage;
+        health -= (damage * (1 - extraArmor));
         if(health <= 0)
         {
             //gameOver
@@ -110,7 +121,13 @@ public class GameManager : MonoBehaviour
 
         
         GameObject augment = canvas.transform.Find("LevelUp").gameObject;
-        augment.transform.GetChild(18).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+
 
         //LevelUp();
     }

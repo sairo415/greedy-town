@@ -29,7 +29,7 @@ public class Gear : MonoBehaviour
         switch (type)
         {
             case ItemData.ItemType.Glove:
-                RateUp();
+                CoolDown();
                 break;
             case ItemData.ItemType.Shoe:
                 SpeedUp();
@@ -37,24 +37,9 @@ public class Gear : MonoBehaviour
         }
     }
 
-    void RateUp()
+    void CoolDown()
     {
-        Weapon[] weapons = transform.parent.GetComponentsInChildren<Weapon>();
-
-        foreach(Weapon weapon in weapons)
-        {
-            switch (weapon.id)
-            {
-                case 0:
-                    weapon.speed += weapon.speed  * rate;
-                    break;
-                case 1:
-                    weapon.speed += weapon.speed  * rate;
-                    break;
-                default:
-                    break;
-            }
-        }
+        GameManager.instance.extraCoolDown += rate;
     }
 
     void SpeedUp()

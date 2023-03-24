@@ -11,6 +11,7 @@ public class VamsuPlayer : MonoBehaviour
 
     Rigidbody rigid;
 
+    public float attack;
 
     void Awake()
     {

@@ -53,18 +53,21 @@ public class EffectMaker : _ObjectsMakeBase
                     {
                         m_obj.transform.parent = this.transform;
                     }
-                    else
+                    Transform parent = transform.parent;
+                    while (!parent.TryGetComponent(out Weapon wea))
                     {
-                        Transform parent = transform.parent;
-                        while (!parent.TryGetComponent(out Weapon wea))
-                        {
-                            parent = parent.parent;
-                        }
-                        Particle[] particles = m_obj.GetComponentsInChildren<Particle>();
-                        foreach(Particle particle in particles)
-                        {
-                            particle.weapon = parent.GetComponent<Weapon>();
-                        }
+                        parent = parent.parent;
+                    }
+                    Weapon pweapon = parent.GetComponent<Weapon>();
+                    Particle[] particles = m_obj.GetComponentsInChildren<Particle>();
+                    foreach (Particle particle in particles)
+                    {
+                        particle.weapon = pweapon;
+                    }
+                    Hammer[] hammers = m_obj.GetComponentsInChildren<Hammer>();
+                    foreach (Hammer hammer in hammers)
+                    {
+                        hammer.Init(pweapon.damage, -1);
                     }
 
                     m_obj.transform.localScale = m_scale;
