@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BossBoss : MonoBehaviour
 {
@@ -27,12 +28,9 @@ public class BossBoss : MonoBehaviour
     {
         if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
         {
-            Debug.Log("Monster AAAYA");
-
-            //Player player = other.GetComponent<Player>();
-            //Debug.Log(player.wSkillDamage);
-            //curHealth -= player.wSkillDamage;
-            curHealth -= 20;
+            curHealth -= other.GetComponent<BossPlayerSkill>().damage;
+            if(curHealth < 0)
+                curHealth = 0;
 
             // 적과 닿았을 때 삭제되도록 Destroy() 호출
             if(other.tag == "PlayerAttack")
@@ -41,7 +39,7 @@ public class BossBoss : MonoBehaviour
                 other.gameObject.SetActive(false);
             }
 
-            //StartCoroutine(OnDamage(reactVec, false));
+            StartCoroutine("OnDamage");
         }
 
         /*if(other.tag == "Melee")
@@ -68,5 +66,37 @@ public class BossBoss : MonoBehaviour
             StartCoroutine(OnDamage(reactVec));
             //Debug.Log("Range : " + curHealth);
         }*/
+    }
+
+    IEnumerator OnDamage()
+    {
+        Color originMat = mat.color;
+        mat.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+
+        if(curHealth > 0)
+        {
+            mat.color = originMat;
+        }
+        else
+        {
+            yield return new WaitForSeconds(10.0f);
+
+            int sceneNum = SceneManager.GetActiveScene().buildIndex + 1;
+
+            if(sceneNum < 4)
+            {
+                int nextSceneNum = sceneNum + 1;
+                string nextSceneName = "BossScene" + nextSceneNum.ToString();
+
+                SceneManager.LoadScene(nextSceneName);
+            }
+            else
+            {
+                //game End
+                Debug.Log("End");
+
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BossPlayer : MonoBehaviour
 {
@@ -16,6 +17,10 @@ public class BossPlayer : MonoBehaviour
     bool wDown; // 스킬 1
     bool eDown; // 스킬 2
     bool rDown; // 스킬 3
+
+    // 체력
+    public int maxHealth;
+    public int curHealth;
 
     // 속도
     public float speed;
@@ -41,6 +46,8 @@ public class BossPlayer : MonoBehaviour
 
     // 공통 일반 공격
     public GameObject normalAttack;
+    public AudioClip swingSound;
+    public Transform swordSwingPos;
 
     float normalAtkDelay;
     public float normalAtkRate;
@@ -48,14 +55,17 @@ public class BossPlayer : MonoBehaviour
 
     // SwordMaster
     public GameObject swordMasterAttack;
-
+    
     public Transform swordForcePos;
+    public AudioClip swordForceSound;
     public GameObject swordForce;
 
     public Transform swordDancePos;
+    public AudioClip swordDanceSound;
     public GameObject swordDance;
 
     public Transform swordFlashPos;
+    public AudioClip swordFlashSound;
     public GameObject swordFlash;
 
     public float swordForceRate;        // 스킬 재사용 대기 시간
@@ -74,9 +84,11 @@ public class BossPlayer : MonoBehaviour
     public GameObject vampirism;
 
     public Transform bloodExplosionPos;
+    public AudioClip bloodExplosionSound;
     public GameObject bloodExplosion;
 
     public Transform restrictionOfBloodPos;
+    public AudioClip restrictionOfBloodSound;
     public GameObject restrictionOfBlood;
 
     public float vampirismRate;
@@ -95,9 +107,11 @@ public class BossPlayer : MonoBehaviour
     public GameObject intent;
 
     public Transform blessingPos;
+    public AudioClip blessingSound;
     public GameObject blessing;
 
     public Transform resurrectionPos;
+    public AudioClip resurrectionSound;
     public GameObject resurrection;
 
     public float intentRate;
@@ -124,6 +138,9 @@ public class BossPlayer : MonoBehaviour
     public float rSkillRate;
     bool isRSkillReady;
 
+    // 구르기 사운드
+    public AudioClip dodgeSound;
+
     // 회피 여부
     bool isDodge;
 
@@ -136,14 +153,22 @@ public class BossPlayer : MonoBehaviour
     Rigidbody rigid;
     Animator anim;
 
+    // 씬 이동 관련
+    int nextSceneIndex;
+
+    // 스킬 음
+    AudioSource skillSound;
+
     private void Awake()
     {
         rigid = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
-    }
+        skillSound = GetComponent<AudioSource>();
+        //DontDestroyOnLoad(gameObject);
 
-    void Start()
-    {
+        // 체력 초기화
+        curHealth = maxHealth;
+
         isSkillReady = true;
         isMoveReady = true;
 
@@ -151,6 +176,34 @@ public class BossPlayer : MonoBehaviour
         wSkillDelay = 1000f;
         eSkillDelay = 1000f;
         rSkillDelay = 1000f;
+    }
+
+    void Start()
+    {
+        nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        DontDestroyOnLoad(this.gameObject);
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if(scene.buildIndex == nextSceneIndex)
+        {
+            transform.position = Vector3.zero;
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+
+            curHealth = maxHealth;
+
+            isSkillReady = true;
+            isMoveReady = true;
+
+            normalAtkDelay = 1000f;
+            wSkillDelay = 1000f;
+            eSkillDelay = 1000f;
+            rSkillDelay = 1000f;
+
+            nextSceneIndex++;
+        }
     }
 
     void Update()
@@ -170,6 +223,11 @@ public class BossPlayer : MonoBehaviour
         WSkill();
         ESkill();
         RSkill();
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void GetInput()
@@ -224,6 +282,9 @@ public class BossPlayer : MonoBehaviour
             // 움직임 벡터 -> 회피방향 벡터로 바뀌도록 구현
             dodgeVec = moveVec;
             speed *= 2.0f;
+
+            skillSound.clip = dodgeSound;
+            skillSound.Play();
             anim.SetTrigger("doDodge");
             isDodge = true;
 
@@ -334,7 +395,7 @@ public class BossPlayer : MonoBehaviour
             switch(lvTwoSkill)
             {
             case LvTwoSkill.SwordDance:
-                anim.SetTrigger("doSwing2");
+                anim.SetTrigger("doSpell");
                 break;
             case LvTwoSkill.BloodExplosion:
                 anim.SetTrigger("doSwing2");
@@ -411,15 +472,16 @@ public class BossPlayer : MonoBehaviour
         {
         case LvOneSkill.NULL:
             skillAreaObj = Instantiate(normalAttack, gameObject.transform.position, gameObject.transform.rotation);
+            
             break;
         case LvOneSkill.SwordForce:
-            skillAreaObj = Instantiate(swordMasterAttack, gameObject.transform.position, gameObject.transform.rotation);
+            skillAreaObj = Instantiate(swordMasterAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
             break;
         case LvOneSkill.Vampirism:
-            skillAreaObj = Instantiate(berserkerAttack, gameObject.transform.position, gameObject.transform.rotation);
+            skillAreaObj = Instantiate(berserkerAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
             break;
         case LvOneSkill.Intent:
-            skillAreaObj = Instantiate(paladinkerAttack, gameObject.transform.position, gameObject.transform.rotation);
+            skillAreaObj = Instantiate(paladinkerAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
             break;
         }
 
@@ -427,6 +489,8 @@ public class BossPlayer : MonoBehaviour
             yield break;
 
         skillAreaObj.SetActive(true);
+        skillSound.clip = swingSound;
+        skillSound.Play();
 
         yield return new WaitForSeconds(1.0f);
 
@@ -441,6 +505,8 @@ public class BossPlayer : MonoBehaviour
             GameObject skillAreaObj = Instantiate(swordForce, swordForcePos.position, swordForcePos.rotation);
 
             skillAreaObj.SetActive(true);
+            skillSound.clip = swordForceSound;
+            skillSound.Play();
 
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
             skillAreaRigid.velocity = swordForcePos.forward * 50;
@@ -470,6 +536,8 @@ public class BossPlayer : MonoBehaviour
             GameObject skillAreaObj = Instantiate(swordDance, swordDancePos.position, swordDancePos.rotation);
 
             skillAreaObj.SetActive(true);
+            skillSound.clip = swordDanceSound;
+            skillSound.Play();
 
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
             skillAreaRigid.velocity = swordDancePos.forward;
@@ -499,6 +567,8 @@ public class BossPlayer : MonoBehaviour
             GameObject skillAreaObj = Instantiate(swordFlash, swordFlashPos.position, swordFlashPos.rotation);
 
             skillAreaObj.SetActive(true);
+            skillSound.clip = swordFlashSound;
+            skillSound.Play();
 
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
             skillAreaRigid.velocity = swordFlashPos.forward;
@@ -531,9 +601,25 @@ public class BossPlayer : MonoBehaviour
         }
     }
 
+	// 플레이어 데미지 입음
+	void OnTriggerEnter(Collider other)
+	{
+        if(other.CompareTag("DamageObject"))
+        {
+            transform.Find("Skill/Fire").gameObject.SetActive(true);
+        }
+	}
 
-    //자동 회전 방지
-    void FreezeRotation()
+	void OnTriggerExit(Collider other)
+	{
+        if(other.CompareTag("DamageObject"))
+        {
+            transform.Find("Skill/Fire").gameObject.SetActive(false);
+        }	
+	}
+
+	//자동 회전 방지
+	void FreezeRotation()
     {
         rigid.angularVelocity = Vector3.zero;
     }

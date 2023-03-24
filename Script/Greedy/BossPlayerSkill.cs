@@ -7,7 +7,7 @@ public class BossPlayerSkill : MonoBehaviour
     public int minDamage;
     public int maxDamage;
 
-	int damage;
+	public int damage;
 
 	private void Start()
 	{
