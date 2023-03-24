@@ -248,14 +248,6 @@ public class Warrior : MonoBehaviour
         }
     }
 
-    void OnParticleTrigger()
-    {
-        //if (other.tag == "BossAttack" || other.tag == "BossAttackOver")
-        //{
-          //  bool isBossAttack = other.name == "Explosion";
-            StartCoroutine(OnDamage(false));
-        //}
-    }
 
     IEnumerator OnDamage(bool isBossAttack)
     {
@@ -265,7 +257,7 @@ public class Warrior : MonoBehaviour
         {
             rigid.AddForce(transform.forward * -100, ForceMode.Impulse);
         }
-
+        
         print("is Attacked!!");
 
         yield return new WaitForSeconds(3f);

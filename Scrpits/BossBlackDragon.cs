@@ -42,6 +42,9 @@ public class BossBlackDragon : MonoBehaviour
     // 보스의 이동 지점들
     public GameObject[] bossDomains;
 
+    // 너무 날아다니면 안되니깐
+    bool wasFlied;
+
     public bool isAttack;
     public bool isChase = false;
     public bool isLook;
@@ -179,6 +182,7 @@ public class BossBlackDragon : MonoBehaviour
         isFlying = false;
         isLook = true;
         currentState = BossState.Idle;
+        wasFlied = true;
         boxCollider.enabled = true;
         isLanding = false;
     }
@@ -186,7 +190,6 @@ public class BossBlackDragon : MonoBehaviour
     void FixedUpdate()
     {
         FreezeVelocity();
-
     }
 
     void FreezeVelocity()
@@ -215,17 +218,17 @@ public class BossBlackDragon : MonoBehaviour
 
                     if (ranAction < 25)
                     {
-                        currentState = BossState.Attack3;
+                        currentState = BossState.Attack1;
                     }
                     else if (ranAction < 60)
                     {
-                        currentState = BossState.Attack3;
+                        currentState = BossState.Attack2;
                     }
                     else if (ranAction < 80)
                     {
                         currentState = BossState.Attack3;
                     }
-                    else if (ranAction < 100)
+                    else if (ranAction < 100 && !wasFlied)
                     {
                         currentState = BossState.Fly;
                     }
@@ -263,6 +266,7 @@ public class BossBlackDragon : MonoBehaviour
     {
         yield return new WaitForSeconds(4f);
         isAttack = false;
+        wasFlied = false;
         currentState = BossState.Idle;
     }
 
@@ -314,6 +318,7 @@ public class BossBlackDragon : MonoBehaviour
         yield return new WaitForSeconds(2f);
         isLook = true;
         isAttack = false;
+        wasFlied = false;
         currentState = BossState.Idle;
 
         yield return new WaitForSeconds(3f);
@@ -338,6 +343,7 @@ public class BossBlackDragon : MonoBehaviour
         yield return new WaitForSeconds(2f);
         isLook = true;
         isAttack = false;
+        wasFlied = false;
         currentState = BossState.Idle;
         Destroy(TailSlash);
 
