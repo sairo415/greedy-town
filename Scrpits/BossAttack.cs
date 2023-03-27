@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class BossAttack : MonoBehaviour
 {
+
+    public int damage;
+
     void Awake()
     {
         gameObject.layer = LayerMask.NameToLayer("BossAttack");

@@ -241,8 +241,10 @@ public class Warrior : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "BossAttack" || other.tag == "BossAttackOver")
+        if (other.gameObject.layer == LayerMask.NameToLayer("BossAttack"))
         {
+            BossAttack bossAttack = other.GetComponent<BossAttack>();
+            health -= bossAttack.damage;
             bool isBossAttack = other.name == "Explosion";
             StartCoroutine(OnDamage(isBossAttack));
         }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Sword : MonoBehaviour
 {
-    public int damage;
+    public int damage = 10;
 
     // 칼 공격 인식 범위
     public BoxCollider meleeArea;

@@ -88,7 +88,13 @@ public class BossBlackDragon : MonoBehaviour
 
     void Update()
     {
-        if (!isFlying && !isLanding && !isStartFlying)
+
+        if ((target.position - transform.position).magnitude <= 10f && !isFlying && !isLanding && !isStartFlying)
+        {
+            currentState = BossState.Attack3;
+        }
+
+        else if (!isFlying && !isLanding && !isStartFlying && !isDead)
         {
             // 현재 보스 몬스터 상태에 따른 행동 처리
             switch (currentState)
@@ -123,6 +129,8 @@ public class BossBlackDragon : MonoBehaviour
                     break;
                 case BossState.Dead:
                     // Dead 상태에서의 행동 처리
+                    if (!isDead)
+                        DoDie();
                     break;
                 case BossState.Fly:
                     TakeOff();
@@ -135,7 +143,7 @@ public class BossBlackDragon : MonoBehaviour
 
 
         // 날면서 이동중
-        else if (isFlying && !isLanding && !isStartFlying)
+        else if (isFlying && !isLanding && !isStartFlying && !isDead)
         {
             isLook = false;
 
@@ -158,14 +166,9 @@ public class BossBlackDragon : MonoBehaviour
             }
         }
 
-        else if ((target.position - transform.position).magnitude <= 10f)
-        {
-            currentState = BossState.Attack3;
-        }
-
 
         // 땅에 서서 캐릭터 추적
-        if (isLook && !isLanding && !isStartFlying)
+        if (isLook && !isLanding && !isStartFlying && !isDead)
         {
             float horizontal = Input.GetAxisRaw("Horizontal");
             float vertical = Input.GetAxisRaw("Vertical");
@@ -190,6 +193,10 @@ public class BossBlackDragon : MonoBehaviour
     void FixedUpdate()
     {
         FreezeVelocity();
+        if (isDead)
+        {
+            StopAllCoroutines();
+        }
     }
 
     void FreezeVelocity()
@@ -387,16 +394,46 @@ public class BossBlackDragon : MonoBehaviour
 
     }
 
-
-    void OnCollisionEnter(Collision collision)
+    void DoDie()
     {
-        // 현재 충돌한 녀석의 레이어 확인
-        int layer = collision.gameObject.layer;
+        StartCoroutine(MakeDead());
+    }
+
+    IEnumerator MakeDead()
+    {
+        anim.SetTrigger("doDie");
+        isDead = true;
+        isLook = false;
+        yield return new WaitForSeconds(10f);
+        Destroy(gameObject);
+    }
 
 
-        if (layer == LayerMask.NameToLayer("BossAttack"))
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("PlayerAttack"))
         {
-            return;
+            Sword sword = other.GetComponent<Sword>();
+            currentHealth -= sword.damage;
+            Vector3 reactVector = transform.position - other.transform.position;
+            StartCoroutine(OnHit(reactVector));
+        }
+    }
+
+    IEnumerator OnHit(Vector3 reactVector)
+    {
+        yield return null;
+        print("isHit!");
+        if (!isDead)
+        {
+            if (currentHealth <= 0)
+            {
+                reactVector = reactVector.normalized;
+                reactVector += Vector3.up;
+                rigid.AddForce(reactVector * 3, ForceMode.Impulse);
+                DoDie();
+            }
+
         }
     }
 }
