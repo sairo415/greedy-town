@@ -27,7 +27,7 @@ public class HUD : MonoBehaviour
         switch (type)
         {
             case InfoType.Exp:
-                mySlider.value = GameManager.instance.exp / (float)GameManager.instance.nextExp[GameManager.instance.level];
+                mySlider.value = GameManager.instance.exp / (float)GameManager.instance.nextExp[Mathf.Min(GameManager.instance.level, GameManager.instance.nextExp.Length - 1)];
                 break;
             case InfoType.Level:
                 myText.text = string.Format("LV.{0:F0}", GameManager.instance.level);

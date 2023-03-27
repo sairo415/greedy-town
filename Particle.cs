@@ -32,7 +32,6 @@ public class Particle : MonoBehaviour
     {
         if(other.TryGetComponent(out Enemy enemy))
         {
-            Debug.Log(transform.name+" "+weapon.damage + " enemy: " + enemy.name);
             enemy.TakeDamage(weapon.damage);
         }
     }

@@ -6,10 +6,12 @@ public class Gear : MonoBehaviour
 {
     public ItemData.ItemType type;
     public float rate;
+    public int id;
 
     public void Init(ItemData data)
     {
-        name = "Gear " + data.itemId;
+        id = data.itemId;
+        name = "Gear " + id;
         transform.parent = GameObject.Find("Support").transform;
         transform.localPosition = Vector3.zero;
 
@@ -18,6 +20,7 @@ public class Gear : MonoBehaviour
         ApplyGear();
     }
 
+    //몇 퍼 씩 더하는 값
     public void LevelUp(float rate)
     {
         this.rate = rate;
@@ -39,7 +42,27 @@ public class Gear : MonoBehaviour
 
     void CoolDown()
     {
-        GameManager.instance.extraCoolDown += rate;
+        switch (id)
+        {
+            case 1:
+                GameManager.instance.extraDamage += rate;
+                break;
+            case 2:
+                GameManager.instance.extraCoolDown += rate;
+                break;
+            case 3:
+                GameManager.instance.extraArmor += rate;
+                break;
+            case 4:
+                GameManager.instance.extraExp += rate;
+                break;
+            case 5:
+                GameManager.instance.extraGold += rate;
+                break;
+            default:
+                break;
+        }
+        
     }
 
     void SpeedUp()

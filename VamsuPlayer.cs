@@ -22,12 +22,18 @@ public class VamsuPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(!GameManager.instance.isLive)
+            return;
+
         inputVec.x = Input.GetAxisRaw("Horizontal");
         inputVec.z = Input.GetAxisRaw("Vertical");
     }
 
     void FixedUpdate()
     {
+        if (!GameManager.instance.isLive)
+            return;
+
         Vector3 nextVec = inputVec.normalized * speed * Time.fixedDeltaTime;
 
         rigid.MovePosition(rigid.position + nextVec);

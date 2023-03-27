@@ -22,14 +22,20 @@ public class Scanner : MonoBehaviour
 
         foreach (RaycastHit target in targets)
         {
-            Vector3 myPos = transform.position;
-            Vector3 targetPos = target.transform.position;
-
-            float curDiff = Vector3.Distance(myPos, targetPos);
-            if (curDiff < diff)
+            if (target.transform.TryGetComponent<Enemy>(out Enemy enemy))
             {
-                diff = curDiff;
-                result = target.transform;
+                if (!enemy.isLive)
+                    continue;
+
+                Vector3 myPos = transform.position;
+                Vector3 targetPos = target.transform.position;
+
+                float curDiff = Vector3.Distance(myPos, targetPos);
+                if (curDiff < diff)
+                {
+                    diff = curDiff;
+                    result = target.transform;
+                }
             }
         }
 

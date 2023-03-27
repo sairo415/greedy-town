@@ -12,7 +12,7 @@ public class Enemy : MonoBehaviour
     public Color[] colors;
     Rigidbody target;
 
-    bool isLive;//기본값
+    public bool isLive;//기본값
 
     bool isAttack;
 
@@ -35,6 +35,9 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (!GameManager.instance.isLive)
+            return;
+
         if (!isLive || anim.GetCurrentAnimatorStateInfo(0).IsName("Hit"))
             return;
 
@@ -49,6 +52,9 @@ public class Enemy : MonoBehaviour
 
     void LateUpdate()
     {
+        if (!GameManager.instance.isLive)
+            return;
+
         if (!isLive)
             return;
     }
@@ -57,6 +63,7 @@ public class Enemy : MonoBehaviour
     {
         target = GameManager.instance.player.GetComponent<Rigidbody>();
         isLive = true;
+        isAttack = false;
         coll.enabled = true;
         rigid.isKinematic = false;
         health = maxHealth;
@@ -96,11 +103,15 @@ public class Enemy : MonoBehaviour
             isAttack = true;
             GameManager.instance.GetDamage(damage);
             anim.SetTrigger("Attack");
+            StartCoroutine(Attack());
         }
     }
 
     public void TakeDamage(float damage)
     {
+        if (!isLive)
+            return;
+
         health -= (damage * (1 + GameManager.instance.extraDamage));
         StartCoroutine(KnockBack());
 
@@ -110,8 +121,11 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            anim.SetBool("Dead", true);
             isLive = false;
+            isAttack = true;
+            anim.SetBool("Dead", true);
+            StartCoroutine(Dead());
+
             coll.enabled = false;
             rigid.isKinematic = true;
 
@@ -130,14 +144,16 @@ public class Enemy : MonoBehaviour
         rigid.AddForce(dir.normalized * 5, ForceMode.Impulse);
     }
 
-    //밑에는 애니메이션 끝나고 실행되는 함수
-    void Attack()
+    IEnumerator Dead()
     {
+        yield return new WaitForSeconds(3f);
+        gameObject.SetActive(false);
+    }
+
+    IEnumerator Attack()
+    {
+        yield return new WaitForSeconds(1f);
         isAttack = false;
     }
 
-    void Dead()
-    {
-        gameObject.SetActive(false);
-    }
 }

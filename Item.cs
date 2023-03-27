@@ -31,9 +31,10 @@ public class Item : MonoBehaviour
 
     }
 
-    void LateUpdate()
+    void OnEnable()
     {
         textLevel.text = "Lv." + level;
+        
     }
 
     public void OnClick()

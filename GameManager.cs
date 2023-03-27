@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     [Header("# Game Control")]
+    public bool isLive;
     public float gameTime;
     public float maxGameTime = 30 * 10f;
 
@@ -24,22 +25,23 @@ public class GameManager : MonoBehaviour
     public PoolManager pool;
     public VamsuPlayer player;
     public GameObject canvas;
+    public LevelUp uiLevelUp;
 
-    //10퍼센트 -> 0.1로 치환
+    //10퍼센트 -> 0.1로 치환. 백분율이 추가되는 방식
     [Header("# Player Stat")]
     public float extraDamage;//ok
-    public float extraHealth;//ok
-    public float extraSpeed;//ok
-    public float extraArmor;//ok
     public float extraCoolDown;
+    public float extraArmor;//ok
     public float extraExp;//ok
     public float extraGold;
+    public float extraHealth;//ok
+    public float extraSpeed;//ok
 
     private void Awake()
     {
         Time.timeScale = 0;
         instance = this;
-        maxHealth = 100 * (1+ extraHealth);
+        maxHealth = 100 * (1 + extraHealth);
         health = maxHealth;
         player.speed *= (1 + extraSpeed);
         canvas = GameObject.Find("Canvas");
@@ -54,12 +56,14 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (!isLive)
+            return;
+
         gameTime += Time.deltaTime;
 
         if (gameTime > maxGameTime)
         {
-            //gameWin
-            gameTime = maxGameTime;
+            //game win
             canvas.transform.Find("Victory").gameObject.SetActive(true);
             canvas.transform.Find("Restart").gameObject.SetActive(true);
             Time.timeScale = 0;
@@ -69,35 +73,12 @@ public class GameManager : MonoBehaviour
     public void GetExp()
     {
         exp += (1+ extraExp);
-        if(exp >= nextExp[level])
+        if(exp >= nextExp[Mathf.Min(level, nextExp.Length-1)])
         {
             level++;
             exp = 0;
             //레벨업 로직
-            LevelUp();
-        }
-    }
-
-    //캔버스에서 증강체 3개를 가져오는 방식
-    public void LevelUp()
-    {
-        Time.timeScale = 0;
-
-        GameObject augment = canvas.transform.Find("LevelUp").gameObject;
-
-        int max = augment.transform.childCount;
-        List<int> list = new List<int>();
-        while (list.Count < 3)
-        {
-            int now = Random.Range(0, max);
-            if (!list.Contains(now))
-                list.Add(now);
-        }
-
-
-        foreach (int num in list)
-        {
-            augment.transform.GetChild(num).gameObject.SetActive(true);
+            uiLevelUp.Show();
         }
     }
 
@@ -115,21 +96,15 @@ public class GameManager : MonoBehaviour
 
     public void GameStart()
     {
-        Time.timeScale = 1;
+        Resume();
+
         canvas.transform.Find("Title").gameObject.SetActive(false);
         canvas.transform.Find("Start").gameObject.SetActive(false);
 
-        
-        GameObject augment = canvas.transform.Find("LevelUp").gameObject;
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
-        augment.transform.GetChild(10).gameObject.GetComponent<Item>().OnClick();
+        //총 선택
+        uiLevelUp.Select(0);
 
-
-        //LevelUp();
+        //uiLevelUp.Show();
     }
 
     public void ReStart()
@@ -138,4 +113,15 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1;
     }
 
+    public void Stop()
+    {
+        isLive = false;
+        Time.timeScale = 0;
+    }
+
+    public void Resume()
+    {
+        isLive = true;
+        Time.timeScale = 1;
+    }
 }

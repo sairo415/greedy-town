@@ -28,8 +28,10 @@ public class Weapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GameManager.instance.isLive)
+            return;
 
-            switch (id)
+        switch (id)
             {
                 case 0:
                 case 11:
@@ -70,7 +72,10 @@ public class Weapon : MonoBehaviour
         foreach (EffectMaker maker in makers)
         {
             maker.m_makeCount *= 2;
-            maker.m_makeDelay /= 2;
+            if (maker.m_makeDelay != 0)
+                maker.m_makeDelay /= 2;
+            else
+                maker.m_makeDelay = 0.1f;
         }
     }
 
@@ -120,7 +125,7 @@ public class Weapon : MonoBehaviour
         }
 
         //나중에 추가된 무기들도 gear 버프를 적용시키기위해서
-        transform.parent.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
+        //transform.parent.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
     }
 
     void Batch()
