@@ -9,8 +9,20 @@ public class BossPlayerSkill : MonoBehaviour
 
 	public int damage;
 
+	private int viewId;
+
 	private void Start()
 	{
 		damage = Random.Range(minDamage, maxDamage);
+	}
+
+	public void SetID(int viewId)
+	{
+		this.viewId = viewId;
+	}
+
+	public int GetID()
+	{
+		return viewId;
 	}
 }

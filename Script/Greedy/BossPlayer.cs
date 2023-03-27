@@ -2,12 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
+using Photon.Realtime;
+using Cinemachine;
+using UnityEngine.Rendering;
 
 public class BossPlayer : MonoBehaviour
 {
-    // Camera
-    public Camera followCamera;
+    //Game Manager
+    private BossGameManager bossGameManager;
 
+    // Camera
+    private CinemachineVirtualCamera virtualCamera;
+
+    // Photon
+    private PhotonView pv;
+
+    // 이동 관련
     float hAxis;
     float vAxis;
 
@@ -125,17 +136,17 @@ public class BossPlayer : MonoBehaviour
 
     // w 공격 딜레이
     float wSkillDelay;
-    public float wSkillRate;
+    float wSkillRate;
     bool isWSkillReady;
 
     // e 공격 딜레이
     float eSkillDelay;
-    public float eSkillRate;
+    float eSkillRate;
     bool isESkillReady;
 
     // r 공격 딜레이
     float rSkillDelay;
-    public float rSkillRate;
+    float rSkillRate;
     bool isRSkillReady;
 
     // 구르기 사운드
@@ -164,7 +175,7 @@ public class BossPlayer : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
         skillSound = GetComponent<AudioSource>();
-        //DontDestroyOnLoad(gameObject);
+        bossGameManager = GetComponent<BossGameManager>();
 
         // 체력 초기화
         curHealth = maxHealth;
@@ -183,6 +194,19 @@ public class BossPlayer : MonoBehaviour
         nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         DontDestroyOnLoad(this.gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
+
+        pv = GetComponent<PhotonView>();
+        virtualCamera = GameObject.FindObjectOfType<CinemachineVirtualCamera>();
+        
+        if(pv.IsMine)
+        {
+            // 자신의 캐릭터일 경우 시네머신 카메라를 연결
+            virtualCamera.Follow = transform;
+            virtualCamera.LookAt = transform;
+
+            // 게임 메니져 세팅
+            bossGameManager.player = gameObject.GetComponent<BossPlayer>();
+        }
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -208,21 +232,24 @@ public class BossPlayer : MonoBehaviour
 
     void Update()
     {
-        //입력
-        GetInput();
+        if(pv.IsMine)
+        {
+            //입력
+            GetInput();
 
-        //움직임
-        Move();
-        Turn();
+            //움직임
+            Move();
+            Turn();
 
-        //회피
-        Dodge();
+            //회피
+            Dodge();
 
-        //공격
-        Attack();
-        WSkill();
-        ESkill();
-        RSkill();
+            //공격
+            QSkill();
+            WSkill();
+            ESkill();
+            RSkill();
+        } 
     }
 
     private void OnDestroy()
@@ -293,7 +320,7 @@ public class BossPlayer : MonoBehaviour
         }
     }
 
-    void Attack()
+    void QSkill()
     {
         if(!isSkillReady)
             return;
@@ -304,7 +331,7 @@ public class BossPlayer : MonoBehaviour
         if(qDown && isNormalAtkReady && !isDodge)
         {
             // 스킬 시전
-            StartCoroutine("QSkillStart");
+            pv.RPC("QSkillStart", RpcTarget.All);
 
             // 애니메이션
             anim.SetTrigger("doSwing1");
@@ -341,7 +368,7 @@ public class BossPlayer : MonoBehaviour
         if(wDown && isWSkillReady && !isDodge)
         {
             // 스킬 시전
-            StartCoroutine("WSkillStart");
+            pv.RPC("WSkillStart", RpcTarget.All);
 
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvOneSkill)
@@ -389,7 +416,7 @@ public class BossPlayer : MonoBehaviour
         if(eDown && isESkillReady && !isDodge)
         {
             // 스킬 시전
-            StartCoroutine("ESkillStart");
+            pv.RPC("ESkillStart", RpcTarget.All);
 
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvTwoSkill)
@@ -437,7 +464,7 @@ public class BossPlayer : MonoBehaviour
         if(rDown && isRSkillReady && !isDodge)
         {
             // 스킬 시전
-            StartCoroutine("RSkillStart");
+            pv.RPC("RSkillStart", RpcTarget.All);
 
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvThreeSkill)
@@ -464,40 +491,41 @@ public class BossPlayer : MonoBehaviour
         isDodge = false;
     }
 
+    [PunRPC]
     IEnumerator QSkillStart()
     {
-        GameObject skillAreaObj = null;
+		GameObject skillAreaObj = null;
 
-        switch(lvOneSkill)
-        {
-        case LvOneSkill.NULL:
-            skillAreaObj = Instantiate(normalAttack, gameObject.transform.position, gameObject.transform.rotation);
-            
-            break;
-        case LvOneSkill.SwordForce:
-            skillAreaObj = Instantiate(swordMasterAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
-            break;
-        case LvOneSkill.Vampirism:
-            skillAreaObj = Instantiate(berserkerAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
-            break;
-        case LvOneSkill.Intent:
-            skillAreaObj = Instantiate(paladinkerAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
-            break;
-        }
+		switch(lvOneSkill)
+		{
+		case LvOneSkill.NULL:
+			skillAreaObj = Instantiate(normalAttack, gameObject.transform.position, gameObject.transform.rotation);
+			break;
+		case LvOneSkill.SwordForce:
+			skillAreaObj = Instantiate(swordMasterAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
+			break;
+		case LvOneSkill.Vampirism:
+			skillAreaObj = Instantiate(berserkerAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
+			break;
+		case LvOneSkill.Intent:
+			skillAreaObj = Instantiate(paladinkerAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
+			break;
+		}
 
-        if(skillAreaObj == null)
-            yield break;
+		if(skillAreaObj == null)
+			yield break;
 
-        skillAreaObj.SetActive(true);
-        skillSound.clip = swingSound;
-        skillSound.Play();
+		skillAreaObj.SetActive(true);
+		skillSound.clip = swingSound;
+		skillSound.Play();
 
-        yield return new WaitForSeconds(1.0f);
+		yield return new WaitForSeconds(1.0f);
 
-        Destroy(skillAreaObj);
-        skillAreaObj.SetActive(false);
-    }
+		Destroy(skillAreaObj);
+		skillAreaObj.SetActive(false);
+	}
 
+    [PunRPC]
     IEnumerator WSkillStart()
     {
         if(lvOneSkill == LvOneSkill.SwordForce)
@@ -529,6 +557,7 @@ public class BossPlayer : MonoBehaviour
         }
     }
 
+    [PunRPC]
     IEnumerator ESkillStart()
     {
         if(lvTwoSkill == LvTwoSkill.SwordDance)
@@ -560,6 +589,7 @@ public class BossPlayer : MonoBehaviour
         }
     }
 
+    [PunRPC]
     IEnumerator RSkillStart()
     {
         if(lvThreeSkill == LvThreeSkill.SwordFlash)
@@ -606,20 +636,66 @@ public class BossPlayer : MonoBehaviour
 	{
         if(other.CompareTag("DamageObject"))
         {
+            // 플레이어 불타는 이펙트 활성화
             transform.Find("Skill/Fire").gameObject.SetActive(true);
         }
-	}
+        /*else if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
+        {
+            int damage = other.GetComponent<BossPlayerSkill>().damage;
+            //curHealth -= other.GetComponent<BossPlayerSkill>().damage;
+            //if(curHealth < 0)
+            //    curHealth = 0;
+
+            // 적과 닿았을 때 삭제되도록 Destroy() 호출
+            if(other.tag == "PlayerAttack")
+            {
+                Destroy(other.gameObject);
+                other.gameObject.SetActive(false);
+            }
+
+            //StartCoroutine("OnDamage");
+            pv.RPC("OnDamage", RpcTarget.All, damage);
+
+        }*/
+    }
 
 	void OnTriggerExit(Collider other)
 	{
         if(other.CompareTag("DamageObject"))
         {
+            // 플레이어 불타는 이펙트 비활성화
             transform.Find("Skill/Fire").gameObject.SetActive(false);
-        }	
-	}
+        }
+    }
 
-	//자동 회전 방지
-	void FreezeRotation()
+    [PunRPC]
+    IEnumerator OnDamage(int damage)
+    {
+        curHealth -= damage;
+        if(curHealth < 0)
+            curHealth = 0;
+
+        yield return new WaitForSeconds(0.1f);
+
+        if(curHealth > 0)
+        {
+            
+        }
+        else
+        {
+            //yield return new WaitForSeconds(10.0f);
+
+            //int sceneNum = SceneManager.GetActiveScene().buildIndex + 1;
+
+            anim.SetTrigger("doDie");
+            isSkillReady = false;
+            isMoveReady = false;
+        }
+    }
+
+
+    //자동 회전 방지
+    void FreezeRotation()
     {
         rigid.angularVelocity = Vector3.zero;
     }
@@ -633,7 +709,10 @@ public class BossPlayer : MonoBehaviour
 
     void FixedUpdate()
     {
-        FreezeRotation();
-        StopToWall();
+        if(pv.IsMine)
+        {
+            FreezeRotation();
+            StopToWall();
+        }
     }
 }

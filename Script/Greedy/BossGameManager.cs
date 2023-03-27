@@ -6,43 +6,53 @@ using UnityEngine.UI;
 
 public class BossGameManager : MonoBehaviour
 {
-    public BossPlayer player;
-    public BossBoss boss;
+    // stage
     public int stage;
-    //public float playTime;
-    public int middleBoss;
-    public int mainBoss;
-
-    public GameObject ingamePanel;
-    public GameObject selectPanel;
-
     public Text stageTxt;
+
+    // UI Panel
+    public GameObject ingamePanel; // 인게임 화면
+    public GameObject selectSkillPanel; // 스킬 선택 화면
+
+    // 보스
+    public BossBoss boss;
+
     public RectTransform bossHealthGroup;
     public RectTransform bossTempHealthBar;
     public RectTransform bossHealthBar;
 
-    int pastBossHealth;
+    int pastBossHealth; // 이전 보스 체력
+    
 
-    // 씬 이동 관련
-    int nextSceneIndex;
+    // 플레이어
+    public BossPlayer player;
 
+    public RectTransform playerHealthGroup;
+    public RectTransform playerTempHealthBar;
+    public RectTransform playerHealthBar;
+
+    int pastPlayerHealth; // 이전 플레이어 체력
+
+    // 스킬 아이콘
     public Image imgSkill_1;
     public Image imgSkill_2;
     public Image imgSkill_3;
     public Image imgSkill_4;
     public Image imgSkill_Dash;
 
+    // 스킬 쿨타임
     float qCool;
     float wCool;
     float eCool;
     float rCool;
 
+    // 스킬 사용 후 경과 시간
     float qDelta;
     float wDelta;
     float eDelta;
     float rDelta;
-    GameObject cloneObject;
 
+    // 스킬 재사용 가능 여부
     bool isQReady;
     bool isWReady;
     bool isEReady;
@@ -52,13 +62,10 @@ public class BossGameManager : MonoBehaviour
 	{
         pastBossHealth = boss.curHealth;
 
-        cloneObject = GameObject.FindGameObjectWithTag("Player");
-
         isQReady = true;
         isWReady = true;
         isEReady = true;
         isRReady = true;
-
     }
 
     void Start()
@@ -66,15 +73,17 @@ public class BossGameManager : MonoBehaviour
         //nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         //DontDestroyOnLoad(this.gameObject);
         //SceneManager.sceneLoaded += OnSceneLoaded;
+
+
     }
 
 	private void Update()
 	{
         //float sCool = GetComponent<BossPlayer>().normalAtkRate;
-        qCool = cloneObject.GetComponent<BossPlayer>().normalAtkRate;
-        wCool = cloneObject.GetComponent<BossPlayer>().swordForceRate;
-        eCool = cloneObject.GetComponent<BossPlayer>().swordDanceRate;
-        rCool = cloneObject.GetComponent<BossPlayer>().swordFlashRate;
+        qCool = player.GetComponent<BossPlayer>().normalAtkRate;
+        wCool = player.GetComponent<BossPlayer>().swordForceRate;
+        eCool = player.GetComponent<BossPlayer>().swordDanceRate;
+        rCool = player.GetComponent<BossPlayer>().swordFlashRate;
 
         if(rCool == 0)
             return;

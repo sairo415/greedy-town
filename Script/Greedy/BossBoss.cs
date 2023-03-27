@@ -2,16 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
+using Photon.Realtime;
+using UnityEngine.Rendering;
 
 public class BossBoss : MonoBehaviour
 {
-    // 체력과 컴포넌트를 담을 변수 선언
+    // 체력
     public int maxHealth;
     public int curHealth;
 
+    // Photon
+    private PhotonView pv;
+
     Rigidbody rigid;
     BoxCollider boxCollider;
-
     Material mat;
 
     void Awake()
@@ -21,18 +26,27 @@ public class BossBoss : MonoBehaviour
         mat = GetComponent<MeshRenderer>().material;
     }
 
-    // 플레이어가 휘두르는 망치 혹은 날아오는 총알
-    // 트리거로 처리
-    // OnTriggerEnter() 함수에 태그 비교 조건을 작성
-    void OnTriggerEnter(Collider other)
+	private void Start()
+	{
+        pv = GetComponent<PhotonView>();
+
+        // 씬 이동 시 체력 초기화
+        curHealth = maxHealth;
+    }
+
+	void OnTriggerEnter(Collider other)
     {
         if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
         {
             curHealth -= other.GetComponent<BossPlayerSkill>().damage;
-            if(curHealth < 0)
-                curHealth = 0;
+            if(curHealth < 0) curHealth = 0;
 
-            // 적과 닿았을 때 삭제되도록 Destroy() 호출
+            // 서버 보스 체력과 동기화
+            pv.RPC("SyncBossHealth", RpcTarget.All, curHealth);
+
+            // 적과 닿았을 때 이펙트 삭제되도록 Destroy() 호출
+            // tag PlayerAttack => 닿으면 삭제되는 이펙트
+            // tag PlayerAttackOver => 닿으면 삭제되지 않는 이펙트
             if(other.tag == "PlayerAttack")
             {
                 Destroy(other.gameObject);
@@ -41,31 +55,13 @@ public class BossBoss : MonoBehaviour
 
             StartCoroutine("OnDamage");
         }
+    }
 
-        /*if(other.tag == "Melee")
-        {
-            Weapon weapon = other.GetComponent<Weapon>();
-            curHealth -= weapon.damage;
-            // 현재 위치에 피격 위치를 빼서 반작용 구하기
-            Vector3 reactVec = transform.position - other.transform.position;
-
-            StartCoroutine(OnDamage(reactVec));
-
-            //Debug.Log("Melee : " + curHealth);
-        }
-        else if(other.tag == "Bullet")
-        {
-            Bullet bullet = other.GetComponent<Bullet>();
-            curHealth -= bullet.damage;
-            // 현재 위치에 피격 위치를 빼서 반작용 구하기
-            Vector3 reactVec = transform.position - other.transform.position;
-
-            // 총알의 경우, 적과 닿았을 때 삭제되도록 Destroy() 호출
-            Destroy(other.gameObject);
-
-            StartCoroutine(OnDamage(reactVec));
-            //Debug.Log("Range : " + curHealth);
-        }*/
+    // 보스 체력을 서버의 보스 체력과 동기화
+    [PunRPC]
+    void SyncBossHealth(int health)
+    {
+        curHealth = health;
     }
 
     IEnumerator OnDamage()
@@ -80,11 +76,13 @@ public class BossBoss : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSeconds(10.0f);
+            //5초 후 다음 씬으로 이동
+            yield return new WaitForSeconds(5.0f);
 
             int sceneNum = SceneManager.GetActiveScene().buildIndex + 1;
 
-            if(sceneNum < 4)
+            //sceneNum = 5 : 마지막 스테이지 인덱스
+            if(sceneNum != 5)
             {
                 int nextSceneNum = sceneNum + 1;
                 string nextSceneName = "BossScene" + nextSceneNum.ToString();
@@ -95,7 +93,6 @@ public class BossBoss : MonoBehaviour
             {
                 //game End
                 Debug.Log("End");
-
             }
         }
     }
