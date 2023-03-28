@@ -5,13 +5,12 @@ using Photon.Realtime;
 using Photon.Pun;
 using Cinemachine;
 
-public class TownPlayerController : MonoBehaviourPun, IPunObservable
+public class BossRoomPlayerController : MonoBehaviourPun, IPunObservable
 {
     public float speed;
 
     float hAxis;
     float vAxis;
-
 
 
 
@@ -33,7 +32,7 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
     Animator anim;
 
     public int value;
-    TownNetworkManager NM;
+    BossRoomNetworkManager BM;
     PhotonView PV;
 
 
@@ -52,7 +51,7 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
     {
 
         PV = photonView;
-        NM = GameObject.FindWithTag("TownNetworkManager").GetComponent<TownNetworkManager>();
+        BM = GameObject.FindWithTag("BossRoomNetworkManager").GetComponent<BossRoomNetworkManager>();
 
 
     }
