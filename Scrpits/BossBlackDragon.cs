@@ -83,7 +83,7 @@ public class BossBlackDragon : MonoBehaviour
     private void Start()
     {
         // 보스 몬스터 초기 상태 설정
-        currentState = BossState.Attack1;
+        currentState = BossState.Idle;
     }
 
     void Update()
@@ -184,6 +184,8 @@ public class BossBlackDragon : MonoBehaviour
         yield return new WaitForSeconds(3f);
         isFlying = false;
         isLook = true;
+
+        yield return new WaitForSeconds(1.5f);
         currentState = BossState.Idle;
         wasFlied = true;
         boxCollider.enabled = true;
@@ -274,6 +276,8 @@ public class BossBlackDragon : MonoBehaviour
         yield return new WaitForSeconds(4f);
         isAttack = false;
         wasFlied = false;
+
+        yield return new WaitForSeconds(1.5f);
         currentState = BossState.Idle;
     }
 
@@ -324,6 +328,8 @@ public class BossBlackDragon : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
         isLook = true;
+
+        yield return new WaitForSeconds(1.5f);
         isAttack = false;
         wasFlied = false;
         currentState = BossState.Idle;
@@ -349,11 +355,12 @@ public class BossBlackDragon : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
         isLook = true;
+        Destroy(TailSlash);
+
+        yield return new WaitForSeconds(1.5f);
         isAttack = false;
         wasFlied = false;
         currentState = BossState.Idle;
-        Destroy(TailSlash);
-
     }
 
     void TakeOff()

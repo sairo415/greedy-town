@@ -58,7 +58,7 @@ public class BossIceLich : MonoBehaviour
 
     void Start()
     {
-        currentState = State.Attack1;
+        currentState = State.Idle;
     }
 
     void Update()
