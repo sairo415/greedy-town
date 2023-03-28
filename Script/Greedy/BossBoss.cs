@@ -79,10 +79,10 @@ public class BossBoss : MonoBehaviour
             //5초 후 다음 씬으로 이동
             yield return new WaitForSeconds(5.0f);
 
-            int sceneNum = SceneManager.GetActiveScene().buildIndex + 1;
+            /*int sceneNum = SceneManager.GetActiveScene().buildIndex;
 
-            //sceneNum = 5 : 마지막 스테이지 인덱스
-            if(sceneNum != 5)
+            //sceneNum = 4 : 마지막 스테이지 인덱스
+            if(sceneNum != 4)
             {
                 int nextSceneNum = sceneNum + 1;
                 string nextSceneName = "BossScene" + nextSceneNum.ToString();
@@ -93,7 +93,7 @@ public class BossBoss : MonoBehaviour
             {
                 //game End
                 Debug.Log("End");
-            }
+            }*/
         }
     }
 }

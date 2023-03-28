@@ -16,6 +16,7 @@ public class BossPlayerSkill : MonoBehaviour
 		damage = Random.Range(minDamage, maxDamage);
 	}
 
+	// PVP
 	public void SetID(int viewId)
 	{
 		this.viewId = viewId;

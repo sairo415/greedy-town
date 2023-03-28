@@ -87,7 +87,10 @@ public class BossPhotonManager : MonoBehaviourPunCallbacks
             // $ => String.Format()
         }
 
+        BossGameManager bossGameManager = FindObjectOfType<BossGameManager>();
+
         // 캐릭터 생성
-        PhotonNetwork.Instantiate("BossPlayer", Vector3.zero, Quaternion.Euler(0, 0, 0), 0);
+        GameObject bossPlayerObject = PhotonNetwork.Instantiate("BossPlayer", Vector3.zero, Quaternion.Euler(0, 0, 0), 0);
+        bossGameManager.player = bossPlayerObject.GetComponent<BossPlayer>();
     }
 }
