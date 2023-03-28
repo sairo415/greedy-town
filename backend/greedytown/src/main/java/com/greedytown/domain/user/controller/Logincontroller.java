@@ -31,6 +31,7 @@ public class Logincontroller {
     @PostMapping("/check-email")
     @ApiOperation(value = "이메일 중복 확인", notes = "사용 중인 이메일인지 확인한다.")
     public ResponseEntity<?> duplicatedEmail(@RequestBody String userEmail) {
+        System.out.println(userEmail);
         Map<String, String> response = new HashMap<>();
         if(!userService.duplicatedEmail(userEmail)) {
             response.put("message", "사용 가능한 이메일");
@@ -44,6 +45,7 @@ public class Logincontroller {
     @PostMapping("/check-nickname")
     @ApiOperation(value = "닉네임 중복 확인", notes = "사용 중인 닉네임인지 확인한다.")
     public ResponseEntity<?> duplicatedNickname(@RequestBody String userNickname) {
+        System.out.println(userNickname);
         Map<String, String> response = new HashMap<>();
         if(!userService.duplicatedNickname(userNickname)) {
             response.put("message", "사용 가능한 닉네임");
