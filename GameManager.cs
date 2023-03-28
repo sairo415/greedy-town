@@ -82,7 +82,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void GetDamage(int damage)
+    public void GetDamage(float damage)
     {
         health -= (damage * (1 - extraArmor));
         if(health <= 0)
@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
         canvas.transform.Find("Start").gameObject.SetActive(false);
 
         //ÃÑ ¼±ÅÃ
-        uiLevelUp.Select(0);
+        uiLevelUp.Select(1);
 
         //uiLevelUp.Show();
     }

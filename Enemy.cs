@@ -7,7 +7,7 @@ public class Enemy : MonoBehaviour
     public float speed;
     public float health;
     public float maxHealth;
-    public int damage;
+    public float damage;
 
     public Color[] colors;
     Rigidbody target;

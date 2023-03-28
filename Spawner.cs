@@ -14,6 +14,24 @@ public class Spawner : MonoBehaviour
     {
         spawnPoint = GetComponentsInChildren<Transform>();//이거 자기 자신도 포함함
 
+        spawnData = new SpawnData[GameManager.instance.pool.monsterPrefabs.Length * 5];
+
+        /*spawnData[0].spawnTime = 0.4f;
+        spawnData[0].spriteType = 0;
+        spawnData[0].health = 10;
+        spawnData[0].speed = 1.5f;
+        spawnData[0].damage = 3;*/
+        
+        for(int i=0; i<GameManager.instance.pool.monsterPrefabs.Length * 5; i++)
+        {
+            spawnData[i] = new SpawnData();
+            spawnData[i].spawnTime = 0.4f - 0.01f * i;
+            spawnData[i].spriteType = i % 5;
+            spawnData[i].health = 15 + 4 * i;
+            spawnData[i].speed = 1.5f + 0.05f * i;
+            spawnData[i].damage = 3 + 0.5f * i;
+        }
+
     }
 
     void Update()
@@ -35,7 +53,7 @@ public class Spawner : MonoBehaviour
 
     void Spawn()
     {
-        GameObject enemy = GameManager.instance.pool.Get(Mathf.FloorToInt(level / 4), true);//
+        GameObject enemy = GameManager.instance.pool.Get(Mathf.FloorToInt(level / 5), true);//
 
         //자기자신 빼려고 1부터
         enemy.transform.position = spawnPoint[Random.Range(1,spawnPoint.Length)].position + new Vector3(0,-0.98f,0);
@@ -49,8 +67,8 @@ public class SpawnData
     public float spawnTime;//얘는 여기서만 씀
 
     public int spriteType;//level관련
-    public int health;
+    public float health;
     public float speed;
 
-    public int damage;
+    public float damage;
 }

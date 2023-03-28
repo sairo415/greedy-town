@@ -91,7 +91,7 @@ public class Item : MonoBehaviour
                 }
                 else
                 {
-                    float nextRate = data.damages[level];
+                    float nextRate = data.damages[level - 1] ;
                     gear.LevelUp(nextRate);
                 }
                 break;
@@ -100,7 +100,8 @@ public class Item : MonoBehaviour
                 break;
         }
 
-        level++;
+        if(data.itemType != ItemData.ItemType.Heal)
+            level++;
 
         if(level == data.damages.Length + 1)
         {
