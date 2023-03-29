@@ -12,11 +12,14 @@ public class BossPlayer : MonoBehaviour
     //Game Manager
     private BossGameManager bossGameManager;
 
+    // Player name
+    public string bossPlayerName;
+
     // Camera
     private CinemachineVirtualCamera virtualCamera;
 
     // Photon
-    private PhotonView pv;
+    public PhotonView pv;
 
     // 이동 관련
     float hAxis;
@@ -32,6 +35,9 @@ public class BossPlayer : MonoBehaviour
     // 체력
     public int maxHealth;
     public int curHealth;
+
+    // 방어력
+    public int defense;
 
     // 속도
     public float speed;
@@ -91,8 +97,8 @@ public class BossPlayer : MonoBehaviour
     // Berserker
     public GameObject berserkerAttack;
 
-    public Transform vampirismPos;
-    public GameObject vampirism;
+    //public Transform vampirismPos;
+    //public GameObject vampirism;
 
     public Transform bloodExplosionPos;
     public AudioClip bloodExplosionSound;
@@ -102,8 +108,8 @@ public class BossPlayer : MonoBehaviour
     public AudioClip restrictionOfBloodSound;
     public GameObject restrictionOfBlood;
 
-    public float vampirismRate;
-    public float vampirismPlayTime;
+    //public float vampirismRate;
+    //public float vampirismPlayTime;
 
     public float bloodExplosionRate;
     public float bloodExplosionPlayTime;
@@ -114,8 +120,8 @@ public class BossPlayer : MonoBehaviour
     // Paladin
     public GameObject paladinAttack;
 
-    public Transform intentPos;
-    public GameObject intent;
+    //public Transform intentPos;
+    //public GameObject intent;
 
     public Transform blessingPos;
     public AudioClip blessingSound;
@@ -125,8 +131,8 @@ public class BossPlayer : MonoBehaviour
     public AudioClip resurrectionSound;
     public GameObject resurrection;
 
-    public float intentRate;
-    public float intentPlayTime;
+    //public float intentRate;
+    //public float intentPlayTime;
 
     public float blessingRate;
     public float blessingPlayTime;
@@ -175,6 +181,15 @@ public class BossPlayer : MonoBehaviour
     // 스킬 음
     AudioSource skillSound;
 
+    // 패시브 스킬 여부
+    bool isQPassive = false;
+    bool isWPassive = false;
+    bool isEPassive = false;
+    bool isRPassive = false;
+
+    // 흡혈 패시브 여부
+    public bool isVampirism = false;
+
     private void Awake()
     {
         rigid = GetComponent<Rigidbody>();
@@ -203,13 +218,46 @@ public class BossPlayer : MonoBehaviour
         pv = GetComponent<PhotonView>();
         virtualCamera = GameObject.FindObjectOfType<CinemachineVirtualCamera>();
 
+        BossMemberManager bossMemberManager = FindObjectOfType<BossMemberManager>();
+
         if(pv.IsMine)
         {
             // 자신의 캐릭터일 경우 시네머신 카메라를 연결
             virtualCamera.Follow = transform;
             virtualCamera.LookAt = transform;
+
+            bossMemberManager.players.Add(gameObject.GetComponent<BossPlayer>());
         }
+
+		foreach(BossPlayer inplayer in FindObjectsOfType<BossPlayer>())
+		{
+            Debug.Log("22222");
+			if(inplayer.pv.ViewID != inplayer.pv.ViewID) // 이거 왜 오류 남?
+			{
+                Debug.Log("33333");
+                bossMemberManager.players.Add(inplayer);
+			}
+		}
+
+        foreach(BossPlayer bossplaee in bossMemberManager.players)
+        {
+            Debug.Log(bossplaee.bossPlayerName);
+        }
+
+		pv.RPC("UpdateUIOtherClient", RpcTarget.Others, pv.ViewID);
+        bossMemberManager.UpdateUI();
     }
+
+    [PunRPC]
+    void UpdateUIOtherClient(int newViewID)
+    {
+		// 하이라키 창에서 모든 BossPlayer 오브젝트를 찾아 리스트에 추가합니다.
+		BossMemberManager bossMemberManager = FindObjectOfType<BossMemberManager>();
+        BossPlayer newBossPlayer = PhotonView.Find(newViewID).gameObject.GetComponent<BossPlayer>();
+
+        bossMemberManager.players.Add(newBossPlayer);
+		bossMemberManager.UpdateUI();
+	}
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -225,6 +273,24 @@ public class BossPlayer : MonoBehaviour
 
                 BossGameManager bossGameManager = FindObjectOfType<BossGameManager>();
                 bossGameManager.player = gameObject.GetComponent<BossPlayer>();
+
+                // 패시브 효과 적용
+                int bossPlayerViewID = pv.ViewID;
+                GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+
+                if(bossGameManager.stage == 2)
+                {
+                    if(bossPlayerObj.GetComponent<BossPlayer>().lvOneSkill == LvOneSkill.Vampirism)
+                    {
+                        isVampirism = true;
+                        isWPassive = true;
+                    }
+                    else if(bossPlayerObj.GetComponent<BossPlayer>().lvOneSkill == LvOneSkill.Intent)
+                    {
+                        defense += 20;
+                        isWPassive = true;
+                    }
+                }
             }
 
             transform.position = Vector3.zero;
@@ -264,7 +330,7 @@ public class BossPlayer : MonoBehaviour
             WSkill();
             ESkill();
             RSkill();
-        } 
+        }
     }
 
     private void OnDestroy()
@@ -346,6 +412,9 @@ public class BossPlayer : MonoBehaviour
 
     void QSkill()
     {
+        if(isQPassive)
+            return;
+
         if(!isSkillReady)
             return;
 
@@ -354,8 +423,10 @@ public class BossPlayer : MonoBehaviour
 
         if(qDown && isQSkillReady && !isDodge)
         {
+            int bossPlayerViewID = pv.ViewID;
+
             // 스킬 시전
-            pv.RPC("QSkillStart", RpcTarget.All);
+            pv.RPC("QSkillStart", RpcTarget.All, bossPlayerViewID);
 
             // 애니메이션
             anim.SetTrigger("doSwing1");
@@ -367,6 +438,9 @@ public class BossPlayer : MonoBehaviour
 
     void WSkill()
     {
+        if(isWPassive)
+            return;
+
         if(!isSkillReady)
             return;
 
@@ -378,12 +452,6 @@ public class BossPlayer : MonoBehaviour
         case LvOneSkill.SwordForce:
             wSkillRate = swordForceRate;
             break;
-        case LvOneSkill.Vampirism:
-            wSkillRate = vampirismRate;
-            break;
-        case LvOneSkill.Intent:
-            wSkillRate = intentRate;
-            break;
         }
 
         wSkillDelay += Time.deltaTime;
@@ -391,19 +459,15 @@ public class BossPlayer : MonoBehaviour
 
         if(wDown && isWSkillReady && !isDodge)
         {
+            int bossPlayerViewID = pv.ViewID;
+
             // 스킬 시전
-            pv.RPC("WSkillStart", RpcTarget.All);
+            pv.RPC("WSkillStart", RpcTarget.All, bossPlayerViewID);
 
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvOneSkill)
             {
             case LvOneSkill.SwordForce:
-                anim.SetTrigger("doSwing2");
-                break;
-            case LvOneSkill.Vampirism:
-                anim.SetTrigger("doSwing2");
-                break;
-            case LvOneSkill.Intent:
                 anim.SetTrigger("doSwing2");
                 break;
             } 
@@ -415,6 +479,9 @@ public class BossPlayer : MonoBehaviour
 
     void ESkill()
     {
+        if(isEPassive)
+            return;
+
         if(!isSkillReady)
             return;
 
@@ -439,8 +506,10 @@ public class BossPlayer : MonoBehaviour
 
         if(eDown && isESkillReady && !isDodge)
         {
+            int bossPlayerViewID = pv.ViewID;
+
             // 스킬 시전
-            pv.RPC("ESkillStart", RpcTarget.All);
+            pv.RPC("ESkillStart", RpcTarget.All, bossPlayerViewID);
 
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvTwoSkill)
@@ -452,7 +521,7 @@ public class BossPlayer : MonoBehaviour
                 anim.SetTrigger("doSwing2");
                 break;
             case LvTwoSkill.Blessing:
-                anim.SetTrigger("doSwing2");
+                anim.SetTrigger("doSpell");
                 break;
             }
 
@@ -463,6 +532,9 @@ public class BossPlayer : MonoBehaviour
 
     void RSkill()
     {
+        if(isRPassive)
+            return;
+
         if(!isSkillReady)
             return;
 
@@ -487,20 +559,19 @@ public class BossPlayer : MonoBehaviour
 
         if(rDown && isRSkillReady && !isDodge)
         {
+            int bossPlayerViewID = pv.ViewID;
+
             // 스킬 시전
-            pv.RPC("RSkillStart", RpcTarget.All);
+            pv.RPC("RSkillStart", RpcTarget.All, bossPlayerViewID);
 
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvThreeSkill)
             {
-            case LvThreeSkill.SwordBlade:
-                anim.SetTrigger("doSwing2");
-                break;
             case LvThreeSkill.RestrictionOfBlood:
-                anim.SetTrigger("doSwing2");
+                anim.SetTrigger("doSpell");
                 break;
             case LvThreeSkill.Resurrection:
-                anim.SetTrigger("doSwing2");
+                anim.SetTrigger("doSpell");
                 break;
             }
 
@@ -516,11 +587,14 @@ public class BossPlayer : MonoBehaviour
     }
 
     [PunRPC]
-    IEnumerator QSkillStart()
+    IEnumerator QSkillStart(int bossPlayerViewID)
     {
         GameObject skillAreaObj = null;
 
-        switch(lvOneSkill)
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+
+
+        switch(bossPlayerObj.GetComponent<BossPlayer>().lvOneSkill)
         {
         case LvOneSkill.NULL:
             skillAreaObj = Instantiate(normalAttack, swordSwingPos.transform.position, swordSwingPos.transform.rotation);
@@ -536,11 +610,10 @@ public class BossPlayer : MonoBehaviour
             break;
         }
 
-        Debug.Log("TESTTEST : " + lvOneSkill);
-
         if(skillAreaObj == null)
             yield break;
 
+        skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
         skillAreaObj.SetActive(true);
         skillSound.clip = swingSound;
         skillSound.Play();
@@ -552,9 +625,11 @@ public class BossPlayer : MonoBehaviour
     }
 
     [PunRPC]
-    IEnumerator WSkillStart()
+    IEnumerator WSkillStart(int bossPlayerViewID)
     {
-        if(lvOneSkill == LvOneSkill.SwordForce)
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+
+        if(bossPlayerObj.GetComponent<BossPlayer>().lvOneSkill == LvOneSkill.SwordForce)
         {
             GameObject skillAreaObj = Instantiate(swordForce, swordForcePos.position, swordForcePos.rotation);
 
@@ -572,14 +647,6 @@ public class BossPlayer : MonoBehaviour
                 skillAreaObj.SetActive(false);
                 Destroy(skillAreaObj);
             }
-        }
-        else if(lvOneSkill == LvOneSkill.Vampirism)
-        {
-
-        }
-        else if(lvOneSkill == LvOneSkill.Intent)
-        {
-
         }
     }
 

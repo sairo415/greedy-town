@@ -166,6 +166,8 @@ public class BossGameManager : MonoBehaviour
 
     void Awake()
     {
+        pv = GetComponent<PhotonView>();
+
         if(boss != null)
             pastBossHealth = boss.curHealth;
 
@@ -175,12 +177,12 @@ public class BossGameManager : MonoBehaviour
         isRReady = true;
         isSReady = true;
 
-        skillSelectCountDown = 30.0f;
+        skillSelectCountDown = 10.0f;
     }
 
     void Start()
     {
-        pv = GetComponent<PhotonView>();
+        
         //nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         //DontDestroyOnLoad(this.gameObject);
         //SceneManager.sceneLoaded += OnSceneLoaded;
@@ -508,6 +510,11 @@ public class BossGameManager : MonoBehaviour
             indexArray = indexArray.Where((val, idx) => idx != index).ToArray();
         }
 
+        Debug.Log("목록입니다");
+        Debug.Log(randomSkillIndex[0]);
+        Debug.Log(randomSkillIndex[1]);
+        Debug.Log(randomSkillIndex[2]);
+
         string swordForceScript = "검기[액티브]\n전방을 향해 검기를 날립니다.";
         string vampirismScript = "흡혈[패시브]\n기본 공격이 적에게 적중하면 체력이 회복됩니다.";
         string intentScript = "의지[패시브]\n방어력이 상승합니다.";
@@ -717,161 +724,110 @@ public class BossGameManager : MonoBehaviour
         SceneManager.LoadScene("BossScene1");
     }
 
+    // 모든 캐릭터의 스킬 선택을 동기화
+    [PunRPC]
+    void SyncSelectLvOneSkill(int bossPlayerViewID, BossPlayer.LvOneSkill selected)
+    {
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+        bossPlayerObj.GetComponent<BossPlayer>().lvOneSkill = selected;
+    }
+
+    [PunRPC]
+    void SyncSelectLvTwoSkill(int bossPlayerViewID, BossPlayer.LvTwoSkill selected)
+    {
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+        bossPlayerObj.GetComponent<BossPlayer>().lvTwoSkill = selected;
+    }
+
+    [PunRPC]
+    void SyncSelectLvThreeSkill(int bossPlayerViewID, BossPlayer.LvThreeSkill selected)
+    {
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+        bossPlayerObj.GetComponent<BossPlayer>().lvThreeSkill = selected;
+    }
+
     public void PressButton1()
     {
-        imgSelectLeftButton.gameObject.SetActive(true);
-        imgSelectCenterButton.gameObject.SetActive(false);
-        imgSelectRightButton.gameObject.SetActive(false);
-
-        switch(stage)
-        {
-        case 1:
-            if(randomSkillIndex[0] == 1)
-            {
-                player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.SwordForce;
-            }
-            else if(randomSkillIndex[0] == 2)
-            {
-                player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.Vampirism;
-            }
-            else if(randomSkillIndex[0] == 3)
-            {
-                player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.Intent;
-            }
-            break;
-        case 2:
-            if(randomSkillIndex[0] == 1)
-            {
-                player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.SwordDance;
-            }
-            else if(randomSkillIndex[0] == 2)
-            {
-                player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.BloodExplosion;
-            }
-            else if(randomSkillIndex[0] == 3)
-            {
-                player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.Blessing;
-            }
-            break;
-        case 3:
-            if(randomSkillIndex[0] == 1)
-            {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.SwordBlade;
-            }
-            else if(randomSkillIndex[0] == 2)
-            {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.RestrictionOfBlood;
-            }
-            else if(randomSkillIndex[0] == 3)
-            {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.Resurrection;
-            }
-            break;
-        }
+        PressButtonFunc(0);
     }
 
     public void PressButton2()
     {
-        imgSelectLeftButton.gameObject.SetActive(false);
-        imgSelectCenterButton.gameObject.SetActive(true);
-        imgSelectRightButton.gameObject.SetActive(false);
-
-        switch(stage)
-        {
-        case 1:
-            if(randomSkillIndex[1] == 1)
-            {
-                player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.SwordForce;
-            }
-            else if(randomSkillIndex[1] == 2)
-            {
-                player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.Vampirism;
-            }
-            else if(randomSkillIndex[1] == 3)
-            {
-                player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.Intent;
-            }
-            break;
-        case 2:
-            if(randomSkillIndex[1] == 1)
-            {
-                player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.SwordDance;
-            }
-            else if(randomSkillIndex[1] == 2)
-            {
-                player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.BloodExplosion;
-            }
-            else if(randomSkillIndex[1] == 3)
-            {
-                player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.Blessing;
-            }
-            break;
-        case 3:
-            if(randomSkillIndex[1] == 1)
-            {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.SwordBlade;
-            }
-            else if(randomSkillIndex[1] == 2)
-            {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.RestrictionOfBlood;
-            }
-            else if(randomSkillIndex[1] == 3)
-            {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.Resurrection;
-            }
-            break;
-        }
+        PressButtonFunc(1);
     }
 
     public void PressButton3()
     {
+        PressButtonFunc(2);
+    }
+
+    void PressButtonFunc(int pressedIdx)
+    {
+        int bossPlayerViewID = player.pv.ViewID;
+
         imgSelectLeftButton.gameObject.SetActive(false);
         imgSelectCenterButton.gameObject.SetActive(false);
-        imgSelectRightButton.gameObject.SetActive(true);
+        imgSelectRightButton.gameObject.SetActive(false);
+
+        if(pressedIdx == 0)
+            imgSelectLeftButton.gameObject.SetActive(true);
+        else if(pressedIdx == 1)
+            imgSelectCenterButton.gameObject.SetActive(true);
+        else if(pressedIdx == 2)
+            imgSelectRightButton.gameObject.SetActive(true);
 
         switch(stage)
         {
         case 1:
-            if(randomSkillIndex[2] == 1)
+            if(randomSkillIndex[pressedIdx] == 1)
             {
                 player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.SwordForce;
             }
-            else if(randomSkillIndex[2] == 2)
+            else if(randomSkillIndex[pressedIdx] == 2)
             {
                 player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.Vampirism;
             }
-            else if(randomSkillIndex[2] == 3)
+            else if(randomSkillIndex[pressedIdx] == 3)
             {
                 player.GetComponent<BossPlayer>().lvOneSkill = BossPlayer.LvOneSkill.Intent;
             }
+
+            pv.RPC("SyncSelectLvOneSkill", RpcTarget.AllBuffered, bossPlayerViewID, player.GetComponent<BossPlayer>().lvOneSkill);
+
             break;
         case 2:
-            if(randomSkillIndex[2] == 1)
+            if(randomSkillIndex[pressedIdx] == 1)
             {
                 player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.SwordDance;
             }
-            else if(randomSkillIndex[2] == 2)
+            else if(randomSkillIndex[pressedIdx] == 2)
             {
                 player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.BloodExplosion;
             }
-            else if(randomSkillIndex[2] == 3)
+            else if(randomSkillIndex[pressedIdx] == 3)
             {
                 player.GetComponent<BossPlayer>().lvTwoSkill = BossPlayer.LvTwoSkill.Blessing;
             }
+
+            pv.RPC("SyncSelectLvTwoSkill", RpcTarget.AllBuffered, bossPlayerViewID, player.GetComponent<BossPlayer>().lvTwoSkill);
+
             break;
         case 3:
-            if(randomSkillIndex[2] == 1)
+            if(randomSkillIndex[pressedIdx] == 1)
             {
                 player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.SwordBlade;
             }
-            else if(randomSkillIndex[2] == 2)
+            else if(randomSkillIndex[pressedIdx] == 2)
             {
                 player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.RestrictionOfBlood;
             }
-            else if(randomSkillIndex[2] == 3)
+            else if(randomSkillIndex[pressedIdx] == 3)
             {
                 player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.Resurrection;
             }
+
+            pv.RPC("SyncSelectLvThreeSkill", RpcTarget.AllBuffered, bossPlayerViewID, player.GetComponent<BossPlayer>().lvThreeSkill);
+
             break;
         }
     }

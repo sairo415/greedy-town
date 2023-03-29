@@ -21,28 +21,48 @@ public class BossBoss : MonoBehaviour
 
     void Awake()
     {
+        pv = GetComponent<PhotonView>();
         rigid = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
         mat = GetComponent<MeshRenderer>().material;
     }
 
-	private void Start()
-	{
-        pv = GetComponent<PhotonView>();
-
-        // 씬 이동 시 체력 초기화
-        curHealth = maxHealth;
-    }
-
 	void OnTriggerEnter(Collider other)
     {
+        //맞은 스킬의 소유주 파악.
+        //해당 소유주가 이 보스가 위치한 곳의 플레이어아이디와 같으면 트리거 적용
+        //적용 완료후 RPC Other
+
         if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
         {
+            // 맞은 스킬의 시전자
+            int skillOwnerID = other.GetComponent<BossPlayerSkill>().GetID();
+            // 현재 위치한 클라이언트 Owner ID
+            int myPlayerID = GameObject.FindObjectOfType<BossGameManager>().player.pv.ViewID;
+
+            // 내가 사용한 스킬이 아닐 경우 로직 실행 안함.
+            if(skillOwnerID != myPlayerID)
+                return;
+
             curHealth -= other.GetComponent<BossPlayerSkill>().damage;
             if(curHealth < 0) curHealth = 0;
 
+            // 시전자가 피흡을 가지고 있으면 체력을 회복시킨다.
+            if(GameObject.FindObjectOfType<BossGameManager>().player.isVampirism)
+            {
+                int vamHP = GameObject.FindObjectOfType<BossGameManager>().player.curHealth + 10;
+                if(vamHP > GameObject.FindObjectOfType<BossGameManager>().player.maxHealth)
+                    vamHP = GameObject.FindObjectOfType<BossGameManager>().player.maxHealth;
+                GameObject.FindObjectOfType<BossGameManager>().player.curHealth = vamHP;
+
+                // 회복시킨 후 동기화 필요할 듯...
+                // isVampirism == true 일 때, q 를 사용할 때마다, 여기서 SyncBossHealth 한 것 처럼
+            }
+
+            int sendRPCBossHP = curHealth;
+
             // 서버 보스 체력과 동기화
-            pv.RPC("SyncBossHealth", RpcTarget.All, curHealth);
+            pv.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
 
             // 적과 닿았을 때 이펙트 삭제되도록 Destroy() 호출
             // tag PlayerAttack => 닿으면 삭제되는 이펙트
@@ -57,14 +77,14 @@ public class BossBoss : MonoBehaviour
         }
     }
 
-    // 보스 체력을 서버의 보스 체력과 동기화
-    [PunRPC]
-    void SyncBossHealth(int health)
-    {
-        curHealth = health;
-    }
+	// 보스 체력을 다른 클라이언트의 보스 체력과 동기화
+	[PunRPC]
+	void SyncBossHealth(int health)
+	{
+		curHealth = health;
+	}
 
-    IEnumerator OnDamage()
+	IEnumerator OnDamage()
     {
         Color originMat = mat.color;
         mat.color = Color.red;
@@ -76,24 +96,7 @@ public class BossBoss : MonoBehaviour
         }
         else
         {
-            //5초 후 다음 씬으로 이동
-            yield return new WaitForSeconds(5.0f);
-
-            /*int sceneNum = SceneManager.GetActiveScene().buildIndex;
-
-            //sceneNum = 4 : 마지막 스테이지 인덱스
-            if(sceneNum != 4)
-            {
-                int nextSceneNum = sceneNum + 1;
-                string nextSceneName = "BossScene" + nextSceneNum.ToString();
-
-                SceneManager.LoadScene(nextSceneName);
-            }
-            else
-            {
-                //game End
-                Debug.Log("End");
-            }*/
+            // 사망
         }
     }
 }

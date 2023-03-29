@@ -58,7 +58,7 @@ public class BossPhotonManager : MonoBehaviourPunCallbacks
 
         // 룸의 속성 정의
         RoomOptions ro = new RoomOptions();
-        ro.MaxPlayers = 20; // 최대 접속자 수 : 20명
+        ro.MaxPlayers = 4; // 최대 접속자 수 : 4명
         ro.IsOpen = true; // 룸의 오픈 여부
         ro.IsVisible = true; // 로비에서 노출 여부(true : 로비에서 룸목록에 노출 시킴)
 
@@ -92,5 +92,6 @@ public class BossPhotonManager : MonoBehaviourPunCallbacks
         // 캐릭터 생성
         GameObject bossPlayerObject = PhotonNetwork.Instantiate("BossPlayer", Vector3.zero, Quaternion.Euler(0, 0, 0), 0);
         bossGameManager.player = bossPlayerObject.GetComponent<BossPlayer>();
+        bossPlayerObject.GetComponent<BossPlayer>().bossPlayerName = userId;
     }
 }

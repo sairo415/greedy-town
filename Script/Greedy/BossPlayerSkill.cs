@@ -11,7 +11,7 @@ public class BossPlayerSkill : MonoBehaviour
 
 	private int viewId;
 
-	private void Start()
+	private void Awake()
 	{
 		damage = Random.Range(minDamage, maxDamage);
 	}

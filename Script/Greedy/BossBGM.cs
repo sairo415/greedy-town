@@ -10,35 +10,25 @@ public class BossBGM : MonoBehaviour
     public AudioClip scene2BGM;
     public AudioClip scene3BGM;
     public AudioClip scene4BGM;
-    
-    int nextSceneIndex;
 
-    void Awake()
-    {
-        GetComponent<AudioSource>().clip = scene0BGM;
-        GetComponent<AudioSource>().loop = true;
-        GetComponent<AudioSource>().Play();
-    }
+    bool isPlay = false;
 
-    void Start()
-    {
-        nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
-        //DontDestroyOnLoad(this.gameObject);
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
+	private void Update()
+	{
+        if(isPlay)
+            return;
 
-    private void OnDestroy()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
+        BossGameManager bossGameManager = GameObject.FindObjectOfType<BossGameManager>();
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if(scene.buildIndex == nextSceneIndex)
+        if(bossGameManager != null)
         {
+            isPlay = true;
             AudioClip changeBGM;
-            switch(nextSceneIndex)
+            switch(bossGameManager.stage)
             {
+            case 0:
+                changeBGM = scene1BGM;
+                break;
             case 1:
                 changeBGM = scene1BGM;
                 break;
@@ -57,15 +47,13 @@ public class BossBGM : MonoBehaviour
 
             // BGM 변경 코드
             AudioSource audioSource = GetComponent<AudioSource>();
-			if(audioSource != null)
-			{
-				audioSource.Stop();
-				audioSource.clip = changeBGM;
-				audioSource.loop = true;
-				audioSource.Play();
-			}
-
-            nextSceneIndex++;
+            if(audioSource != null)
+            {
+                audioSource.Stop();
+                audioSource.clip = changeBGM;
+                audioSource.loop = true;
+                audioSource.Play();
+            }
         }
-    }
+	}
 }
