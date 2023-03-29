@@ -267,4 +267,10 @@ public class Warrior : MonoBehaviour
         if (isBossAttack)
             rigid.velocity = Vector3.zero;
     }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        print("isAttacked!!!!!!!!");
+    }
 }
