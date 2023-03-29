@@ -44,13 +44,12 @@ public class GameManager : MonoBehaviour
         maxHealth = 100 * (1 + extraHealth);
         health = maxHealth;
         player.speed *= (1 + extraSpeed);
-        canvas = GameObject.Find("Canvas");
 
 
         nextExp = new int[30];
         for(int i=0; i<30; i++)
         {
-            nextExp[i] = 3 + i * 4;
+            nextExp[i] = 5 + i * 8;
         }
     }
 
@@ -100,6 +99,7 @@ public class GameManager : MonoBehaviour
 
         canvas.transform.Find("Title").gameObject.SetActive(false);
         canvas.transform.Find("Start").gameObject.SetActive(false);
+        canvas.transform.Find("HUD").gameObject.SetActive(true);
 
         //ÃÑ ¼±ÅÃ
         uiLevelUp.Select(1);

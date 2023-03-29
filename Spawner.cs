@@ -25,10 +25,10 @@ public class Spawner : MonoBehaviour
         for(int i=0; i<GameManager.instance.pool.monsterPrefabs.Length * 5; i++)
         {
             spawnData[i] = new SpawnData();
-            spawnData[i].spawnTime = 0.4f - 0.01f * i;
+            spawnData[i].spawnTime = Mathf.Max(0.3f - 0.01f * i, 0.1f);
             spawnData[i].spriteType = i % 5;
             spawnData[i].health = 15 + 4 * i;
-            spawnData[i].speed = 1.5f + 0.05f * i;
+            spawnData[i].speed = 1.8f + 0.05f * i;
             spawnData[i].damage = 3 + 0.5f * i;
         }
 

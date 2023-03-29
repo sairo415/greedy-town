@@ -67,6 +67,6 @@ public class Gear : MonoBehaviour
 
     void SpeedUp()
     {
-        GameManager.instance.player.speed *= (1+rate);
+        GameManager.instance.player.speed += rate;
     }
 }

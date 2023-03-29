@@ -41,6 +41,15 @@ public class Enemy : MonoBehaviour
         if (!isLive || anim.GetCurrentAnimatorStateInfo(0).IsName("Hit"))
             return;
 
+        if(Vector3.Distance(target.position, rigid.position) > 15)
+        {
+            speed *= 2;
+        }
+        else
+        {
+            speed /= 2;
+        }
+
         Vector3 dirVec = target.position - rigid.position;
         Vector3 nextVec = dirVec.normalized * speed * Time.fixedDeltaTime;
 
@@ -141,7 +150,7 @@ public class Enemy : MonoBehaviour
         Vector3 playerPos = GameManager.instance.player.transform.position;
         Vector3 dir = transform.position - playerPos;
 
-        rigid.AddForce(dir.normalized * 5, ForceMode.Impulse);
+        rigid.AddForce(dir.normalized * 2, ForceMode.Impulse);
     }
 
     IEnumerator Dead()

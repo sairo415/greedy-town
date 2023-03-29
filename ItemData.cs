@@ -6,6 +6,7 @@ using UnityEngine;
 public class ItemData : ScriptableObject
 {
     public enum ItemType { Melee, Range, Effect, Glove, Shoe, Heal }
+    public enum ItemRarity { ÀÏ¹Ý, Èñ±Í, ¼­»ç, Àü¼³ }
 
     [Header("# Main Info")]
     public ItemType itemType;
@@ -13,6 +14,7 @@ public class ItemData : ScriptableObject
     public string itemName;
     public string itemDesc;
     public Sprite itemIcon;
+    public ItemRarity itemRarity;
 
     [Header("# Level Data")]
     public float baseDamage;

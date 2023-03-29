@@ -15,6 +15,7 @@ public class Item : MonoBehaviour
     Text textLevel;
     Text textName;
     Text textDesc;
+    Text textRarity;
 
     void Awake()
     {
@@ -25,10 +26,25 @@ public class Item : MonoBehaviour
         textLevel = texts[0];
         textName = texts[1];
         textDesc = texts[2];
+        textRarity = texts[3];
 
         textName.text = data.itemName;
         textDesc.text = data.itemDesc;
-
+        textRarity.text = data.itemRarity.ToString();
+        switch (textRarity.text)
+        {
+            case "Èñ±Í":
+                textRarity.color = new Color(0, 0, 255);
+                break;
+            case "¼­»ç":
+                textRarity.color = new Color(139, 0, 255);
+                break;
+            case "Àü¼³":
+                textRarity.color = new Color(255, 127, 0);
+                break;
+            default:
+                break;
+        }
     }
 
     void OnEnable()
