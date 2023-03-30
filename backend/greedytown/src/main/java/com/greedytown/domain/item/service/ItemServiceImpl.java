@@ -34,7 +34,8 @@ public class  ItemServiceImpl implements ItemService{
             ItemDto itemDto = ItemDto.builder().
                     itemSeq(item.getItemSeq()).
                     itemPrice(item.getItemPrice()).
-                    itemName(item.getItemName()).build();
+                    itemName(item.getItemName()).
+                    itemImage(item.getItemImage()).build();
             itemDtoList.add(itemDto);
         }
         return itemDtoList;
@@ -148,6 +149,7 @@ public class  ItemServiceImpl implements ItemService{
                               itemTypeName(item.getItemTypeSeq().getItemTypeName()).
                               itemColorSeq(item.getItemColorSeq().getItemColorSeq()).
                               itemColorName(item.getItemColorSeq().getItemColorName()).
+                              itemImage(item.getItemImage()).
                               build();
 
             WearingDto wearingDto = WearingDto.builder().
@@ -178,6 +180,7 @@ public class  ItemServiceImpl implements ItemService{
                     itemPrice(item.getItemPrice()).
                     itemName(item.getItemName()).
                     achievementsSeq(item.getAchievementsSeq()).
+                    itemImage(item.getItemImage()).
                     build();
             //입고 있는 옷이면 가지고 있는 옷에서 빼주기.
             list.add(itemDto);

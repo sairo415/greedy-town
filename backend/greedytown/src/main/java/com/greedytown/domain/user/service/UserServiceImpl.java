@@ -197,6 +197,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
 
             response.put("message", "success");
+            response.put("money", user.getUserMoney().toString());
             return response;
         } catch (Exception e) {
             response.put("message", "fail");

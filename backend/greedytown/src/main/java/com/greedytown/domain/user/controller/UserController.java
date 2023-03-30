@@ -27,7 +27,7 @@ public class UserController {
     public ResponseEntity<?> updateStat(HttpServletRequest request, @RequestBody @ApiParam(value = "아이템 정보.", required = true) StatDto statDto) {
 
         User user = (User) request.getAttribute("USER");
-        return new ResponseEntity<StatDto>(userService.updateStat(user,statDto), HttpStatus.OK);
+        return new ResponseEntity<>(userService.updateStat(user,statDto), HttpStatus.OK);
     }
 
     @ApiOperation(value = "유저 정보 조회", notes = "유저 닉네임, 가진 돈, 가입 일자를 반환한다.")
@@ -37,7 +37,7 @@ public class UserController {
         return new ResponseEntity<>(userService.getUserInfo(user), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "유저 정보 조회", notes = "유저 닉네임, 가진 돈, 가입 일자를 반환한다.")
+    @ApiOperation(value = "돈 벌기", notes = "유저 닉네임, 가진 돈, 가입 일자를 반환한다.")
     @PostMapping("/money")
     public ResponseEntity<?> earnMoney(HttpServletRequest request, @RequestBody EarnMoneyDto earnMoneyDto) {
         User user = (User) request.getAttribute("USER");

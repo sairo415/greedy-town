@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-
 
 @Getter
 @Setter
@@ -18,6 +15,8 @@ public class ItemDto {
     private Long itemSeq;
     private String itemName;
     private Integer itemPrice;
+
+    private String itemImage;
 
     private Achievements achievementsSeq;
 
@@ -30,7 +29,7 @@ public class ItemDto {
 
 
     @Builder
-    public ItemDto(Long itemSeq, String itemName  , Integer itemPrice , Achievements achievementsSeq,Integer itemColorSeq,String itemColorName, Integer itemTypeSeq, String itemTypeName) {
+    public ItemDto(Long itemSeq, String itemName  , Integer itemPrice , Achievements achievementsSeq,Integer itemColorSeq,String itemColorName, Integer itemTypeSeq, String itemTypeName, String itemImage) {
         this.itemSeq = itemSeq;
         this.itemName = itemName;
         this.itemPrice = itemPrice;
@@ -39,7 +38,7 @@ public class ItemDto {
         this.itemColorName = itemColorName;
         this.itemTypeSeq = itemTypeSeq;
         this.itemTypeName = itemTypeName;
-
+        this.itemImage = itemImage;
     }
 
 }
