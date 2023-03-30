@@ -16,13 +16,13 @@ public class LevelUp : MonoBehaviour
     {
         Next();
         rect.localScale = Vector3.one;
-        GameManager.instance.Stop();
+        VamsuGameManager.instance.Stop();
     }
 
     public void Hide()
     {
         rect.localScale = Vector3.zero;
-        GameManager.instance.Resume();
+        VamsuGameManager.instance.Resume();
     }
 
     public void Select(int i)

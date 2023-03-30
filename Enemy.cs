@@ -5,6 +5,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public float speed;
+    public float baseSpeed;
     public float health;
     public float maxHealth;
     public float damage;
@@ -35,7 +36,7 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (!GameManager.instance.isLive)
+        if (!VamsuGameManager.instance.isLive)
             return;
 
         if (!isLive || anim.GetCurrentAnimatorStateInfo(0).IsName("Hit"))
@@ -43,11 +44,11 @@ public class Enemy : MonoBehaviour
 
         if(Vector3.Distance(target.position, rigid.position) > 15)
         {
-            speed *= 2;
+            speed = baseSpeed * 3;
         }
-        else
+        else if(speed != baseSpeed)
         {
-            speed /= 2;
+            speed = baseSpeed;
         }
 
         Vector3 dirVec = target.position - rigid.position;
@@ -61,7 +62,7 @@ public class Enemy : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!GameManager.instance.isLive)
+        if (!VamsuGameManager.instance.isLive)
             return;
 
         if (!isLive)
@@ -70,7 +71,7 @@ public class Enemy : MonoBehaviour
 
     void OnEnable()
     {
-        target = GameManager.instance.player.GetComponent<Rigidbody>();
+        target = VamsuGameManager.instance.player.GetComponent<Rigidbody>();
         isLive = true;
         isAttack = false;
         coll.enabled = true;
@@ -83,6 +84,7 @@ public class Enemy : MonoBehaviour
     {
         mater.color = colors[data.spriteType];
 
+        baseSpeed = data.speed;
         speed = data.speed;
         damage = data.damage;
         anim.SetFloat("Speed", data.speed);
@@ -110,7 +112,7 @@ public class Enemy : MonoBehaviour
         if (collision.gameObject.tag == "Player" && !isAttack)
         {
             isAttack = true;
-            GameManager.instance.GetDamage(damage);
+            VamsuGameManager.instance.GetDamage(damage);
             anim.SetTrigger("Attack");
             StartCoroutine(Attack());
         }
@@ -121,7 +123,7 @@ public class Enemy : MonoBehaviour
         if (!isLive)
             return;
 
-        health -= (damage * (1 + GameManager.instance.extraDamage));
+        health -= (damage * (1 + VamsuGameManager.instance.extraDamage));
         StartCoroutine(KnockBack());
 
         if (health > 0)
@@ -138,8 +140,8 @@ public class Enemy : MonoBehaviour
             coll.enabled = false;
             rigid.isKinematic = true;
 
-            GameManager.instance.kill++;
-            GameManager.instance.GetExp();
+            VamsuGameManager.instance.kill++;
+            VamsuGameManager.instance.GetExp();
         }
     }
 
@@ -147,7 +149,7 @@ public class Enemy : MonoBehaviour
     {
         yield return wait;//다음 물리 프레임 딜레이
 
-        Vector3 playerPos = GameManager.instance.player.transform.position;
+        Vector3 playerPos = VamsuGameManager.instance.player.transform.position;
         Vector3 dir = transform.position - playerPos;
 
         rigid.AddForce(dir.normalized * 2, ForceMode.Impulse);

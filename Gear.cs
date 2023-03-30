@@ -45,19 +45,19 @@ public class Gear : MonoBehaviour
         switch (id)
         {
             case 1:
-                GameManager.instance.extraDamage += rate;
+                VamsuGameManager.instance.extraDamage += rate;
                 break;
             case 2:
-                GameManager.instance.extraCoolDown += rate;
+                VamsuGameManager.instance.extraCoolDown += rate;
                 break;
             case 3:
-                GameManager.instance.extraArmor += rate;
+                VamsuGameManager.instance.extraArmor += rate;
                 break;
             case 4:
-                GameManager.instance.extraExp += rate;
+                VamsuGameManager.instance.extraExp += rate;
                 break;
             case 5:
-                GameManager.instance.extraGold += rate;
+                VamsuGameManager.instance.extraGold += rate;
                 break;
             default:
                 break;
@@ -67,6 +67,7 @@ public class Gear : MonoBehaviour
 
     void SpeedUp()
     {
-        GameManager.instance.player.speed += rate;
+        VamsuGameManager.instance.player.baseSpeed += rate;
+        VamsuGameManager.instance.player.speed += rate;
     }
 }

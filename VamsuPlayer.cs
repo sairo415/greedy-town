@@ -5,6 +5,7 @@ using UnityEngine;
 public class VamsuPlayer : MonoBehaviour
 {
     // Start is called before the first frame update
+    public float baseSpeed;
     public float speed;
     public Vector3 inputVec;
     public Scanner scanner;
@@ -22,7 +23,7 @@ public class VamsuPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(!GameManager.instance.isLive)
+        if(!VamsuGameManager.instance.isLive)
             return;
 
         inputVec.x = Input.GetAxisRaw("Horizontal");
@@ -31,7 +32,7 @@ public class VamsuPlayer : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!GameManager.instance.isLive)
+        if (!VamsuGameManager.instance.isLive)
             return;
 
         Vector3 nextVec = inputVec.normalized * speed * Time.fixedDeltaTime;

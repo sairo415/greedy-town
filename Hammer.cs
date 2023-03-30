@@ -29,7 +29,7 @@ public class Hammer : MonoBehaviour
         rigid.velocity = dir * speed;
 
         //총알과 플레이어 거리 탐색용 -> 너무 멀어지면 안되니까
-        target = GameManager.instance.player.GetComponent<Rigidbody>();
+        target = VamsuGameManager.instance.player.GetComponent<Rigidbody>();
 
     }
 

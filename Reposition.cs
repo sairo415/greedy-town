@@ -16,11 +16,11 @@ public class Reposition : MonoBehaviour
             return;
 
 
-        Vector3 playerPos = GameManager.instance.player.transform.position;
+        Vector3 playerPos = VamsuGameManager.instance.player.transform.position;
         Vector3 myPos = transform.position;
 
 
-        Vector3 playerDir = GameManager.instance.player.inputVec;
+        Vector3 playerDir = VamsuGameManager.instance.player.inputVec;
         float dirX = playerPos.x - myPos.x;
         float dirZ = playerPos.z - myPos.z;
 

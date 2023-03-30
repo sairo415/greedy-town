@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class VamsuGameManager : MonoBehaviour
 {
-    public static GameManager instance;
+    public static VamsuGameManager instance;
 
     [Header("# Game Control")]
     public bool isLive;
@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
         nextExp = new int[30];
         for(int i=0; i<30; i++)
         {
-            nextExp[i] = 5 + i * 8;
+            nextExp[i] = 5 + i * 12;
         }
     }
 

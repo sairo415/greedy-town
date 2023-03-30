@@ -6,6 +6,7 @@ public class Spawner : MonoBehaviour
 {
     public Transform[] spawnPoint;
     public SpawnData[] spawnData;
+    public SpawnData[] bossData;
 
     int level;
     float timer;
@@ -14,7 +15,7 @@ public class Spawner : MonoBehaviour
     {
         spawnPoint = GetComponentsInChildren<Transform>();//이거 자기 자신도 포함함
 
-        spawnData = new SpawnData[GameManager.instance.pool.monsterPrefabs.Length * 5];
+        spawnData = new SpawnData[VamsuGameManager.instance.pool.monsterPrefabs.Length * 5];
 
         /*spawnData[0].spawnTime = 0.4f;
         spawnData[0].spriteType = 0;
@@ -22,7 +23,7 @@ public class Spawner : MonoBehaviour
         spawnData[0].speed = 1.5f;
         spawnData[0].damage = 3;*/
         
-        for(int i=0; i<GameManager.instance.pool.monsterPrefabs.Length * 5; i++)
+        for(int i=0; i< VamsuGameManager.instance.pool.monsterPrefabs.Length * 5; i++)
         {
             spawnData[i] = new SpawnData();
             spawnData[i].spawnTime = Mathf.Max(0.3f - 0.01f * i, 0.1f);
@@ -36,28 +37,42 @@ public class Spawner : MonoBehaviour
 
     void Update()
     {
-        if (!GameManager.instance.isLive)
+        if (!VamsuGameManager.instance.isLive)
             return;
 
         timer += Time.deltaTime;
 
         //현재는 10초당 몬스터가 강해지는 구조 -> 나중에 킬 수랑 타이머 둘 다 써도 괜찮을 듯?
-        level = Mathf.FloorToInt(GameManager.instance.gameTime / 30f);//30f * 4
+        level = Mathf.FloorToInt(VamsuGameManager.instance.gameTime / 30f);//30f * 4
 
         if (timer > spawnData[level].spawnTime)
         {
             timer = 0;
             Spawn();
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            SpawnBoss();
+        }
     }
 
     void Spawn()
     {
-        GameObject enemy = GameManager.instance.pool.Get(Mathf.FloorToInt(level / 5), true);//
+        GameObject enemy = VamsuGameManager.instance.pool.Get(Mathf.FloorToInt(level / 5), true);//
 
         //자기자신 빼려고 1부터
         enemy.transform.position = spawnPoint[Random.Range(1,spawnPoint.Length)].position + new Vector3(0,-0.98f,0);
         enemy.GetComponent<Enemy>().Init(spawnData[level]);
+    }
+
+    void SpawnBoss()
+    {
+        GameObject boss = VamsuGameManager.instance.pool.GetBoss(0);//
+
+        //자기자신 빼려고 1부터
+        boss.transform.position = spawnPoint[Random.Range(1, spawnPoint.Length)].position + new Vector3(0, -0.98f, 0);
+        boss.GetComponent<VamsuBoss>().Init(bossData[0]);
     }
 }
 

@@ -15,7 +15,7 @@ public class Pause : MonoBehaviour
     void Start()
     {
         rect = GetComponent<RectTransform>();
-        items = GameManager.instance.canvas.transform.Find("LevelUp").GetComponentsInChildren<Item>(true);
+        items = VamsuGameManager.instance.canvas.transform.Find("LevelUp").GetComponentsInChildren<Item>(true);
 
         infos = new GameObject[items.Length];
         for(int i=0; i<items.Length; i++)
@@ -78,7 +78,7 @@ public class Pause : MonoBehaviour
     {
         parent.GetComponent<RectTransform>().localPosition = Vector3.zero;
         rect.localScale = Vector3.one;
-        GameManager.instance.Stop();
+        VamsuGameManager.instance.Stop();
 
         for (int i = 0; i < items.Length; i++)
         {
@@ -94,7 +94,7 @@ public class Pause : MonoBehaviour
     public void Hide()
     {
         rect.localScale = Vector3.zero;
-        GameManager.instance.Resume();
+        VamsuGameManager.instance.Resume();
     }
 
 

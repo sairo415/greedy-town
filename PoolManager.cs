@@ -7,6 +7,7 @@ public class PoolManager : MonoBehaviour
     //프리펩들을 보관할 변수
     public GameObject[] monsterPrefabs;
     public GameObject[] weaponPrefabs;
+    public GameObject[] bossPrefabs;
 
     //풀 담당을 하는 리스트들
     List<GameObject>[] monsterPools;
@@ -22,6 +23,7 @@ public class PoolManager : MonoBehaviour
 
         for (int i = 0; i < weaponPrefabs.Length; i++)
             weaponPools[i] = new List<GameObject>();
+
     }
 
     public GameObject Get(int index, bool isMonster)
@@ -56,6 +58,12 @@ public class PoolManager : MonoBehaviour
         pools[index].Add(select);
         
         return select;
+    }
+
+    public GameObject GetBoss(int index)
+    {
+        GameObject boss = Instantiate(bossPrefabs[index], transform);
+        return boss;
     }
 
     //임시 근접 무기 할당 -> 근접은 활성화 비활성화를 주기적으로 하는 것 들이 있어서 위의 것 처럼 하기엔 애매해짐

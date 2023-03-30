@@ -17,7 +17,7 @@ public class Weapon : MonoBehaviour
 
     void Awake()
     {
-        player = GameManager.instance.player;
+        player = VamsuGameManager.instance.player;
     }
 
     void Start()
@@ -28,7 +28,7 @@ public class Weapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!GameManager.instance.isLive)
+        if (!VamsuGameManager.instance.isLive)
             return;
 
         switch (id)
@@ -94,9 +94,9 @@ public class Weapon : MonoBehaviour
         coolTime = data.baseCoolTime;
         durations = data.durations;
 
-        for(int i = 0; i< GameManager.instance.pool.weaponPrefabs.Length; i++)
+        for(int i = 0; i< VamsuGameManager.instance.pool.weaponPrefabs.Length; i++)
         {
-            if(data.projectile == GameManager.instance.pool.weaponPrefabs[i])
+            if(data.projectile == VamsuGameManager.instance.pool.weaponPrefabs[i])
             {
                 prefabId = i;
             }
@@ -140,7 +140,7 @@ public class Weapon : MonoBehaviour
             }
             else
             {
-                hammer = GameManager.instance.pool.GetMelee(prefabId).transform;
+                hammer = VamsuGameManager.instance.pool.GetMelee(prefabId).transform;
                 hammer.parent = transform;//부모가 자기 자신
             }
             
@@ -165,7 +165,7 @@ public class Weapon : MonoBehaviour
         Vector3 targetPos = player.scanner.nearestTarget.position;
         Vector3 dir = (targetPos - transform.position).normalized;
 
-        Transform shoot = GameManager.instance.pool.Get(prefabId, false).transform;
+        Transform shoot = VamsuGameManager.instance.pool.Get(prefabId, false).transform;
         shoot.position = transform.position;
         shoot.rotation = Quaternion.FromToRotation(Vector3.right, dir);
         shoot.GetComponent<Hammer>().Init(damage, count, dir, speed);
@@ -184,7 +184,7 @@ public class Weapon : MonoBehaviour
         //active false
         foreach (Transform child in transform)
             child.gameObject.SetActive(false);
-        yield return new WaitForSeconds(coolTime * (1 - GameManager.instance.extraCoolDown));//끈 채로 쿨타임 기다리고
+        yield return new WaitForSeconds(coolTime * (1 - VamsuGameManager.instance.extraCoolDown));//끈 채로 쿨타임 기다리고
 
         StartCoroutine("ActiveWeapon");
     }
