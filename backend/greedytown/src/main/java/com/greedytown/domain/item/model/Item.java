@@ -19,6 +19,8 @@ public class Item {
 
     private Integer itemPrice;
 
+    private String itemImage;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="ahichievementsSeq")
     private Achievements achievementsSeq;
