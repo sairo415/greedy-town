@@ -3,11 +3,11 @@ package com.greedytown.domain.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.greedytown.domain.item.model.MoneyLog;
 import com.greedytown.domain.social.model.Stat;
+import com.greedytown.domain.social.repository.MoneyLogRepository;
 import com.greedytown.domain.social.repository.StatRepository;
-import com.greedytown.domain.user.dto.StatDto;
-import com.greedytown.domain.user.dto.TokenDto;
-import com.greedytown.domain.user.dto.UserDto;
+import com.greedytown.domain.user.dto.*;
 import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
 import com.greedytown.global.config.jwt.JwtProperties;
@@ -35,6 +35,8 @@ public class UserServiceImpl implements UserService {
 
     private final StatRepository statRepository;
 
+    private final MoneyLogRepository moneyLogRepository;
+
     @Override
     @Transactional
     public String insertUser(UserDto userDto) {
@@ -45,6 +47,7 @@ public class UserServiceImpl implements UserService {
                 .userNickname(userDto.getUserNickname())
                 .userEmail(userDto.getUserEmail())
                 .userPassword(userDto.getUserPassword())
+                .userMoney(0L)
                 .userJoinDate(new Date())
                 .build();
         try {
@@ -159,5 +162,45 @@ public class UserServiceImpl implements UserService {
 
         
         return statDto;
+    }
+
+    @Override
+    public UserInfoDto getUserInfo(User user) {
+        UserInfoDto userInfoDto = UserInfoDto.builder()
+                .userNickname(user.getUserNickname())
+                .userMoney(user.getUserMoney())
+                .userJoinDate(user.getUserJoinDate())
+                .build();
+        return userInfoDto;
+    }
+
+    @Override
+    @Transactional
+    public Map<String, String> earnMoney(User user, EarnMoneyDto earnMoneyDto) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            System.out.println("moneyLog 세팅 전");
+            // 현금 흐름 테이블에 insert
+            MoneyLog moneyLog = MoneyLog.builder()
+                    .moneyLogTime(new Date())
+                    .moneyLogGameinfo(earnMoneyDto.getGameInfo())
+                    .moneyLogMoney(earnMoneyDto.getMoney())
+                    .userSeq(user)
+                    .build();
+            System.out.println("현금 흐름 테이블 insert 전");
+            moneyLogRepository.save(moneyLog);
+
+            System.out.println("user money 세팅 전");
+            // user 테이블 update
+            user.setUserMoney(user.getUserMoney()+earnMoneyDto.getMoney());
+            System.out.println("user money update 전");
+            userRepository.save(user);
+
+            response.put("message", "success");
+            return response;
+        } catch (Exception e) {
+            response.put("message", "fail");
+            return response;
+        }
     }
 }

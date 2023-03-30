@@ -3,6 +3,7 @@ package com.greedytown.domain.item.service;
 import com.greedytown.domain.item.dto.*;
 import com.greedytown.domain.item.model.*;
 import com.greedytown.domain.item.repository.*;
+import com.greedytown.domain.social.repository.MoneyLogRepository;
 import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -22,6 +24,7 @@ public class  ItemServiceImpl implements ItemService{
     private final SuccessUserAchievementsRepository successUserAchievementsRepository;
     private final AchievementsRepository achievementsRepository;
     private final WearingRepository wearingRepository;
+    private final MoneyLogRepository moneyLogRepository;
 
     //전체 아이템 보기
     @Override
@@ -39,16 +42,28 @@ public class  ItemServiceImpl implements ItemService{
     //아이템 구입하기
     public BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto){
 
-        //내 돈 없애기
         Integer price = buyItemDto.getItemPrice();
         User user = userRepository.findById(buyItemDto.getUserSeq()).get();
-        user.setUserMoney(user.getUserMoney()-price);
         Item item = itemRepository.findById(buyItemDto.getItemSeq()).get();
+
+        // 현금 흐름 반영
+        // 발생 시각 new Date(), 아이템 정보, user seq, 금액 insert
+        MoneyLog moneyLog = MoneyLog.builder()
+                .moneyLogTime(new Date())
+                .moneyLogIteminfo(item)
+                .userSeq(user)
+                .moneyLogMoney(price.longValue())
+                .build();
+        moneyLogRepository.save(moneyLog);
+
+        //내 돈 없애기
+        user.setUserMoney(user.getUserMoney()-price);
         //내 아이템 목록 업데이트하기
         ItemUserList itemUserList = new ItemUserList(user,item);
 
         itemUserListRepository.save(itemUserList);
         WearingDto wearingDto = new WearingDto();
+
         //아이템 리턴
         BuyItemReturnDto buyItemReturnDto = new BuyItemReturnDto();
         getMyDress(user,buyItemReturnDto);

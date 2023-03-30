@@ -1,7 +1,6 @@
 package com.greedytown.domain.user.controller;
 
-import com.greedytown.domain.social.dto.FriendUserListDto;
-import com.greedytown.domain.social.dto.MyFriendDto;
+import com.greedytown.domain.user.dto.EarnMoneyDto;
 import com.greedytown.domain.user.dto.StatDto;
 import com.greedytown.domain.user.model.User;
 import com.greedytown.domain.user.service.UserService;
@@ -31,5 +30,18 @@ public class UserController {
         return new ResponseEntity<StatDto>(userService.updateStat(user,statDto), HttpStatus.OK);
     }
 
+    @ApiOperation(value = "유저 정보 조회", notes = "유저 닉네임, 가진 돈, 가입 일자를 반환한다.")
+    @GetMapping("/info")
+    public ResponseEntity<?> userInfo(HttpServletRequest request) {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<>(userService.getUserInfo(user), HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "유저 정보 조회", notes = "유저 닉네임, 가진 돈, 가입 일자를 반환한다.")
+    @PostMapping("/money")
+    public ResponseEntity<?> earnMoney(HttpServletRequest request, @RequestBody EarnMoneyDto earnMoneyDto) {
+        User user = (User) request.getAttribute("USER");
+        return new ResponseEntity<>(userService.earnMoney(user, earnMoneyDto), HttpStatus.OK);
+    }
 
 }
