@@ -11,6 +11,8 @@ public class BossRedDragon : MonoBehaviour
     public bool isAttack;
     public bool isLook;
     public bool isRun;
+    public bool isStartRunning;
+    public bool isLanding;
 
     public GameObject scatterSpot;
     public GameObject flameScatterPrefab;
@@ -18,9 +20,15 @@ public class BossRedDragon : MonoBehaviour
     public GameObject[] tsunamiSpots1;
     public GameObject[] tsunamiSpots2;
     public GameObject[] bossSpots;
-    public int bossSpot;
-    public GameObject breathSpot;
-    public GameObject breathPrefab;
+    public GameObject coreSpot;
+    public GameObject corePrefab;
+    public GameObject flameWallSpot;
+    public GameObject flameWallPrefab;
+    public GameObject[] meteorSpots;
+    public GameObject meteorPrefab;
+    private int bossSpot;
+
+    private Transform ToGo;
 
     private enum BossState { Idle, Attack1, Attack2, Attack3, Attack4, Run, Dead };
     private BossState currentState;
@@ -29,6 +37,7 @@ public class BossRedDragon : MonoBehaviour
     public Rigidbody rigid;
     public Transform target;
     public BoxCollider boxCollider;
+    public BoxCollider[] meteorColliders;
     public NavMeshAgent nav;
     public Animator anim;
 
@@ -44,6 +53,7 @@ public class BossRedDragon : MonoBehaviour
         isLook = true;
         isAttack = false;
         nav.isStopped = true;
+        bossSpot = 0;
     }
 
     private void Start()
@@ -53,39 +63,65 @@ public class BossRedDragon : MonoBehaviour
 
     private void Update()
     {
-        switch (currentState)
+        if (!isRun && !isDead && !isStartRunning && !isLanding)
         {
-            case BossState.Idle:
-                if (!isAttack)
-                    ChangeState();
-                break;
-            case BossState.Attack1:
-                if (!isAttack)
-                {
-                    isAttack = true;
-                    Attack1();
-                }
-                break;
-            case BossState.Attack2:
-                if (!isAttack)
-                {
-                    isAttack = true;
-                    Attack2();
-                }
-                break;
-            case BossState.Attack3:
-                if (!isAttack)
-                {
-                    isAttack = true;
-                    Attack3();
-                }
-                break;
-            case BossState.Attack4:
-                break;
-            case BossState.Run:
-                break;
-            case BossState.Dead:
-                break;
+            switch (currentState)
+            {
+                case BossState.Idle:
+                    if (!isAttack)
+                        ChangeState();
+                    break;
+                case BossState.Attack1:
+                    if (!isAttack)
+                    {
+                        isAttack = true;
+                        Attack1();
+                    }
+                    break;
+                case BossState.Attack2:
+                    if (!isAttack)
+                    {
+                        isAttack = true;
+                        Attack2();
+                    }
+                    break;
+                case BossState.Attack3:
+                    if (!isAttack)
+                    {
+                        isAttack = true;
+                        Attack3();
+                    }
+                    break;
+                case BossState.Attack4:
+                    break;
+                case BossState.Run:
+                    RunDragon();
+                    break;
+                case BossState.Dead:
+                    DoDie();
+                    break;
+            }
+        }
+
+        else if (isRun && !isDead && !isAttack && !isStartRunning)
+        {
+            isLook = false;
+
+            Vector3 direction = ToGo.position - transform.position;
+
+            transform.LookAt(ToGo.position + direction);
+            float distance = direction.magnitude;
+
+            float moveDistance = Mathf.Min(distance, Time.deltaTime * 40f);
+
+            transform.Translate(direction.normalized * moveDistance, Space.World);
+
+            if (distance < 5f)
+            {
+                isLanding = true;
+                anim.SetBool("isRun", false);
+                StartCoroutine(StopRunning());
+            }
         }
 
         if (isLook)
@@ -97,13 +133,30 @@ public class BossRedDragon : MonoBehaviour
         }
     }
 
+
+    private void FixedUpdate()
+    {
+        FreezeVelocity();
+        if (isDead)
+        {
+            StopAllCoroutines();
+        }
+    }
+
+
+    void FreezeVelocity()
+    {
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
+    }
+
     private void ChangeState()
     {
         if (currentHealth <= 0)
         {
             currentState = BossState.Dead;
         }
-        else if (isAttack)
+        else if (isAttack && isRun)
         {
             return;
         }
@@ -111,9 +164,21 @@ public class BossRedDragon : MonoBehaviour
         {
             int ranAction = Random.Range(0, 100);
 
-            if (ranAction < 100)
+            if (ranAction < 20)
+            {
+                currentState = BossState.Attack1;
+            }
+            else if (ranAction < 50)
+            {
+                currentState = BossState.Attack2;
+            }
+            else if (ranAction < 80)
             {
                 currentState = BossState.Attack3;
+            }
+            else if (ranAction < 100)
+            {
+                currentState = BossState.Run;
             }
         }
     }
@@ -140,12 +205,12 @@ public class BossRedDragon : MonoBehaviour
     void Attack2()
     {
         anim.SetTrigger("doScream");
-        for (int i = 0; i < 3; i++)
+        for (int i = 1; i < 4; i++)
         {
             if (bossSpot == 0)
-                StartCoroutine(ShotFlameTsunami1(i * 1.35f, i));
+                StartCoroutine(ShotFlameTsunami1(i * 1f, i - 1));
             else
-                StartCoroutine(ShotFlameTsunami2(i * 1.35f, i));
+                StartCoroutine(ShotFlameTsunami2(i * 1f, i - 1));
         }
 
         StartCoroutine(EndAttack2());
@@ -181,7 +246,7 @@ public class BossRedDragon : MonoBehaviour
 
     IEnumerator EndAttack2()
     {
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(5f);
         currentState = BossState.Idle;
         isAttack = false;
     }
@@ -189,14 +254,132 @@ public class BossRedDragon : MonoBehaviour
 
     void Attack3()
     {
-        StartCoroutine(FlameBreath());
+        StartCoroutine(FlameWall());
+        for (int idx = 1; idx < 7; idx++)
+        {
+            StartCoroutine(MakeMeteors(idx * 0.5f, idx - 1));
+        }
+        StartCoroutine(EndAttack3());
     }
 
 
-    IEnumerator FlameBreath()
+    IEnumerator FlameWall()
     {
         yield return new WaitForSeconds(0.1f);
         isLook = false;
         anim.SetTrigger("doFlameAttack");
+
+        yield return new WaitForSeconds(0.3f);
+        GameObject instantFlameWall = Instantiate(flameWallPrefab, flameWallSpot.transform.position, flameWallSpot.transform.rotation);
+
+        yield return new WaitForSeconds(5f);
+        Destroy (instantFlameWall);
+    }
+
+    IEnumerator MakeMeteors(float delay, int idx)
+    {
+        yield return new WaitForSeconds(delay);
+        GameObject instantMeteor = Instantiate(meteorPrefab, meteorSpots[idx].transform.position, Quaternion.Euler(0f, 0f, 180f));
+
+        yield return new WaitForSeconds(1f);
+        meteorColliders[idx].enabled = true;
+
+        yield return new WaitForSeconds(2f);
+        meteorColliders[idx].enabled = false;
+        Destroy(instantMeteor);
+    }
+
+    IEnumerator EndAttack3()
+    {
+        yield return new WaitForSeconds(6.5f);
+        currentState = BossState.Idle;
+        isAttack = false;
+    }
+
+
+    void RunDragon()
+    {
+        isStartRunning = true;
+        if (bossSpot == 0)
+        {
+            bossSpot = 1;
+            ToGo = bossSpots[1].transform;
+            StartCoroutine(MoveTo());
+        }
+        else if (bossSpot == 1)
+        {
+            bossSpot = 0;
+            ToGo = bossSpots[0].transform;
+            StartCoroutine(MoveTo());
+        }
+    }
+
+    IEnumerator MoveTo()
+    {
+        yield return new WaitForSeconds(0.1f);
+        anim.SetTrigger("doTakeOff");
+
+        yield return new WaitForSeconds(0.3f);
+        isStartRunning = false;
+        isRun = true;
+        GameObject instantCore = Instantiate(corePrefab, coreSpot.transform.position, coreSpot.transform.rotation);
+        anim.SetBool("isRun", true);
+
+        yield return new WaitForSeconds(1f);
+        Destroy(instantCore);
+    }
+
+    IEnumerator StopRunning()
+    {
+        yield return new WaitForSeconds(0.1f);
+        isRun = false;
+        isLook = true;
+        GameObject instantCore = Instantiate(corePrefab, coreSpot.transform.position, coreSpot.transform.rotation);
+
+        yield return new WaitForSeconds(1f);
+        Destroy(instantCore);
+        isLanding = false;
+        currentState = BossState.Idle;
+    }
+
+    void DoDie()
+    {
+        StartCoroutine(MakeDead());
+    }
+
+    IEnumerator MakeDead()
+    {
+        anim.SetTrigger("doDie");
+        isDead = true;
+        isLook = false;
+        yield return new WaitForSeconds(10f);
+        Destroy(gameObject);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("PlayerAttack"))
+        {
+            Sword sword = other.GetComponent<Sword>();
+            currentHealth -= sword.damage;
+            Vector3 reactVector = transform.position - other.transform.position;
+            StartCoroutine(OnHit(reactVector));
+        }
+    }
+
+    IEnumerator OnHit(Vector3 reactVector)
+    {
+        yield return new WaitForSeconds(0.1f);
+        print("isHit!");
+        if (!isDead)
+        {
+            if (currentHealth <= 0)
+            {
+                reactVector = reactVector.normalized;
+                reactVector += Vector3.up * 5f;
+                rigid.AddForce(reactVector * 2f, ForceMode.Impulse);
+                currentState = BossState.Dead;
+            }
+        }
     }
 }

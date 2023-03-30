@@ -6,7 +6,7 @@ public class BossParticle : MonoBehaviour
 {
     public ParticleSystem ps;
 
-    List<ParticleCollisionEvent> colEvents = new List<ParticleCollisionEvent>();
+    // List<ParticleCollisionEvent> colEvents = new List<ParticleCollisionEvent>();
     public int damage;
     // public Weapon weapon;
 
@@ -30,8 +30,9 @@ public class BossParticle : MonoBehaviour
 
     void OnParticleCollision(GameObject other)
     {
-       if (other.TryGetComponent(out Warrior warrior))
+        if (other.gameObject.layer ==  LayerMask.NameToLayer("Player"))
        {
+            Warrior warrior = new Warrior();
             warrior.TakeDamage(damage);
        }
     }
