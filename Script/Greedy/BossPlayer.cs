@@ -7,6 +7,7 @@ using Photon.Realtime;
 using Cinemachine;
 using UnityEngine.Rendering;
 
+
 public class BossPlayer : MonoBehaviour
 {
     //Game Manager
@@ -190,6 +191,13 @@ public class BossPlayer : MonoBehaviour
     // 흡혈 패시브 여부
     public bool isVampirism = false;
 
+    // 용암 위에 있을 경우
+    float damageTimer = 0.0f;
+    public int damageAmount = 10;
+    public float damageInterval = 1.0f;
+
+    bool inLava = false;
+
     private void Awake()
     {
         rigid = GetComponent<Rigidbody>();
@@ -226,38 +234,42 @@ public class BossPlayer : MonoBehaviour
             virtualCamera.Follow = transform;
             virtualCamera.LookAt = transform;
 
-            bossMemberManager.players.Add(gameObject.GetComponent<BossPlayer>());
+            bossMemberManager.playerInfoList.Add(pv.ViewID, (bossPlayerName, (maxHealth, curHealth)));
+            bossMemberManager.UpdateUI();
         }
-
-		foreach(BossPlayer inplayer in FindObjectsOfType<BossPlayer>())
-		{
-            Debug.Log("22222");
-			if(inplayer.pv.ViewID != inplayer.pv.ViewID) // 이거 왜 오류 남?
-			{
-                Debug.Log("33333");
-                bossMemberManager.players.Add(inplayer);
-			}
-		}
-
-        foreach(BossPlayer bossplaee in bossMemberManager.players)
+        else
         {
-            Debug.Log(bossplaee.bossPlayerName);
+            int requestID = pv.ViewID;
+            pv.RPC("RequestOtherPlayerName", RpcTarget.Others, requestID, null);
         }
-
-		pv.RPC("UpdateUIOtherClient", RpcTarget.Others, pv.ViewID);
-        bossMemberManager.UpdateUI();
     }
 
     [PunRPC]
-    void UpdateUIOtherClient(int newViewID)
+    void RequestOtherPlayerName(int requestID, PhotonMessageInfo info)
     {
-		// 하이라키 창에서 모든 BossPlayer 오브젝트를 찾아 리스트에 추가합니다.
-		BossMemberManager bossMemberManager = FindObjectOfType<BossMemberManager>();
-        BossPlayer newBossPlayer = PhotonView.Find(newViewID).gameObject.GetComponent<BossPlayer>();
+        BossPlayer newBossPlayer = PhotonView.Find(requestID).gameObject.GetComponent<BossPlayer>();
+        string responseName = newBossPlayer.bossPlayerName;
+        
+        pv.RPC("ResponseOtherPlayerName", RpcTarget.Others, requestID, responseName);
 
-        bossMemberManager.players.Add(newBossPlayer);
-		bossMemberManager.UpdateUI();
-	}
+        //Debug.Log("RequestOtherPlayerName 함수");
+        //Debug.Log("요청 아이디 : " + requestID);
+        //Debug.Log("응답 이름 : " + responseName);
+    }
+
+    [PunRPC]
+    void ResponseOtherPlayerName(int requestID, string responseName)
+    {
+        //Debug.Log("ResponseOtherPlayerName 함수");
+        //Debug.Log("요청 아이디 : " + requestID);
+        //Debug.Log("응답 이름 : " + responseName);
+        
+        PhotonView.Find(requestID).gameObject.GetComponent<BossPlayer>().bossPlayerName = responseName;
+
+        BossMemberManager bossMemberManager = FindObjectOfType<BossMemberManager>();
+        bossMemberManager.playerInfoList.Add(requestID, (responseName, (maxHealth, curHealth)));
+        bossMemberManager.UpdateUI();
+    }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -336,6 +348,17 @@ public class BossPlayer : MonoBehaviour
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        BossMemberManager bossMemberManager = FindObjectOfType<BossMemberManager>();
+
+        if(bossMemberManager == null)
+            return;
+
+        if(pv == null)
+            return;
+
+        bossMemberManager.playerInfoList.Remove(pv.ViewID);
+        bossMemberManager.UpdateUI();
     }
 
     void GetInput()
@@ -620,8 +643,8 @@ public class BossPlayer : MonoBehaviour
 
         yield return new WaitForSeconds(1.0f);
 
-        Destroy(skillAreaObj);
         skillAreaObj.SetActive(false);
+        Destroy(skillAreaObj);
     }
 
     [PunRPC]
@@ -633,26 +656,29 @@ public class BossPlayer : MonoBehaviour
         {
             GameObject skillAreaObj = Instantiate(swordForce, swordForcePos.position, swordForcePos.rotation);
 
+            skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
             skillAreaObj.SetActive(true);
             skillSound.clip = swordForceSound;
             skillSound.Play();
 
+            // 이동하는 공격
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
             skillAreaRigid.velocity = swordForcePos.forward * 50;
 
             yield return new WaitForSeconds(swordForcePlayTime);
 
-            if(skillAreaObj != null)
-            {
-                skillAreaObj.SetActive(false);
-                Destroy(skillAreaObj);
-            }
+            if(skillAreaObj == null)
+                yield break;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
         }
     }
 
     [PunRPC]
     IEnumerator ESkillStart()
     {
+        // 이거 설치기 지속 공격으로 바꿔야되고 공격에 ID 부여해야됨.
         if(lvTwoSkill == LvTwoSkill.SwordDance)
         {
             GameObject skillAreaObj = Instantiate(swordDance, swordDancePos.position, swordDancePos.rotation);
@@ -729,61 +755,125 @@ public class BossPlayer : MonoBehaviour
 	{
         if(other.CompareTag("DamageObject"))
         {
+            inLava = true;
+
             // 플레이어 불타는 이펙트 활성화
             transform.Find("Skill/Fire").gameObject.SetActive(true);
-        }
-        /*else if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
-        {
-            int damage = other.GetComponent<BossPlayerSkill>().damage;
-            //curHealth -= other.GetComponent<BossPlayerSkill>().damage;
+  
+            BossGameManager bossGameManager = GameObject.FindObjectOfType<BossGameManager>();
+
+            // 내 클라이언트의 경우만 로직 실행
+            if(pv.IsMine)
+            {
+                bossGameManager.dangerPanel.SetActive(true);
+            }
+
+            //int damage = other.GetComponent<BossPlayerSkill>().damage;
+            //curHealth -= damageAmount;
+            //int sendRPCBossPlayerHP = curHealth;
+
             //if(curHealth < 0)
             //    curHealth = 0;
 
-            // 적과 닿았을 때 삭제되도록 Destroy() 호출
-            if(other.tag == "PlayerAttack")
-            {
-                Destroy(other.gameObject);
-                other.gameObject.SetActive(false);
-            }
+            //pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
+        }
+		else if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
+		{
+            int skillOwner = other.GetComponent<BossPlayerSkill>().GetID();
 
-            //StartCoroutine("OnDamage");
-            pv.RPC("OnDamage", RpcTarget.All, damage);
+            // 맞은 스킬의 시전자가 본인일 경우 데미지를 입지않도록 함.
+            if(pv.ViewID == skillOwner)
+                return;
 
-        }*/
+            // 내 클라이언트의 경우만 로직 실행
+            // 상대 클라이언트에서 내 플레이어가 데미지를 입는 로직은 실행 안함.
+            //if(!pv.IsMine)
+            //    return;
+
+            int damage = other.GetComponent<BossPlayerSkill>().damage;
+			curHealth -= damage;
+            int sendRPCBossPlayerHP = curHealth;
+
+            if(curHealth < 0)
+			    curHealth = 0;
+
+			if(other.tag == "PlayerAttack")
+			{
+				Destroy(other.gameObject);
+				other.gameObject.SetActive(false);
+			}
+
+			//StartCoroutine("OnDamage");
+			pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
+		}
+
+        if(curHealth <= 0)
+        {
+            // 사망
+            anim.SetTrigger("doDie");
+            isSkillReady = false;
+            isMoveReady = false;
+        }
     }
 
 	void OnTriggerExit(Collider other)
 	{
         if(other.CompareTag("DamageObject"))
         {
+            inLava = false;
+
             // 플레이어 불타는 이펙트 비활성화
             transform.Find("Skill/Fire").gameObject.SetActive(false);
+
+            BossGameManager bossGameManager = GameObject.FindObjectOfType<BossGameManager>();
+
+            if(pv.IsMine)
+            {
+                damageTimer = 0.0f;
+                bossGameManager.dangerPanel.SetActive(false);
+            }
+        }
+    }
+
+    void OnTriggerStay(Collider other)
+    {
+        if(other.CompareTag("DamageObject") && inLava && pv.IsMine)
+        {
+            damageTimer += Time.deltaTime;
+
+            if(damageTimer >= damageInterval)
+            {
+                curHealth -= damageAmount;
+                damageTimer = 0.0f;
+            }
+
+            pv.RPC("SyncPlayerHP", RpcTarget.All, curHealth);
         }
     }
 
     [PunRPC]
-    IEnumerator OnDamage(int damage)
+    void OnDamage(int sendRPCBossPlayerHP)
     {
-        curHealth -= damage;
-        if(curHealth < 0)
-            curHealth = 0;
+        curHealth = sendRPCBossPlayerHP;
+    }
 
-        yield return new WaitForSeconds(0.1f);
+    public void CallSyncPlayerHPAll(int sendRPCBossPlayerHP)
+    {
+        pv.RPC("SyncPlayerHP", RpcTarget.All, sendRPCBossPlayerHP);
+    }
 
-        if(curHealth > 0)
-        {
-            
-        }
-        else
-        {
-            //yield return new WaitForSeconds(10.0f);
+    public void CallSyncPlayerHPOther(int sendRPCBossPlayerHP)
+    {
+        pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
+    }
 
-            //int sceneNum = SceneManager.GetActiveScene().buildIndex + 1;
-
-            anim.SetTrigger("doDie");
-            isSkillReady = false;
-            isMoveReady = false;
-        }
+    [PunRPC]
+    void SyncPlayerHP(int sendRPCBossPlayerHP)
+    {
+        curHealth = sendRPCBossPlayerHP;
+        BossMemberManager memberManager = GameObject.FindObjectOfType<BossMemberManager>();
+        memberManager.UpdatePlayerInfoList();
+        memberManager.UpdateUI();
     }
 
 

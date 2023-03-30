@@ -15,6 +15,14 @@ public class BossLava : MonoBehaviour
 		if(other.CompareTag("Player"))
 		{
 			inLava = true;
+
+			BossGameManager bossGameManager = GameObject.FindObjectOfType<BossGameManager>();
+
+			if(other.GetComponent<BossPlayer>().pv.IsMine)
+			{
+				bossGameManager.dangerPanel.SetActive(true);
+			}
+
 		}
 	}
 
@@ -24,6 +32,13 @@ public class BossLava : MonoBehaviour
 		{
 			inLava = false;
 			damageTimer = 0.0f;
+
+			BossGameManager bossGameManager = GameObject.FindObjectOfType<BossGameManager>();
+
+			if(other.GetComponent<BossPlayer>().pv.IsMine)
+			{
+				bossGameManager.dangerPanel.SetActive(false);
+			}
 		}
 	}
 

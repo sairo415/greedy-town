@@ -16,7 +16,7 @@ public class BossGameManager : MonoBehaviour
 
     // stage
     public int stage;
-    public Text stageTxt;
+    public TextMeshProUGUI txtStageNumber;
 
     // UI Panel
     public GameObject ingamePanel; // 인게임 화면
@@ -38,6 +38,8 @@ public class BossGameManager : MonoBehaviour
 
     public RectTransform playerHealthGroup;
     public RectTransform playerHealthBar;
+
+    int pastBossPlayerHealth; // 이전 플레이어 체력
 
     // 선택된 스킬 아이콘
     Image imgSkill_1;
@@ -164,12 +166,17 @@ public class BossGameManager : MonoBehaviour
     public Image imgSelectCenterButton;
     public Image imgSelectRightButton;
 
+    bool isPlayerHPDanger;
+
     void Awake()
     {
         pv = GetComponent<PhotonView>();
 
         if(boss != null)
-            pastBossHealth = boss.curHealth;
+            pastBossHealth = boss.maxHealth;
+
+        if(player != null)
+            pastBossPlayerHealth = player.maxHealth;
 
         isQReady = true;
         isWReady = true;
@@ -182,7 +189,7 @@ public class BossGameManager : MonoBehaviour
 
     void Start()
     {
-        
+        txtStageNumber.text = "stage : " + stage;
         //nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         //DontDestroyOnLoad(this.gameObject);
         //SceneManager.sceneLoaded += OnSceneLoaded;
@@ -462,7 +469,40 @@ public class BossGameManager : MonoBehaviour
             isSkillCountStart = true;
             SkillSelect();
         }
+
+        if(player != null && pastBossPlayerHealth != player.curHealth)
+        {
+            StartCoroutine("PlayerHPGauge");
+            pastBossPlayerHealth = player.curHealth;
+        }
+
+        // 체력이 10퍼 이하일 경우 경고 on
+        if(player != null && ((float)player.curHealth <= (float)player.maxHealth * 0.1) && !isPlayerHPDanger)
+        {
+            isPlayerHPDanger = true;
+            StartCoroutine("displayDangerPanel");
+        }
+
+        // 용암 위에서 경고 On
     }
+
+    IEnumerator displayDangerPanel()
+    {
+        dangerPanel.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        dangerPanel.SetActive(false);
+        yield return new WaitForSeconds(0.5f);
+        isPlayerHPDanger = false;
+        yield return null;
+    }
+
+    IEnumerator PlayerHPGauge()
+    {
+        float reteBossPlayerHP = (float)player.curHealth / player.maxHealth;
+        playerHealthBar.localScale = new Vector3(reteBossPlayerHP, 1, 1);
+        yield return null;
+    }
+
 
     IEnumerator BossHPGauge()
     {

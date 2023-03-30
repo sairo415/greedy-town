@@ -24,11 +24,17 @@ public class BossMemberManager : MonoBehaviour
 
     public List<BossPlayer> players = new List<BossPlayer>();
 
+    //<ViewID, (PlayerName, (MaxHP, CURHP))>
+    public Dictionary<int, (string, (int, int))> playerInfoList = new Dictionary<int, (string, (int, int))>();
+
+
     // Start is called before the first frame update
     void Start()
     {
-        DontDestroyOnLoad(this.gameObject);
-    }
+		//DontDestroyOnLoad(this.gameObject);
+		UpdatePlayerInfoList();
+		UpdateUI();
+	}
 
     // Update is called once per frame
     void Update()
@@ -36,47 +42,104 @@ public class BossMemberManager : MonoBehaviour
         
     }
 
-    public void UpdateUI()
+	private void LateUpdate()
+	{
+		
+	}
+
+	public void UpdatePlayerInfoList()
+	{
+		// 현재 있는 플레이어 클론들의 정보를 가져와서, Dictionary 를 업데이트 함.
+		BossPlayer[] bossPlayers = FindObjectsOfType<BossPlayer>();
+		foreach(BossPlayer bossPlayer in bossPlayers)
+		{
+			playerInfoList[bossPlayer.pv.ViewID] = (bossPlayer.bossPlayerName, (bossPlayer.maxHealth, bossPlayer.curHealth));
+		}
+	}
+
+	public void UpdateUI()
     {
         Player1Group.SetActive(false);
         Player2Group.SetActive(false);
         Player3Group.SetActive(false);
         Player4Group.SetActive(false);
 
-        if(players.Count >= 1)
-            Player1Group.SetActive(true);
-        if(players.Count >= 2)
-            Player2Group.SetActive(true);
-        if(players.Count >= 3)
-            Player3Group.SetActive(true);
-        if(players.Count >= 4)
-            Player4Group.SetActive(true);
+		if(playerInfoList.Count >= 1)
+			Player1Group.SetActive(true);
+		if(playerInfoList.Count >= 2)
+			Player2Group.SetActive(true);
+		if(playerInfoList.Count >= 3)
+			Player3Group.SetActive(true);
+		if(playerInfoList.Count >= 4)
+			Player4Group.SetActive(true);
 
-        int idx = 1;
+		/*if(players.Count >= 1)
+			Player1Group.SetActive(true);
+		if(players.Count >= 2)
+			Player2Group.SetActive(true);
+		if(players.Count >= 3)
+			Player3Group.SetActive(true);
+		if(players.Count >= 4)
+			Player4Group.SetActive(true);*/
 
-        foreach(BossPlayer bossPlayer in players)
-        {
-            float retePlayerHP = (float)bossPlayer.curHealth / bossPlayer.maxHealth;
-            if(idx == 1)
-            {
-                txtPlayer1Name.text = bossPlayer.bossPlayerName;
-                rectPlayer1HP.localScale = new Vector3(retePlayerHP, 1, 1);
-            }
-            else if(idx == 2)
-            {
-                txtPlayer2Name.text = bossPlayer.bossPlayerName;
-                rectPlayer2HP.localScale = new Vector3(retePlayerHP, 1, 1);
-            }
-            else if(idx == 3)
-            {
-                txtPlayer3Name.text = bossPlayer.bossPlayerName;
-                rectPlayer3HP.localScale = new Vector3(retePlayerHP, 1, 1);
-            }
-            else if(idx == 4)
-            {
-                txtPlayer4Name.text = bossPlayer.bossPlayerName;
-                rectPlayer4HP.localScale = new Vector3(retePlayerHP, 1, 1);
-            }
-        }
-    }
+		int idx = 1;
+
+		/*foreach(BossPlayer bossPlayer in players)
+		{
+			// 플레이어 체력 비율 계산
+			float retePlayerHP = (float)bossPlayer.curHealth / bossPlayer.maxHealth;
+
+			if(idx == 1)
+			{
+				txtPlayer1Name.text = bossPlayer.bossPlayerName;
+				rectPlayer1HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+			else if(idx == 2)
+			{
+				txtPlayer2Name.text = bossPlayer.bossPlayerName;
+				rectPlayer2HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+			else if(idx == 3)
+			{
+				txtPlayer3Name.text = bossPlayer.bossPlayerName;
+				rectPlayer3HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+			else if(idx == 4)
+			{
+				txtPlayer4Name.text = bossPlayer.bossPlayerName;
+				rectPlayer4HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+
+			idx++;
+		}*/
+
+		foreach(KeyValuePair<int, (string, (int, int))> kvp in playerInfoList)
+		{
+			// 플레이어 체력 비율 계산
+			float retePlayerHP = (float)kvp.Value.Item2.Item2 / kvp.Value.Item2.Item1;
+
+			if(idx == 1)
+			{
+				txtPlayer1Name.text = kvp.Value.Item1;
+				rectPlayer1HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+			else if(idx == 2)
+			{
+				txtPlayer2Name.text = kvp.Value.Item1;
+				rectPlayer2HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+			else if(idx == 3)
+			{
+				txtPlayer3Name.text = kvp.Value.Item1;
+				rectPlayer3HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+			else if(idx == 4)
+			{
+				txtPlayer4Name.text = kvp.Value.Item1;
+				rectPlayer4HP.localScale = new Vector3(retePlayerHP, 1, 1);
+			}
+
+			idx++;
+		}
+	}
 }

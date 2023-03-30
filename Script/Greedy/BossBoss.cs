@@ -37,8 +37,11 @@ public class BossBoss : MonoBehaviour
         {
             // 맞은 스킬의 시전자
             int skillOwnerID = other.GetComponent<BossPlayerSkill>().GetID();
-            // 현재 위치한 클라이언트 Owner ID
-            int myPlayerID = GameObject.FindObjectOfType<BossGameManager>().player.pv.ViewID;
+            // 현재 위치한 클라이언트
+            BossPlayer curClient = GameObject.FindObjectOfType<BossGameManager>().player;
+
+            // Owner ID
+            int myPlayerID = curClient.pv.ViewID;
 
             // 내가 사용한 스킬이 아닐 경우 로직 실행 안함.
             if(skillOwnerID != myPlayerID)
@@ -48,15 +51,16 @@ public class BossBoss : MonoBehaviour
             if(curHealth < 0) curHealth = 0;
 
             // 시전자가 피흡을 가지고 있으면 체력을 회복시킨다.
-            if(GameObject.FindObjectOfType<BossGameManager>().player.isVampirism)
+            if(curClient.isVampirism)
             {
-                int vamHP = GameObject.FindObjectOfType<BossGameManager>().player.curHealth + 10;
-                if(vamHP > GameObject.FindObjectOfType<BossGameManager>().player.maxHealth)
-                    vamHP = GameObject.FindObjectOfType<BossGameManager>().player.maxHealth;
-                GameObject.FindObjectOfType<BossGameManager>().player.curHealth = vamHP;
+                int vamHP = curClient.curHealth + 10;
+                if(vamHP > curClient.maxHealth)
+                    vamHP = curClient.maxHealth;
+                curClient.curHealth = vamHP;
 
                 // 회복시킨 후 동기화 필요할 듯...
                 // isVampirism == true 일 때, q 를 사용할 때마다, 여기서 SyncBossHealth 한 것 처럼
+                curClient.CallSyncPlayerHPAll(curClient.curHealth);
             }
 
             int sendRPCBossHP = curHealth;
