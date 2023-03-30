@@ -27,10 +27,14 @@ public class LoginNetworkManager : MonoBehaviourPunCallbacks
     public TMP_Text alert;
     public Button closeBtn;
 
-    public bool[] possSignIn;
-    public bool[] possSignUp;
-    public bool validSignIn;
-    public bool validSignUp;
+    private bool[] possSignIn;
+    private bool[] possSignUp;
+    private bool validSignIn;
+    private bool validSignUp;
+
+    private string baseUrl = "http://j8a808.p.ssafy.io:8080/";
+//    private string baseUrl = "localhost:8080/";
+
 
 
     // Start is called before the first frame update
@@ -182,7 +186,7 @@ public class LoginNetworkManager : MonoBehaviourPunCallbacks
     private IEnumerator Signin()
     {
         print("signin 호출");
-        string url = "http://j8a808.p.ssafy.io:8080/login";
+        string url = baseUrl + "login";
 
         // 로그인 정보
         LoginRequest loginRequest = new LoginRequest(userEmail.text, userPassword.text);
@@ -241,7 +245,7 @@ public class LoginNetworkManager : MonoBehaviourPunCallbacks
     }
     public IEnumerator PostCheckEmail()
     {
-        string url = "http://j8a808.p.ssafy.io:8080/check-email";
+        string url = baseUrl + "check-email";
         string data = email.text;
         using (UnityWebRequest request = UnityWebRequest.Post(url, data))
         {
@@ -279,7 +283,7 @@ public class LoginNetworkManager : MonoBehaviourPunCallbacks
     }
     public IEnumerator PostCheckNickname()
     {
-        string url = "http://j8a808.p.ssafy.io:8080/check-nickname";
+        string url = baseUrl + "check-nickname";
         string data = nickname.text;
         using (UnityWebRequest request = UnityWebRequest.Post(url, data))
         {
@@ -317,7 +321,7 @@ public class LoginNetworkManager : MonoBehaviourPunCallbacks
     }
     public IEnumerator PostSignUp()
     {
-        string url = "http://j8a808.p.ssafy.io:8080/regist";
+        string url = baseUrl + "regist";
 
         // 로그인 정보
         RegistRequest registRequest = new RegistRequest(email.text, password.text, nickname.text);

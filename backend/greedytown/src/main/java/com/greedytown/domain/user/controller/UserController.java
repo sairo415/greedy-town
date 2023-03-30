@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@RestController("/user")
+@RestController
+@RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
 

@@ -20,8 +20,8 @@ public class LoginFront : MonoBehaviour
     public void moveToSignUp()
     {
         GameObject LogIn = GameObject.Find("StartPage").transform.Find("Log In").gameObject;
-        GameObject SignUp = GameObject.Find("StartPage").transform.Find("Sign Up").gameObject;
-        LogIn.SetActive(false);
+            GameObject SignUp = GameObject.Find("StartPage").transform.Find("Sign Up").gameObject;
+            LogIn.SetActive(false);
         SignUp.SetActive(true);
     }
     // 로그인 창 이동
