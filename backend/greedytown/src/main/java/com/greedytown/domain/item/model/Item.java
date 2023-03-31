@@ -14,12 +14,12 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long itemSeq;
 
-    private String itemName;
+    private String itemName; // 지은 이름
 
 
     private Integer itemPrice;
 
-    private String itemImage;
+    private String itemImage; // 유니티 네임
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="ahichievementsSeq")

@@ -10,7 +10,7 @@ public interface ItemService {
 
     List<ItemDto> getStoreItems();
 
-    BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto);
+    BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto, User user);
 
     BuyItemReturnDto getMyItemList (User user);
 

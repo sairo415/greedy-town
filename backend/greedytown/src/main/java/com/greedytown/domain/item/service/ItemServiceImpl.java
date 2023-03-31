@@ -41,10 +41,9 @@ public class  ItemServiceImpl implements ItemService{
         return itemDtoList;
     }
     //아이템 구입하기
-    public BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto){
+    public BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto, User user){
 
         Integer price = buyItemDto.getItemPrice();
-        User user = userRepository.findById(buyItemDto.getUserSeq()).get();
         Item item = itemRepository.findById(buyItemDto.getItemSeq()).get();
 
         // 현금 흐름 반영
@@ -154,7 +153,6 @@ public class  ItemServiceImpl implements ItemService{
 
             WearingDto wearingDto = WearingDto.builder().
                                     itemDto(itemDto).
-                                    wearingSeq(wearing.getWearingSeq()).
                                     build();
 
             wearingList.add(wearingDto);

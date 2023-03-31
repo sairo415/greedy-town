@@ -44,8 +44,7 @@ public class ItemController {
     @PostMapping("/market")
     public ResponseEntity<BuyItemReturnDto> buyStoreItem(@RequestBody @ApiParam(value = "아이템 정보.", required = true) BuyItemDto buyItemDto, HttpServletRequest request) throws Exception {
         User user = (User) request.getAttribute("USER");
-        buyItemDto.setUserSeq(user.getUserSeq());
-        return new ResponseEntity<BuyItemReturnDto>(itemService.buyStoreItem(buyItemDto), HttpStatus.OK);
+        return new ResponseEntity<BuyItemReturnDto>(itemService.buyStoreItem(buyItemDto, user), HttpStatus.OK);
     }
 
     @Transactional

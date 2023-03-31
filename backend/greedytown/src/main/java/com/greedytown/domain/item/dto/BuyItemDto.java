@@ -18,13 +18,11 @@ public class BuyItemDto {
 
     private Long itemSeq;
     private Integer itemPrice;
-    private Long userSeq;
 
     @Builder
-    public BuyItemDto(Long itemSeq ,Integer itemPrice, Long userSeq ) {
+    public BuyItemDto(Long itemSeq ,Integer itemPrice) {
         this.itemSeq = itemSeq;
         this.itemPrice = itemPrice;
-        this.userSeq = userSeq;
 
     }
 

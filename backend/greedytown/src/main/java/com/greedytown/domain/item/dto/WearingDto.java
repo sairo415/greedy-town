@@ -14,14 +14,11 @@ import javax.persistence.OneToOne;
 @Setter
 @NoArgsConstructor
 public class WearingDto {
-
-    private Long wearingSeq;
     private ItemDto itemDto;
 
 
     @Builder
-        public WearingDto(Long wearingSeq, ItemDto itemDto ) {
-        this.wearingSeq = wearingSeq;
+        public WearingDto(ItemDto itemDto ) {
         this.itemDto = itemDto;
 
     }
