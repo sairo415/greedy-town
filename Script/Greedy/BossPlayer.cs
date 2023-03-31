@@ -52,15 +52,17 @@ public class BossPlayer : MonoBehaviour
     public LvTwoSkill lvTwoSkill;
 
     // 3 단계 스킬
-    public enum LvThreeSkill {NULL, SwordBlade, RestrictionOfBlood, Resurrection};
+    public enum LvThreeSkill {NULL, SwordBlade, BloodField, Resurrection};
     public LvThreeSkill lvThreeSkill;
 
     // 특정 스킬 사용하면서 다른 스킬을 사용하지 못하게 하고 싶은 경우 (일반 공격 포함)
     // 스킬 시전 동안 false 로 변경하여 다른 스킬을 사용 못하게 함.
-    bool isSkillReady;
+    [SerializeField]
+    public bool isSkillReady;
     // 특정 스킬 사용하면서 움직임을 제한하고 싶은 경우
     // 스킬 시전 동안 false 로 변경하여 움직임을 제한.
-    bool isMoveReady;
+    [SerializeField]
+    public bool isMoveReady;
 
     // 공통 일반 공격
     public GameObject normalAttack;
@@ -92,8 +94,8 @@ public class BossPlayer : MonoBehaviour
     public float swordDanceRate;
     public float swordDancePlayTime;
 
-    public float swordFlashRate;
-    public float swordFlashPlayTime;
+    public float swordBladeRate;
+    public float swordBladePlayTime;
 
     // Berserker
     public GameObject berserkerAttack;
@@ -105,9 +107,9 @@ public class BossPlayer : MonoBehaviour
     public AudioClip bloodExplosionSound;
     public GameObject bloodExplosion;
 
-    public Transform restrictionOfBloodPos;
-    public AudioClip restrictionOfBloodSound;
-    public GameObject restrictionOfBlood;
+    public Transform bloodFieldPos;
+    public AudioClip bloodFieldSound;
+    public GameObject bloodField;
 
     //public float vampirismRate;
     //public float vampirismPlayTime;
@@ -115,8 +117,8 @@ public class BossPlayer : MonoBehaviour
     public float bloodExplosionRate;
     public float bloodExplosionPlayTime;
 
-    public float restrictionOfBloodRate;
-    public float restrictionOfBloodPlayTime;
+    public float bloodFieldRate;
+    public float bloodFieldPlayTime;
 
     // Paladin
     public GameObject paladinAttack;
@@ -170,7 +172,8 @@ public class BossPlayer : MonoBehaviour
     // 벽 충돌 여부
     bool isBorder;
 
-    Vector3 moveVec;    // 움직일 벡터
+    [SerializeField]
+    public Vector3 moveVec;    // 움직일 벡터
     Vector3 dodgeVec;   // 회피 도중 방향 조작 못하도록
 
     Rigidbody rigid;
@@ -196,7 +199,22 @@ public class BossPlayer : MonoBehaviour
     public int damageAmount = 10;
     public float damageInterval = 1.0f;
 
-    bool inLava = false;
+    // 힐 영역 위에 있을 경우
+    float healTimer = 0.0f;
+    int healAmount = 10;
+    float healInterval = 1.0f;
+
+    bool inLava = false;        // 용암 위
+    bool inHealArea = false;    // 힐 영역 내부
+    bool isInvincible = false;  // 무적 상태
+
+    // 부활 여부를 확인하기 위해 죽었음을 확인
+    [SerializeField]
+    public bool isDie = false;
+
+    bool isInternalDelay = false;
+
+    public bool doResurrection = false; // 부활 스킬 사용됨.
 
     private void Awake()
     {
@@ -219,7 +237,11 @@ public class BossPlayer : MonoBehaviour
 
     void Start()
     {
-        nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        //nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        nextSceneIndex = GameObject.FindObjectOfType<BossGameManager>().stage + 1;
+
+        Debug.Log("nextSceneIndex : " + nextSceneIndex);
+
         DontDestroyOnLoad(this.gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -273,7 +295,8 @@ public class BossPlayer : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if(scene.buildIndex == nextSceneIndex)
+        //if(scene.buildIndex == nextSceneIndex)
+        if(GameObject.FindObjectOfType<BossGameManager>().stage == nextSceneIndex)
         {
             pv = GetComponent<PhotonView>();
             virtualCamera = GameObject.FindObjectOfType<CinemachineVirtualCamera>();
@@ -303,6 +326,28 @@ public class BossPlayer : MonoBehaviour
                         isWPassive = true;
                     }
                 }
+
+                if(GameObject.FindObjectOfType<BossGameManager>().stage == 1)
+                {
+                    GameObject.FindObjectOfType<BossAlbinoDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
+                }
+                /*else if(GameObject.FindObjectOfType<BossGameManager>().stage == 2)
+                {
+                    GameObject.FindObjectOfType<BossPurpleDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
+                }*/
+                else if(GameObject.FindObjectOfType<BossGameManager>().stage == 2)
+                {
+                    //GameObject.FindObjectOfType<BossAlbinoDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
+                    GameObject.FindObjectOfType<BossIceLich>().target = gameObject.GetComponent<BossPlayer>().transform;
+                }
+                else if(GameObject.FindObjectOfType<BossGameManager>().stage == 3)
+                {
+                    GameObject.FindObjectOfType<BossBlackDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
+                }
+                else if(GameObject.FindObjectOfType<BossGameManager>().stage == 4)
+                {
+                    GameObject.FindObjectOfType<BossRedDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
+                }
             }
 
             transform.position = Vector3.zero;
@@ -318,6 +363,13 @@ public class BossPlayer : MonoBehaviour
             eSkillDelay = 1000f;
             rSkillDelay = 1000f;
             dodgeDelay = 1000f;
+
+            inLava = false;
+            inHealArea = false;
+            isInvincible = false;
+
+            isDie = false;
+            isInternalDelay = false;
 
             nextSceneIndex++;
         }
@@ -345,7 +397,26 @@ public class BossPlayer : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    private void LateUpdate()
+    {
+        if(curHealth <= 0)
+        {
+            curHealth = 0;
+            anim.SetTrigger("doDie");
+            isSkillReady = false;
+            isMoveReady = false;
+            isDie = true;
+        }
+        else if(isDie && curHealth > 0)
+        {
+            anim.SetTrigger("doAlive");
+            isSkillReady = true;
+            isMoveReady = true;
+            isDie = false;
+        }
+    }
+
+	private void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
 
@@ -527,6 +598,8 @@ public class BossPlayer : MonoBehaviour
         eSkillDelay += Time.deltaTime;
         isESkillReady = eSkillRate < eSkillDelay;
 
+        //Debug.Log("Time : " + eSkillDelay);
+
         if(eDown && isESkillReady && !isDodge)
         {
             int bossPlayerViewID = pv.ViewID;
@@ -561,16 +634,19 @@ public class BossPlayer : MonoBehaviour
         if(!isSkillReady)
             return;
 
+        if(doResurrection)
+            return;
+
         if(lvThreeSkill == LvThreeSkill.NULL)
             return;
 
         switch(lvThreeSkill)
         {
         case LvThreeSkill.SwordBlade:
-            rSkillRate = swordFlashRate;
+            rSkillRate = swordBladeRate;
             break;
-        case LvThreeSkill.RestrictionOfBlood:
-            rSkillRate = restrictionOfBloodRate;
+        case LvThreeSkill.BloodField:
+            rSkillRate = bloodFieldRate;
             break;
         case LvThreeSkill.Resurrection:
             rSkillRate = resurrectionRate;
@@ -580,9 +656,15 @@ public class BossPlayer : MonoBehaviour
         rSkillDelay += Time.deltaTime;
         isRSkillReady = rSkillRate < rSkillDelay;
 
+        //Debug.Log("Time : " + rSkillDelay);
+
+        Debug.Log("여기까진 오는데?1");
+
         if(rDown && isRSkillReady && !isDodge)
         {
             int bossPlayerViewID = pv.ViewID;
+
+            Debug.Log("여기까진 오는데?2");
 
             // 스킬 시전
             pv.RPC("RSkillStart", RpcTarget.All, bossPlayerViewID);
@@ -590,7 +672,7 @@ public class BossPlayer : MonoBehaviour
             // 애니메이션 -> 클래스 별로 다른 애니메이션으로
             switch(lvThreeSkill)
             {
-            case LvThreeSkill.RestrictionOfBlood:
+            case LvThreeSkill.BloodField:
                 anim.SetTrigger("doSpell");
                 break;
             case LvThreeSkill.Resurrection:
@@ -598,8 +680,10 @@ public class BossPlayer : MonoBehaviour
                 break;
             }
 
-            // 딜레이 초기화
-            rSkillDelay = 0;
+            if(!isInternalDelay)
+                rSkillDelay = 0.0f;
+
+            isInternalDelay = false;
         }
     }
 
@@ -638,10 +722,14 @@ public class BossPlayer : MonoBehaviour
 
         skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
         skillAreaObj.SetActive(true);
-        skillSound.clip = swingSound;
-        skillSound.Play();
 
-        yield return new WaitForSeconds(1.0f);
+        if(pv.IsMine)
+        {
+            skillSound.clip = swingSound;
+            skillSound.Play();
+        }
+        
+        yield return new WaitForSeconds(0.5f);
 
         skillAreaObj.SetActive(false);
         Destroy(skillAreaObj);
@@ -658,8 +746,12 @@ public class BossPlayer : MonoBehaviour
 
             skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
             skillAreaObj.SetActive(true);
-            skillSound.clip = swordForceSound;
-            skillSound.Play();
+
+            if(pv.IsMine)
+            {
+                skillSound.clip = swordForceSound;
+                skillSound.Play();
+            }
 
             // 이동하는 공격
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
@@ -676,51 +768,112 @@ public class BossPlayer : MonoBehaviour
     }
 
     [PunRPC]
-    IEnumerator ESkillStart()
+    IEnumerator ESkillStart(int bossPlayerViewID)
     {
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+
         // 이거 설치기 지속 공격으로 바꿔야되고 공격에 ID 부여해야됨.
-        if(lvTwoSkill == LvTwoSkill.SwordDance)
+        if(bossPlayerObj.GetComponent<BossPlayer>().lvTwoSkill == LvTwoSkill.SwordDance)
         {
             GameObject skillAreaObj = Instantiate(swordDance, swordDancePos.position, swordDancePos.rotation);
 
+            skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
             skillAreaObj.SetActive(true);
-            skillSound.clip = swordDanceSound;
-            skillSound.Play();
+
+            if(pv.IsMine)
+            {
+                skillSound.clip = swordDanceSound;
+                skillSound.Play();
+            }
 
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
             skillAreaRigid.velocity = swordDancePos.forward;
 
             yield return new WaitForSeconds(swordDancePlayTime);
 
-            if(skillAreaObj != null)
+            if(skillAreaObj == null)
+                yield break;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
+        }
+        else if(bossPlayerObj.GetComponent<BossPlayer>().lvTwoSkill == LvTwoSkill.BloodExplosion)
+        {
+            GameObject skillAreaObj = Instantiate(bloodExplosion, bloodExplosionPos.position, bloodExplosionPos.rotation);
+
+            skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
+            skillAreaObj.SetActive(true);
+
+            bossPlayerObj.GetComponent<BossPlayer>().curHealth -= 10;
+            pv.RPC("SyncPlayerHP", RpcTarget.All, curHealth);
+
+            if(pv.IsMine)
             {
-                skillAreaObj.SetActive(false);
-                Destroy(skillAreaObj);
+                skillSound.clip = bloodExplosionSound;
+                skillSound.Play();
             }
-        }
-        else if(lvTwoSkill == LvTwoSkill.BloodExplosion)
-        {
 
-        }
-        else if(lvTwoSkill == LvTwoSkill.Blessing)
-        {
+            Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
+            skillAreaRigid.velocity = swordDancePos.forward;
 
+            yield return new WaitForSeconds(bloodExplosionPlayTime);
+
+            if(skillAreaObj == null)
+                yield break;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
+        }
+        else if(bossPlayerObj.GetComponent<BossPlayer>().lvTwoSkill == LvTwoSkill.Blessing)
+        {
+            GameObject skillAreaObj = Instantiate(blessing, blessingPos.position, blessingPos.rotation);
+
+            skillAreaObj.SetActive(true);
+
+            if(pv.IsMine)
+            {
+                skillSound.clip = blessingSound;
+                skillSound.Play();
+            }
+
+            Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
+            skillAreaRigid.velocity = swordDancePos.forward;
+
+            float startTime = Time.realtimeSinceStartup;
+
+            yield return new WaitForSeconds(blessingPlayTime);
+
+            if(skillAreaObj == null)
+                yield break;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
         }
     }
 
     [PunRPC]
-    IEnumerator RSkillStart()
+    IEnumerator RSkillStart(int bossPlayerViewID)
     {
-        if(lvThreeSkill == LvThreeSkill.SwordBlade)
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+
+        if(bossPlayerObj.GetComponent<BossPlayer>().lvThreeSkill == LvThreeSkill.SwordBlade)
         {
             GameObject skillAreaObj = Instantiate(swordFlash, swordFlashPos.position, swordFlashPos.rotation);
 
+            skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
             skillAreaObj.SetActive(true);
-            skillSound.clip = swordFlashSound;
-            skillSound.Play();
+
+            if(pv.IsMine)
+            {
+                skillSound.clip = swordFlashSound;
+                skillSound.Play();
+            }
 
             Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
             skillAreaRigid.velocity = swordFlashPos.forward;
+
+            //플레이어 무적
+            bossPlayerObj.GetComponent<BossPlayer>().isInvincible = true;
 
             Vector3 originalScale = gameObject.transform.localScale;
             gameObject.transform.localScale = Vector3.zero;
@@ -728,30 +881,115 @@ public class BossPlayer : MonoBehaviour
             isMoveReady = false;
             isSkillReady = false;
 
-            yield return new WaitForSeconds(swordFlashPlayTime);
+            isInternalDelay = true;
+            float startTime = Time.realtimeSinceStartup;
+
+            yield return new WaitForSeconds(swordBladePlayTime);
+
+            rSkillDelay = (Time.realtimeSinceStartup - startTime);
 
             gameObject.transform.localScale = originalScale;
             isMoveReady = true;
             isSkillReady = true;
 
-            if(skillAreaObj != null)
+            //플레이어 무적 해제
+            bossPlayerObj.GetComponent<BossPlayer>().isInvincible = false;
+
+            if(skillAreaObj == null)
+                yield break;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
+        }
+        else if(bossPlayerObj.GetComponent<BossPlayer>().lvThreeSkill == LvThreeSkill.BloodField)
+        {
+            GameObject skillAreaObj = Instantiate(bloodField, bloodFieldPos.position, bloodFieldPos.rotation);
+
+            skillAreaObj.GetComponent<BossPlayerSkill>().SetID(bossPlayerViewID);
+            skillAreaObj.SetActive(true);
+
+            if(pv.IsMine)
             {
-                skillAreaObj.SetActive(false);
-                Destroy(skillAreaObj);
+                skillSound.clip = bloodFieldSound;
+                skillSound.Play();
             }
-        }
-        else if(lvThreeSkill == LvThreeSkill.RestrictionOfBlood)
-        {
 
-        }
-        else if(lvThreeSkill == LvThreeSkill.Resurrection)
-        {
+            Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
+            skillAreaRigid.velocity = bloodFieldPos.forward;
 
+            //isMoveReady = false;
+            isSkillReady = false;
+
+            isInternalDelay = true;
+            float startTime = Time.realtimeSinceStartup;
+
+            yield return new WaitForSeconds(bloodFieldPlayTime);
+
+            rSkillDelay = (Time.realtimeSinceStartup - startTime);
+
+            //isMoveReady = true;
+            isSkillReady = true;
+
+            if(skillAreaObj == null)
+                yield break;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
+        }
+        else if(bossPlayerObj.GetComponent<BossPlayer>().lvThreeSkill == LvThreeSkill.Resurrection)
+        {            
+            GameObject skillAreaObj = Instantiate(resurrection, resurrectionPos.position, resurrectionPos.rotation);
+
+            skillAreaObj.SetActive(true);
+
+            if(pv.IsMine)
+            {
+                skillSound.clip = resurrectionSound;
+                skillSound.Play();
+            }
+
+            Rigidbody skillAreaRigid = skillAreaObj.GetComponent<Rigidbody>();
+            skillAreaRigid.velocity = resurrectionPos.forward;
+
+            // 현재 있는 플레이어 클론들의 정보를 가져와서, Dictionary 를 업데이트 함.
+            BossPlayer[] bossPlayers = FindObjectsOfType<BossPlayer>();
+            foreach(BossPlayer bossPlayer in bossPlayers)
+            {
+                int targetID = bossPlayer.pv.ViewID;
+                pv.RPC("SyncResurrection", RpcTarget.All, targetID);
+            }
+
+            //float startTime = Time.realtimeSinceStartup;
+
+            yield return new WaitForSeconds(resurrectionPlayTime);
+
+            //rSkillDelay = (Time.realtimeSinceStartup - startTime);
+
+            if(skillAreaObj == null)
+                yield break;
+
+            Debug.Log("부활 스킬 사용됨");
+            doResurrection = true;
+            rSkillRate = 10000000.0f;
+
+            skillAreaObj.SetActive(false);
+            Destroy(skillAreaObj);
         }
     }
 
-	// 플레이어 데미지 입음
-	void OnTriggerEnter(Collider other)
+    [PunRPC]
+    void SyncResurrection(int bossPlayerViewID)
+    {
+        GameObject bossPlayerObj = PhotonView.Find(bossPlayerViewID).gameObject;
+        if(bossPlayerObj.GetComponent<BossPlayer>().curHealth == 0)
+        {
+            bossPlayerObj.GetComponent<BossPlayer>().curHealth = bossPlayerObj.GetComponent<BossPlayer>().maxHealth;
+            //bossPlayerObj.GetComponent<BossPlayer>().anim.SetTrigger("doAlive");
+        }
+    }
+
+    // 플레이어 데미지 입음
+    void OnTriggerEnter(Collider other)
 	{
         if(other.CompareTag("DamageObject"))
         {
@@ -759,7 +997,7 @@ public class BossPlayer : MonoBehaviour
 
             // 플레이어 불타는 이펙트 활성화
             transform.Find("Skill/Fire").gameObject.SetActive(true);
-  
+
             BossGameManager bossGameManager = GameObject.FindObjectOfType<BossGameManager>();
 
             // 내 클라이언트의 경우만 로직 실행
@@ -777,8 +1015,8 @@ public class BossPlayer : MonoBehaviour
 
             //pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
         }
-		else if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
-		{
+        else if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
+        {
             int skillOwner = other.GetComponent<BossPlayerSkill>().GetID();
 
             // 맞은 스킬의 시전자가 본인일 경우 데미지를 입지않도록 함.
@@ -790,29 +1028,42 @@ public class BossPlayer : MonoBehaviour
             //if(!pv.IsMine)
             //    return;
 
-            int damage = other.GetComponent<BossPlayerSkill>().damage;
-			curHealth -= damage;
+            int damage = other.GetComponent<BossPlayerSkill>().damage - defense;
+            if(damage < 0)
+                damage = 0;
+
+            curHealth -= damage;
             int sendRPCBossPlayerHP = curHealth;
 
             if(curHealth < 0)
-			    curHealth = 0;
+                curHealth = 0;
 
-			if(other.tag == "PlayerAttack")
-			{
-				Destroy(other.gameObject);
-				other.gameObject.SetActive(false);
-			}
+            if(other.tag == "PlayerAttack")
+            {
+                Destroy(other.gameObject);
+                other.gameObject.SetActive(false);
+            }
 
-			//StartCoroutine("OnDamage");
-			pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
-		}
-
-        if(curHealth <= 0)
+            //StartCoroutine("OnDamage");
+            pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
+        }
+        else if(other.tag == "HealArea")
         {
-            // 사망
-            anim.SetTrigger("doDie");
-            isSkillReady = false;
-            isMoveReady = false;
+            inHealArea = true;
+        }
+        else if(other.gameObject.layer == LayerMask.NameToLayer("BossAttack"))
+        {
+            BossAttack bossAttack = other.GetComponent<BossAttack>();
+
+            int damage = bossAttack.damage - defense;
+            if(damage < 0)
+                damage = 0;
+
+            curHealth -= damage;
+            if(curHealth <= 0)
+                curHealth = 0;
+
+            pv.RPC("SyncPlayerHP", RpcTarget.All, curHealth);
         }
     }
 
@@ -833,6 +1084,15 @@ public class BossPlayer : MonoBehaviour
                 bossGameManager.dangerPanel.SetActive(false);
             }
         }
+        else if(other.tag == "HealArea")
+        {
+            inHealArea = false;
+
+            if(pv.IsMine)
+            {
+                healTimer = 0.0f;
+            }
+        }
     }
 
     void OnTriggerStay(Collider other)
@@ -844,7 +1104,26 @@ public class BossPlayer : MonoBehaviour
             if(damageTimer >= damageInterval)
             {
                 curHealth -= damageAmount;
+
+                if(curHealth <= 0)
+                    curHealth = 0;
+
                 damageTimer = 0.0f;
+            }
+
+            pv.RPC("SyncPlayerHP", RpcTarget.All, curHealth);
+        }
+        else if(other.CompareTag("HealArea") && inHealArea && pv.IsMine)
+        {
+            healTimer += Time.deltaTime;
+
+            if(healTimer >= healInterval)
+            {
+                curHealth += healAmount;
+                if(curHealth >= maxHealth)
+                    curHealth = maxHealth;
+
+                healTimer = 0.0f;
             }
 
             pv.RPC("SyncPlayerHP", RpcTarget.All, curHealth);

@@ -24,9 +24,12 @@ public class BossGameManager : MonoBehaviour
     public GameObject dangerPanel; // 위험 화면
 
     // 보스
-    public BossBoss boss;
+	public BossAlbinoDragon bossAlbinoDragon;
+	public BossPurpleDragon bossPurpleDragon;
+	public BossBlackDragon bossBlackDragon;
+	public BossRedDragon bossRedDragon;
 
-    public RectTransform bossHealthGroup;
+	public RectTransform bossHealthGroup;
     public RectTransform bossTempHealthBar;
     public RectTransform bossHealthBar;
 
@@ -51,7 +54,7 @@ public class BossGameManager : MonoBehaviour
     // Lv1 스킬 그룹, 아이콘
     public GameObject objStoneSwing;
     public GameObject objSwordSwing;
-    public GameObject objBloodSwin;
+    public GameObject objBloodSwing;
     public GameObject objPaladinSwing;
 
     public Image imgStoneSwing;
@@ -79,11 +82,11 @@ public class BossGameManager : MonoBehaviour
 
     // Lv4 스킬 그룹, 아이콘
     public GameObject objSwordBlade;
-    public GameObject objRestrictionOfBlood;
+    public GameObject objBloodField;
     public GameObject objResurrection;
 
     public Image imgSwordBlade;
-    public Image imgRestrictionOfBlood;
+    public Image imgBloodField;
     public Image imgResurrection;
 
     // 스킬 쿨타임
@@ -155,7 +158,7 @@ public class BossGameManager : MonoBehaviour
     public Sprite spriteBloodExplosion;
     public Sprite spriteBlessing;
     public Sprite spriteSwordBlade;
-    public Sprite spriteRestrictionOfBlood;
+    public Sprite spriteBloodField;
     public Sprite spriteResurrection;
 
     // 랜덤으로 출력된 스킬 선택창 스킬 목록
@@ -172,8 +175,15 @@ public class BossGameManager : MonoBehaviour
     {
         pv = GetComponent<PhotonView>();
 
-        if(boss != null)
-            pastBossHealth = boss.maxHealth;
+
+        if(bossAlbinoDragon != null)
+            pastBossHealth = bossAlbinoDragon.maxHealth;
+        if(bossPurpleDragon != null)
+            pastBossHealth = bossPurpleDragon.maxHealth; 
+        if(bossBlackDragon != null)
+            pastBossHealth = bossBlackDragon.maxHealth;
+        if(bossRedDragon != null)
+            pastBossHealth = bossRedDragon.maxHealth;
 
         if(player != null)
             pastBossPlayerHealth = player.maxHealth;
@@ -237,7 +247,7 @@ public class BossGameManager : MonoBehaviour
             else if(player.GetComponent<BossPlayer>().lvOneSkill == BossPlayer.LvOneSkill.Vampirism)
             {
                 objStoneSwing.SetActive(false);
-                objBloodSwin.SetActive(true);
+                objBloodSwing.SetActive(true);
                 isQCheck = true;
                 imgSkill_1 = imgBloodSwing;
             }
@@ -302,11 +312,11 @@ public class BossGameManager : MonoBehaviour
                 isRCheck = true;
                 imgSkill_4 = imgSwordBlade;
             }
-            else if(player.GetComponent<BossPlayer>().lvThreeSkill == BossPlayer.LvThreeSkill.RestrictionOfBlood)
+            else if(player.GetComponent<BossPlayer>().lvThreeSkill == BossPlayer.LvThreeSkill.BloodField)
             {
-                objRestrictionOfBlood.SetActive(true);
+                objBloodField.SetActive(true);
                 isRCheck = true;
-                imgSkill_4 = imgRestrictionOfBlood;
+                imgSkill_4 = imgBloodField;
             }
             else if(player.GetComponent<BossPlayer>().lvThreeSkill == BossPlayer.LvThreeSkill.Resurrection)
             {
@@ -316,6 +326,12 @@ public class BossGameManager : MonoBehaviour
             }
         }
 
+
+        if(!player.isSkillReady)
+            return;
+
+        if(player.isDie)
+            return;
 
         if(Input.GetKeyDown(KeyCode.Q) && isQReady)
         {
@@ -339,9 +355,13 @@ public class BossGameManager : MonoBehaviour
         {
             isRReady = false;
             imgSkill_4.fillAmount = 0.0f;
+
+            StartCoroutine(CoolTimeR(rCool));
+            // 부활 스킬이 아닐 경우만 쿨타임 로딩
+
             StartCoroutine(CoolTimeR(rCool));
         }
-        else if(Input.GetKeyDown(KeyCode.Space) && isSReady)
+        else if(Input.GetKeyDown(KeyCode.Space) && isSReady && player.GetComponent<BossPlayer>().moveVec != Vector3.zero)
         {
             isSReady = false;
             imgSkill_Dash.fillAmount = 0.0f;
@@ -411,7 +431,11 @@ public class BossGameManager : MonoBehaviour
         while(true)
         {
             rDelta += Time.deltaTime;
-            imgSkill_4.fillAmount = (rDelta / cool);
+
+            if(player.GetComponent<BossPlayer>().lvThreeSkill != BossPlayer.LvThreeSkill.Resurrection)
+                imgSkill_4.fillAmount = (rDelta / cool);
+
+            //Debug.Log(rDelta);
 
             if(rDelta >= cool)
                 break;
@@ -457,14 +481,65 @@ public class BossGameManager : MonoBehaviour
 
     void LateUpdate()
     {
-        if(stage != 0 && pastBossHealth != boss.curHealth)
+        if(stage == 1 && pastBossHealth != bossAlbinoDragon.currentHealth)
         {
             StartCoroutine("BossHPGauge");
-            pastBossHealth = boss.curHealth;
+            pastBossHealth = bossAlbinoDragon.currentHealth;
+        }
+
+        /*if(stage == 2 && pastBossHealth != bossPurpleDragon.currentHealth)
+        {
+            StartCoroutine("BossHPGauge");
+            pastBossHealth = bossPurpleDragon.currentHealth;
+        }*/
+
+        if(stage == 2 && pastBossHealth != bossAlbinoDragon.currentHealth)
+        {
+            StartCoroutine("BossHPGauge");
+            pastBossHealth = bossAlbinoDragon.currentHealth;
+        }
+
+        if(stage == 3 && pastBossHealth != bossBlackDragon.currentHealth)
+        {
+            StartCoroutine("BossHPGauge");
+            pastBossHealth = bossBlackDragon.currentHealth;
+        }
+
+        if(stage == 4 && pastBossHealth != bossRedDragon.currentHealth)
+        {
+            StartCoroutine("BossHPGauge");
+            pastBossHealth = bossRedDragon.currentHealth;
         }
 
         // 보스 사망
-        if(stage != 0 && boss.curHealth <= 0 && !isSkillCountStart)
+        if(stage == 1 && bossAlbinoDragon.currentHealth <= 0 && !isSkillCountStart)
+        {
+            isSkillCountStart = true;
+            SkillSelect();
+        }
+
+        // 보스 사망
+        /*if(stage == 2 && bossPurpleDragon.currentHealth <= 0 && !isSkillCountStart)
+        {
+            isSkillCountStart = true;
+            SkillSelect();
+        }*/
+
+        if(stage == 2 && bossAlbinoDragon.currentHealth <= 0 && !isSkillCountStart)
+        {
+            isSkillCountStart = true;
+            SkillSelect();
+        }
+
+        // 보스 사망
+        if(stage == 3 && bossBlackDragon.currentHealth <= 0 && !isSkillCountStart)
+        {
+            isSkillCountStart = true;
+            SkillSelect();
+        }
+
+        // 보스 사망
+        if(stage == 4 && bossRedDragon.currentHealth <= 0 && !isSkillCountStart)
         {
             isSkillCountStart = true;
             SkillSelect();
@@ -506,15 +581,65 @@ public class BossGameManager : MonoBehaviour
 
     IEnumerator BossHPGauge()
     {
-        float reteBossHP = (float)boss.curHealth / boss.maxHealth;
+        if(stage == 1)
+        {
+            float reteBossHP = (float)bossAlbinoDragon.currentHealth / bossAlbinoDragon.maxHealth;
 
-        bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
 
-        yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.5f);
 
-        bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
 
-        yield return null;
+            yield return null;
+        }
+        else if(stage == 2)
+        {
+            /*float reteBossHP = (float)bossPurpleDragon.currentHealth / bossPurpleDragon.maxHealth;
+
+            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return new WaitForSeconds(0.5f);
+
+            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return null;*/
+
+            float reteBossHP = (float)bossAlbinoDragon.currentHealth / bossAlbinoDragon.maxHealth;
+
+            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return new WaitForSeconds(0.5f);
+
+            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return null;
+        }
+        else if(stage == 3)
+        {
+            float reteBossHP = (float)bossBlackDragon.currentHealth / bossBlackDragon.maxHealth;
+
+            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return new WaitForSeconds(0.5f);
+
+            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return null;
+        }
+        else if(stage == 4)
+        {
+            float reteBossHP = (float)bossRedDragon.currentHealth / bossRedDragon.maxHealth;
+
+            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return new WaitForSeconds(0.5f);
+
+            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+            yield return null;
+        }
+
     }
 
     void SkillSelect()
@@ -545,26 +670,22 @@ public class BossGameManager : MonoBehaviour
 
         for(int i = 0; i < 3; i++)
         {
+            Debug.Log("indexArray.Length : " + indexArray.Length);
             int index = Random.Range(1, indexArray.Length);
             randomSkillIndex[i] = indexArray[index];
             indexArray = indexArray.Where((val, idx) => idx != index).ToArray();
         }
 
-        Debug.Log("목록입니다");
-        Debug.Log(randomSkillIndex[0]);
-        Debug.Log(randomSkillIndex[1]);
-        Debug.Log(randomSkillIndex[2]);
-
         string swordForceScript = "검기[액티브]\n전방을 향해 검기를 날립니다.";
-        string vampirismScript = "흡혈[패시브]\n기본 공격이 적에게 적중하면 체력이 회복됩니다.";
+        string vampirismScript = "피의 갈증[패시브]\n 기본 공격이 [흡혈] 속성을 가집니다. [흡혈]공격이 적에게 적중하면 체력이 회복됩니다.";
         string intentScript = "의지[패시브]\n방어력이 상승합니다.";
 
         string swordDanceScript = "검무[액티브]\n전방에 지속적으로 데미지를 주는 영역을 생성합니다.";
-        string bloodExplosionScript = "혈폭[액티브]\n캐릭터 주변으로 강한 폭발을 일으킵니다.";
+        string bloodExplosionScript = "혈폭[액티브]\n체력을 소모하여 캐릭터 주변으로 강한 폭발을 일으킵니다.";
         string blessingScript = "축복[액티브]\n파티원의 체력을 회복시키는 영역을 생성합니다.";
 
         string swordBladeScript = "폭풍[액티브]\n캐릭터 주변의 넓은 영역을 공격합니다. 잠시동안 무적 상태가 됩니다.";
-        string restrictionOfBloodScript = "구속[액티브]\n몬스터를 잠시동안 행동 불가 상태로 만듭니다.";
+        string bloodFieldScript = "블러드 필드[액티브]\n[흡혈] 공격. 캐릭터 주변의 넓은 영역을 지속적으로 공격합니다.";
         string resurrectionScript = "부활[액티브]\n단 한번 모든 파티원들을 부활 시킵니다. 본인 사망시 사용 불가합니다.";
 
         switch(stage)
@@ -712,18 +833,18 @@ public class BossGameManager : MonoBehaviour
                 {
                     if(i == 0)
                     {
-                        imgSelectLeftSkillImage.sprite = spriteRestrictionOfBlood;
-                        selectLeftButtonTxt.text = restrictionOfBloodScript;
+                        imgSelectLeftSkillImage.sprite = spriteBloodField;
+                        selectLeftButtonTxt.text = bloodFieldScript;
                     }
                     else if(i == 1)
                     {
-                        imgSelectCenterSkillImage.sprite = spriteRestrictionOfBlood;
-                        selectCenterButtonTxt.text = restrictionOfBloodScript;
+                        imgSelectCenterSkillImage.sprite = spriteBloodField;
+                        selectCenterButtonTxt.text = bloodFieldScript;
                     }
                     else if(i == 2)
                     {
-                        imgSelectRightSkillImage.sprite = spriteRestrictionOfBlood;
-                        selectRightButtonTxt.text = restrictionOfBloodScript;
+                        imgSelectRightSkillImage.sprite = spriteBloodField;
+                        selectRightButtonTxt.text = bloodFieldScript;
                     }
                 }
                 else if(randomSkillIndex[i] == 3)
@@ -859,7 +980,7 @@ public class BossGameManager : MonoBehaviour
             }
             else if(randomSkillIndex[pressedIdx] == 2)
             {
-                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.RestrictionOfBlood;
+                player.GetComponent<BossPlayer>().lvThreeSkill = BossPlayer.LvThreeSkill.BloodField;
             }
             else if(randomSkillIndex[pressedIdx] == 3)
             {

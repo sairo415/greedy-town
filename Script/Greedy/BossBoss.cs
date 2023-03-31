@@ -33,7 +33,7 @@ public class BossBoss : MonoBehaviour
         //해당 소유주가 이 보스가 위치한 곳의 플레이어아이디와 같으면 트리거 적용
         //적용 완료후 RPC Other
 
-        if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
+        if(other != null && (other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver" || other.tag == "PlayerAttackDot"))
         {
             // 맞은 스킬의 시전자
             int skillOwnerID = other.GetComponent<BossPlayerSkill>().GetID();
@@ -47,42 +47,101 @@ public class BossBoss : MonoBehaviour
             if(skillOwnerID != myPlayerID)
                 return;
 
-            curHealth -= other.GetComponent<BossPlayerSkill>().damage;
-            if(curHealth < 0) curHealth = 0;
-
-            // 시전자가 피흡을 가지고 있으면 체력을 회복시킨다.
-            if(curClient.isVampirism)
+            if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
             {
-                int vamHP = curClient.curHealth + 10;
-                if(vamHP > curClient.maxHealth)
-                    vamHP = curClient.maxHealth;
-                curClient.curHealth = vamHP;
+                curHealth -= other.GetComponent<BossPlayerSkill>().damage;
+                if(curHealth < 0)
+                    curHealth = 0;
 
-                // 회복시킨 후 동기화 필요할 듯...
-                // isVampirism == true 일 때, q 를 사용할 때마다, 여기서 SyncBossHealth 한 것 처럼
-                curClient.CallSyncPlayerHPAll(curClient.curHealth);
+                // 시전자가 피흡을 가지고 있으면 체력을 회복시킨다.
+                if(curClient.isVampirism && other.GetComponent<BossPlayerSkill>().isVampirism)
+                {
+                    int vamHP = curClient.curHealth + 10;
+                    if(vamHP > curClient.maxHealth)
+                        vamHP = curClient.maxHealth;
+                    curClient.curHealth = vamHP;
+
+                    // 회복시킨 후 동기화 필요할 듯...
+                    // isVampirism == true 일 때, q 를 사용할 때마다, 여기서 SyncBossHealth 한 것 처럼
+                    curClient.CallSyncPlayerHPAll(curClient.curHealth);
+                }
+
+                int sendRPCBossHP = curHealth;
+
+                // 서버 보스 체력과 동기화
+                pv.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
+
+                // 적과 닿았을 때 이펙트 삭제되도록 Destroy() 호출
+                // tag PlayerAttack => 닿으면 삭제되는 이펙트
+                // tag PlayerAttackOver => 닿으면 삭제되지 않는 이펙트
+                if(other.tag == "PlayerAttack")
+                {
+                    Destroy(other.gameObject);
+                    other.gameObject.SetActive(false);
+                }
+
+                StartCoroutine("OnDamage");
             }
-
-            int sendRPCBossHP = curHealth;
-
-            // 서버 보스 체력과 동기화
-            pv.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
-
-            // 적과 닿았을 때 이펙트 삭제되도록 Destroy() 호출
-            // tag PlayerAttack => 닿으면 삭제되는 이펙트
-            // tag PlayerAttackOver => 닿으면 삭제되지 않는 이펙트
-            if(other.tag == "PlayerAttack")
+            else if(other.tag == "PlayerAttackDot")
             {
-                Destroy(other.gameObject);
-                other.gameObject.SetActive(false);
+                other.GetComponent<BossPlayerSkill>().isInBoss = true;
             }
-
-            StartCoroutine("OnDamage");
+            
         }
     }
 
-	// 보스 체력을 다른 클라이언트의 보스 체력과 동기화
-	[PunRPC]
+	void OnTriggerExit(Collider other)
+	{
+        if(other != null && other.tag == "PlayerAttackDot")
+        {
+            other.GetComponent<BossPlayerSkill>().isInBoss = false;
+        }
+	}
+
+    void OnTriggerStay(Collider other)
+    {
+        if(other != null && other.CompareTag("PlayerAttackDot") && other.GetComponent<BossPlayerSkill>().isInBoss)
+		{
+
+			Debug.Log("DotDam1");
+
+			other.GetComponent<BossPlayerSkill>().damageTimer += Time.deltaTime;
+
+            if(other.GetComponent<BossPlayerSkill>().damageTimer >= other.GetComponent<BossPlayerSkill>().damageInterval)
+            {
+                curHealth -= other.GetComponent<BossPlayerSkill>().damage;
+                if(curHealth < 0)
+                    curHealth = 0;
+
+                BossPlayer curClient = GameObject.FindObjectOfType<BossGameManager>().player;
+
+                // 시전자가 피흡을 가지고 있으면 체력을 회복시킨다.
+                if(curClient.isVampirism && other.GetComponent<BossPlayerSkill>().isVampirism)
+                {
+                    int vamHP = curClient.curHealth + 10;
+                    if(vamHP > curClient.maxHealth)
+                        vamHP = curClient.maxHealth;
+                    curClient.curHealth = vamHP;
+
+                    // 회복시킨 후 동기화 필요할 듯...
+                    // isVampirism == true 일 때, q 를 사용할 때마다, 여기서 SyncBossHealth 한 것 처럼
+                    curClient.CallSyncPlayerHPAll(curClient.curHealth);
+                }
+
+                int sendRPCBossHP = curHealth;
+
+                // 서버 보스 체력과 동기화
+                pv.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
+
+                StartCoroutine("OnDamage");
+
+                other.GetComponent<BossPlayerSkill>().damageTimer = 0f;
+            }
+        }
+    }
+
+    // 보스 체력을 다른 클라이언트의 보스 체력과 동기화
+    [PunRPC]
 	void SyncBossHealth(int health)
 	{
 		curHealth = health;
