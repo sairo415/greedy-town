@@ -156,7 +156,7 @@ public class BossRedDragon : MonoBehaviour
         {
             currentState = BossState.Dead;
         }
-        else if (isAttack && isRun)
+        else if (isAttack || isRun)
         {
             return;
         }
