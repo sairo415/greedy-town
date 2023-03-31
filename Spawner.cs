@@ -10,6 +10,8 @@ public class Spawner : MonoBehaviour
 
     int level;
     float timer;
+    float bossTimer;
+    float bossTime = 180f;
 
     void Awake()
     {
@@ -41,6 +43,7 @@ public class Spawner : MonoBehaviour
             return;
 
         timer += Time.deltaTime;
+        bossTimer += Time.deltaTime;
 
         //현재는 10초당 몬스터가 강해지는 구조 -> 나중에 킬 수랑 타이머 둘 다 써도 괜찮을 듯?
         level = Mathf.FloorToInt(VamsuGameManager.instance.gameTime / 30f);//30f * 4
@@ -51,10 +54,12 @@ public class Spawner : MonoBehaviour
             Spawn();
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (bossTimer > bossTime)
         {
+            bossTimer = 0;
             SpawnBoss();
         }
+
     }
 
     void Spawn()
@@ -68,11 +73,20 @@ public class Spawner : MonoBehaviour
 
     void SpawnBoss()
     {
+        VamsuSoundManager.instance.PlayBossBGM();
+
         GameObject boss = VamsuGameManager.instance.pool.GetBoss(0);//
+        //level이나 시간에 따라 따로 설정해주자
+        //6 12 18 24
+        BossData data = new BossData();
+        data.health = 50 * level;
+        data.speed = 3;
+        data.damage = 1 * level;
+        data.eggCount = 4 + Mathf.FloorToInt(level * 0.3f);
 
         //자기자신 빼려고 1부터
         boss.transform.position = spawnPoint[Random.Range(1, spawnPoint.Length)].position + new Vector3(0, -0.98f, 0);
-        boss.GetComponent<VamsuBoss>().Init(bossData[0]);
+        boss.GetComponent<VamsuBoss>().Init(data);
     }
 }
 
@@ -86,4 +100,12 @@ public class SpawnData
     public float speed;
 
     public float damage;
+}
+
+public class BossData
+{
+    public float health;
+    public float speed;
+    public float damage;
+    public int eggCount;
 }

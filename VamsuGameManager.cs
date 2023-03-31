@@ -10,7 +10,7 @@ public class VamsuGameManager : MonoBehaviour
     [Header("# Game Control")]
     public bool isLive;
     public float gameTime;
-    public float maxGameTime = 30 * 10f;
+    public float maxGameTime;
 
     [Header("# Player Info")]
     public float health;
@@ -44,12 +44,12 @@ public class VamsuGameManager : MonoBehaviour
         maxHealth = 100 * (1 + extraHealth);
         health = maxHealth;
         player.speed *= (1 + extraSpeed);
-
+        maxGameTime = 30 * 5 * 6f;
 
         nextExp = new int[30];
         for(int i=0; i<30; i++)
         {
-            nextExp[i] = 5 + i * 12;
+            nextExp[i] = 5 + i * 15;
         }
     }
 
@@ -66,6 +66,11 @@ public class VamsuGameManager : MonoBehaviour
             canvas.transform.Find("Victory").gameObject.SetActive(true);
             canvas.transform.Find("Restart").gameObject.SetActive(true);
             Time.timeScale = 0;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            uiLevelUp.Show();
         }
     }
 

@@ -36,6 +36,7 @@ public class EffectMaker : _ObjectsMakeBase
 
     void Update()
     {
+
         if (Time.time > m_Time + m_startDelay)
         {
             if (Time.time > m_Time2 + m_makeDelay && m_count < m_makeCount)
@@ -46,6 +47,9 @@ public class EffectMaker : _ObjectsMakeBase
 
                 for (int i = 0; i < m_makeObjs.Length; i++)
                 {
+                    if (m_makeObjs[i] == null)
+                        continue;
+
                     GameObject m_obj = Instantiate(m_makeObjs[i], m_pos, m_rot);
 
                     Vector3 m_scale = (m_makeObjs[i].transform.localScale + GetRandomVector2(m_randomScale));

@@ -9,15 +9,16 @@ public class VamsuPlayer : MonoBehaviour
     public float speed;
     public Vector3 inputVec;
     public Scanner scanner;
-
     Rigidbody rigid;
-
+    float degree;
     public float attack;
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
         scanner = GetComponent<Scanner>();
+        degree = 180f;
+        RenderSettings.skybox.SetFloat("_Rotation", degree);
     }
 
     // Update is called once per frame
@@ -28,6 +29,14 @@ public class VamsuPlayer : MonoBehaviour
 
         inputVec.x = Input.GetAxisRaw("Horizontal");
         inputVec.z = Input.GetAxisRaw("Vertical");
+
+        degree += Time.deltaTime * 3f * inputVec.x;
+        if (degree > 360)
+            degree = 0;
+        else if (degree < 0)
+            degree = 360;
+
+        RenderSettings.skybox.SetFloat("_Rotation", degree);
     }
 
     void FixedUpdate()
@@ -42,5 +51,7 @@ public class VamsuPlayer : MonoBehaviour
 
         rigid.velocity = Vector3.zero;
         rigid.angularVelocity = Vector3.zero;
+
+       
     }
 }

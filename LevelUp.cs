@@ -14,6 +14,7 @@ public class LevelUp : MonoBehaviour
 
     public void Show()
     {
+        VamsuSoundManager.instance.PlayLevelUpSound();
         Next();
         rect.localScale = Vector3.one;
         VamsuGameManager.instance.Stop();
