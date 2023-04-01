@@ -52,7 +52,7 @@ public class Commerce : MonoBehaviourPunCallbacks
     // 아이템 구매 : response가 소유한 아이템 조회와 똑같다. : itemSeq, itemPrice 
     public IEnumerator Buy()
     {
-        string url = baseUrl ;
+        string url = baseUrl + "item/market";
 
         long itemSeq = 1; // 임시 : 어떻게 받아옴? : 클릭한 버튼의 seq 가져오기
         int itemPrice = 1000; // 임시 : 클릭한 버튼의 가격 가져오기
