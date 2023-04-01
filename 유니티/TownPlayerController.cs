@@ -4,15 +4,16 @@ using UnityEngine;
 using Photon.Realtime;
 using Photon.Pun;
 using Cinemachine;
+using UnityEngine.SceneManagement;
 
-public class TownPlayerController : MonoBehaviourPun ,IPunObservable
+public class TownPlayerController : MonoBehaviourPun, IPunObservable
 {
     public float speed;
 
     float hAxis;
     float vAxis;
 
-  
+    private Vector3 start = new Vector3(-18, 5, -12);
 
 
     // 회피 : space
@@ -40,23 +41,34 @@ public class TownPlayerController : MonoBehaviourPun ,IPunObservable
 
     private void Awake()
     {
-      
+
         rigid = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
-    
+        
     }
 
-  
+
 
     void Start()
     {
+       
 
         PV = photonView;
         NM = GameObject.FindWithTag("TownNetworkManager").GetComponent<TownNetworkManager>();
+
+        Debug.Log(transform.Find("Body04").GetSiblingIndex()+" 몇번째임?");
         
+        transform.Find("Body04").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(0).gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").Find("Shield05").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").Find("OHS16_Sword").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("AC05_Horn04").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Hair13").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Head05_Santa").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Hat13").gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Eyebrow02").gameObject.SetActive(true);
 
     }
-
     void Update()
     {
         if (PV.IsMine)
@@ -69,8 +81,30 @@ public class TownPlayerController : MonoBehaviourPun ,IPunObservable
             Turn();
             Dodge();
         }
-      
+
+        // 추락하면 리스폰
+        if (this.gameObject.transform.position.y < -100)
+        {
+            this.gameObject.transform.position = start;
+        }
+
+
     }
+    // 배에 닿으면 보스레이드 로비로 이동
+    void OnCollisionEnter(Collision col)
+    {
+        if (col.gameObject.name == "Boat")
+        {
+            ToTheBossLobby();
+        }
+    }
+
+    public void ToTheBossLobby()
+    {
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.LeaveRoom();
+    }
+
 
     void GetInput()
     {
@@ -153,11 +187,11 @@ public class TownPlayerController : MonoBehaviourPun ,IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (stream.IsWriting) stream.SendNext(value);  
+        if (stream.IsWriting) stream.SendNext(value);
         else value = (int)stream.ReceiveNext();
-        
+
     }
-    
+
 
 
 }

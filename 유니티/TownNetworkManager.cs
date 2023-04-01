@@ -1,52 +1,67 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class TownNetworkManager : MonoBehaviourPunCallbacks
 {
 
     public TMP_Text PlayersText;
-     
- 
+    private Vector3 start = new Vector3(-18, 10, -12);
+
+
+
     private void Start()
     {
-        Screen.SetResolution(1920,1080,false);
-        Connect();
 
+        PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions { MaxPlayers = 20 }, null);
+       
     }
 
-    public void Connect()
+    public void ToTheBossLobby()
     {
-        Debug.Log("¿¬°á¼º°ø");
-        PhotonNetwork.ConnectUsingSettings();
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.LeaveRoom();
     }
+
+    public override void OnLeftRoom()
+    {
+        if (SceneManager.GetActiveScene().name == "Town")
+        {
+
+            SceneManager.LoadScene("BossLobby");
+
+            return;
+        }
+    }
+
+
 
     public override void OnConnectedToMaster()
     {
-  
-        Debug.Log("¸¶½ºÅÍ·Î ¿¬°á");
 
-        PhotonNetwork.JoinOrCreateRoom("Room",new RoomOptions { MaxPlayers=3 }, null );
+        Debug.Log("íƒ€ìš´ ë£¸ìœ¼ë¡œ ìž…ìž¥!");
+
+        PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions { MaxPlayers = 20 }, null);
         //PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("¹æ ÀÔÀå");
-        PhotonNetwork.Instantiate("TownPlayer", new Vector3(-25.88f, 5, -17.61119f), Quaternion.identity);
-
+        
+        PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0));
     }
-    
+
+
+    // ëž­í‚¹
 
 
 
 
-    
 
-    
 
 }
