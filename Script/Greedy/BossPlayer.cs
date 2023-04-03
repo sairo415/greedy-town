@@ -237,11 +237,7 @@ public class BossPlayer : MonoBehaviour
 
     void Start()
     {
-        //nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
-        nextSceneIndex = GameObject.FindObjectOfType<BossGameManager>().stage + 1;
-
-        Debug.Log("nextSceneIndex : " + nextSceneIndex);
-
+        nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
         DontDestroyOnLoad(this.gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -295,8 +291,7 @@ public class BossPlayer : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        //if(scene.buildIndex == nextSceneIndex)
-        if(GameObject.FindObjectOfType<BossGameManager>().stage == nextSceneIndex)
+        if(scene.buildIndex == nextSceneIndex)
         {
             pv = GetComponent<PhotonView>();
             virtualCamera = GameObject.FindObjectOfType<CinemachineVirtualCamera>();
@@ -325,28 +320,6 @@ public class BossPlayer : MonoBehaviour
                         defense += 20;
                         isWPassive = true;
                     }
-                }
-
-                if(GameObject.FindObjectOfType<BossGameManager>().stage == 1)
-                {
-                    GameObject.FindObjectOfType<BossAlbinoDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
-                }
-                /*else if(GameObject.FindObjectOfType<BossGameManager>().stage == 2)
-                {
-                    GameObject.FindObjectOfType<BossPurpleDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
-                }*/
-                else if(GameObject.FindObjectOfType<BossGameManager>().stage == 2)
-                {
-                    //GameObject.FindObjectOfType<BossAlbinoDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
-                    GameObject.FindObjectOfType<BossIceLich>().target = gameObject.GetComponent<BossPlayer>().transform;
-                }
-                else if(GameObject.FindObjectOfType<BossGameManager>().stage == 3)
-                {
-                    GameObject.FindObjectOfType<BossBlackDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
-                }
-                else if(GameObject.FindObjectOfType<BossGameManager>().stage == 4)
-                {
-                    GameObject.FindObjectOfType<BossRedDragon>().target = gameObject.GetComponent<BossPlayer>().transform;
                 }
             }
 
@@ -656,15 +629,9 @@ public class BossPlayer : MonoBehaviour
         rSkillDelay += Time.deltaTime;
         isRSkillReady = rSkillRate < rSkillDelay;
 
-        //Debug.Log("Time : " + rSkillDelay);
-
-        Debug.Log("여기까진 오는데?1");
-
         if(rDown && isRSkillReady && !isDodge)
         {
             int bossPlayerViewID = pv.ViewID;
-
-            Debug.Log("여기까진 오는데?2");
 
             // 스킬 시전
             pv.RPC("RSkillStart", RpcTarget.All, bossPlayerViewID);
@@ -985,6 +952,10 @@ public class BossPlayer : MonoBehaviour
         {
             bossPlayerObj.GetComponent<BossPlayer>().curHealth = bossPlayerObj.GetComponent<BossPlayer>().maxHealth;
             //bossPlayerObj.GetComponent<BossPlayer>().anim.SetTrigger("doAlive");
+
+            BossMemberManager memberManager = FindObjectOfType<BossMemberManager>();
+            memberManager.UpdatePlayerInfoList();
+            memberManager.UpdateUI();
         }
     }
 
@@ -1005,15 +976,6 @@ public class BossPlayer : MonoBehaviour
             {
                 bossGameManager.dangerPanel.SetActive(true);
             }
-
-            //int damage = other.GetComponent<BossPlayerSkill>().damage;
-            //curHealth -= damageAmount;
-            //int sendRPCBossPlayerHP = curHealth;
-
-            //if(curHealth < 0)
-            //    curHealth = 0;
-
-            //pv.RPC("SyncPlayerHP", RpcTarget.Others, sendRPCBossPlayerHP);
         }
         else if(other.tag == "PlayerAttack" || other.tag == "PlayerAttackOver")
         {
@@ -1051,11 +1013,12 @@ public class BossPlayer : MonoBehaviour
         {
             inHealArea = true;
         }
-        else if(other.gameObject.layer == LayerMask.NameToLayer("BossAttack"))
+        else if(other.tag == "BossAttack" && pv.IsMine)
         {
-            BossAttack bossAttack = other.GetComponent<BossAttack>();
+            if(other.GetComponent<BossAttack>() == null)
+                return;
 
-            int damage = bossAttack.damage - defense;
+            int damage = other.GetComponent<BossAttack>().damage - defense;
             if(damage < 0)
                 damage = 0;
 
@@ -1154,7 +1117,6 @@ public class BossPlayer : MonoBehaviour
         memberManager.UpdatePlayerInfoList();
         memberManager.UpdateUI();
     }
-
 
     //자동 회전 방지
     void FreezeRotation()

@@ -73,45 +73,7 @@ public class BossMemberManager : MonoBehaviour
 		if(playerInfoList.Count >= 4)
 			Player4Group.SetActive(true);
 
-		/*if(players.Count >= 1)
-			Player1Group.SetActive(true);
-		if(players.Count >= 2)
-			Player2Group.SetActive(true);
-		if(players.Count >= 3)
-			Player3Group.SetActive(true);
-		if(players.Count >= 4)
-			Player4Group.SetActive(true);*/
-
 		int idx = 1;
-
-		/*foreach(BossPlayer bossPlayer in players)
-		{
-			// 플레이어 체력 비율 계산
-			float retePlayerHP = (float)bossPlayer.curHealth / bossPlayer.maxHealth;
-
-			if(idx == 1)
-			{
-				txtPlayer1Name.text = bossPlayer.bossPlayerName;
-				rectPlayer1HP.localScale = new Vector3(retePlayerHP, 1, 1);
-			}
-			else if(idx == 2)
-			{
-				txtPlayer2Name.text = bossPlayer.bossPlayerName;
-				rectPlayer2HP.localScale = new Vector3(retePlayerHP, 1, 1);
-			}
-			else if(idx == 3)
-			{
-				txtPlayer3Name.text = bossPlayer.bossPlayerName;
-				rectPlayer3HP.localScale = new Vector3(retePlayerHP, 1, 1);
-			}
-			else if(idx == 4)
-			{
-				txtPlayer4Name.text = bossPlayer.bossPlayerName;
-				rectPlayer4HP.localScale = new Vector3(retePlayerHP, 1, 1);
-			}
-
-			idx++;
-		}*/
 
 		foreach(KeyValuePair<int, (string, (int, int))> kvp in playerInfoList)
 		{

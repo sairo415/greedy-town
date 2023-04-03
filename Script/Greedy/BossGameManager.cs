@@ -24,17 +24,31 @@ public class BossGameManager : MonoBehaviour
     public GameObject dangerPanel; // 위험 화면
 
     // 보스
-	public BossAlbinoDragon bossAlbinoDragon;
-	public BossPurpleDragon bossPurpleDragon;
-	public BossBlackDragon bossBlackDragon;
-	public BossRedDragon bossRedDragon;
+    public GameObject smallBoss;
+    //public GameObject bigBoss;
 
-	public RectTransform bossHealthGroup;
+    //1
+    public BossAlbinoDragon bossAlbino;
+    public Transform bossAlbinoSpawnPoint;
+
+    //2
+    public BossPurple bossPurple;
+    public Transform bossPurpleSpawnPoint;
+
+    //3
+    public BossGreyDragon bossGrey;
+    public Transform bossGreySpawnPoint;
+
+    //4
+    public BossRed bossRed;
+    public Transform bossRedSpawnPoint;
+
+    public GameObject bossHealthGroup;
     public RectTransform bossTempHealthBar;
     public RectTransform bossHealthBar;
 
     int pastBossHealth; // 이전 보스 체력
-
+    bool isBigBossSpawn;
 
     // 플레이어
     public BossPlayer player;
@@ -175,16 +189,6 @@ public class BossGameManager : MonoBehaviour
     {
         pv = GetComponent<PhotonView>();
 
-
-        if(bossAlbinoDragon != null)
-            pastBossHealth = bossAlbinoDragon.maxHealth;
-        if(bossPurpleDragon != null)
-            pastBossHealth = bossPurpleDragon.maxHealth; 
-        if(bossBlackDragon != null)
-            pastBossHealth = bossBlackDragon.maxHealth;
-        if(bossRedDragon != null)
-            pastBossHealth = bossRedDragon.maxHealth;
-
         if(player != null)
             pastBossPlayerHealth = player.maxHealth;
 
@@ -206,19 +210,6 @@ public class BossGameManager : MonoBehaviour
 
         //stage = 0;
     }
-
-    /*void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-
-        if(scene.buildIndex == nextSceneIndex)
-        {
-            transform.position = Vector3.zero;
-            transform.rotation = Quaternion.Euler(0, 0, 0);
-
-
-            nextSceneIndex++;
-        }
-    }*/
 
     private void Update()
     {
@@ -468,83 +459,97 @@ public class BossGameManager : MonoBehaviour
         yield return null;
     }
 
-    /*void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if(scene.buildIndex == nextSceneIndex)
-        {
-            bossHealthBar.localScale = new Vector3(700, 1, 1);
-            bossTempHealthBar.localScale = new Vector3(700, 1, 1);
-
-            nextSceneIndex++;
-        }
-    }*/
-
     void LateUpdate()
     {
-        if(stage == 1 && pastBossHealth != bossAlbinoDragon.currentHealth)
+        // 중간 보스 클리어 확인
+        if(stage != 0 && smallBoss.transform.childCount == 0 && !isBigBossSpawn)
         {
-            StartCoroutine("BossHPGauge");
-            pastBossHealth = bossAlbinoDragon.currentHealth;
+            isBigBossSpawn = true;
+
+            // 능력치 고르는 화면
+            // 시간 제한 10초
+            // 10초가 지나면 보스 소환
+            AbilitySelect();
+
+            // 10초가 지났음을 확인
+            // 능력치 고르는 창 비활성화
+
+            //Transform stage1BigBossPosition = 
+
+            //bigBoss.gameObject.SetActive(true);
+            if(PhotonNetwork.LocalPlayer.IsMasterClient)
+            {
+                if (stage == 1)
+                {
+                    bossAlbino = PhotonNetwork.Instantiate("BossAlbino", bossAlbinoSpawnPoint.position, bossAlbinoSpawnPoint.rotation, 0).GetComponent<BossAlbinoDragon>();
+                    pastBossHealth = bossAlbino.GetComponent<BossAlbinoDragon>().maxHealth;
+                }
+                else if (stage == 2)
+                {
+                    bossPurple = PhotonNetwork.Instantiate("BossPurple", bossPurpleSpawnPoint.position, bossPurpleSpawnPoint.rotation, 0).GetComponent<BossPurple>();
+                    pastBossHealth = bossPurple.GetComponent<BossPurple>().maxHealth;
+                }
+                else if(stage == 3)
+                {
+                    bossGrey = PhotonNetwork.Instantiate("BossGrey", bossGreySpawnPoint.position, bossGreySpawnPoint.rotation, 0).GetComponent<BossGreyDragon>();
+                    pastBossHealth = bossGrey.GetComponent<BossGreyDragon>().maxHealth;
+                }
+                else if (stage == 4)
+                {
+                    bossRed = PhotonNetwork.Instantiate("BossRed", bossRedSpawnPoint.position, bossRedSpawnPoint.rotation, 0).GetComponent<BossRed>();
+                    pastBossHealth = bossRed.GetComponent<BossRed>().maxHealth;
+                }
+            }
+
+            bossHealthGroup.SetActive(true);
         }
 
-        /*if(stage == 2 && pastBossHealth != bossPurpleDragon.currentHealth)
+        // 보스 체력 UI 갱신
+        if(stage != 0)
         {
-            StartCoroutine("BossHPGauge");
-            pastBossHealth = bossPurpleDragon.currentHealth;
-        }*/
-
-        if(stage == 2 && pastBossHealth != bossAlbinoDragon.currentHealth)
-        {
-            StartCoroutine("BossHPGauge");
-            pastBossHealth = bossAlbinoDragon.currentHealth;
-        }
-
-        if(stage == 3 && pastBossHealth != bossBlackDragon.currentHealth)
-        {
-            StartCoroutine("BossHPGauge");
-            pastBossHealth = bossBlackDragon.currentHealth;
-        }
-
-        if(stage == 4 && pastBossHealth != bossRedDragon.currentHealth)
-        {
-            StartCoroutine("BossHPGauge");
-            pastBossHealth = bossRedDragon.currentHealth;
+            if(bossAlbino != null && stage == 1 && pastBossHealth != bossAlbino.curHealth)
+            {
+                StartCoroutine("BossHPGauge");
+                pastBossHealth = bossAlbino.curHealth;
+            }
+            else if (bossPurple != null && stage == 2 && pastBossHealth != bossPurple.curHealth)
+            {
+                StartCoroutine("BossHPGauge");
+                pastBossHealth = bossPurple.curHealth;
+            }
+            else if(bossGrey != null && stage == 3 && pastBossHealth != bossGrey.curHealth)
+            {
+                StartCoroutine("BossHPGauge");
+                pastBossHealth = bossGrey.curHealth;
+            }
+            else if (bossRed != null && stage == 4 && pastBossHealth != bossRed.curHealth)
+            {
+                StartCoroutine("BossHPGauge");
+                pastBossHealth = bossRed.curHealth;
+            }
         }
 
         // 보스 사망
-        if(stage == 1 && bossAlbinoDragon.currentHealth <= 0 && !isSkillCountStart)
+        if(stage != 0 && !isSkillCountStart)
         {
-            isSkillCountStart = true;
-            SkillSelect();
+            if(bossAlbino != null && stage == 1 && bossAlbino.curHealth <= 0)
+            {
+                isSkillCountStart = true;
+                SkillSelect();
+            }
+            else if (bossPurple != null && stage == 2 && bossPurple.curHealth <= 0)
+            {
+                isSkillCountStart = true;
+                SkillSelect();
+            }
+            else if(bossGrey != null && stage == 3 && bossGrey.curHealth <= 0)
+            {
+                isSkillCountStart = true;
+                SkillSelect();
+            }
         }
 
-        // 보스 사망
-        /*if(stage == 2 && bossPurpleDragon.currentHealth <= 0 && !isSkillCountStart)
-        {
-            isSkillCountStart = true;
-            SkillSelect();
-        }*/
-
-        if(stage == 2 && bossAlbinoDragon.currentHealth <= 0 && !isSkillCountStart)
-        {
-            isSkillCountStart = true;
-            SkillSelect();
-        }
-
-        // 보스 사망
-        if(stage == 3 && bossBlackDragon.currentHealth <= 0 && !isSkillCountStart)
-        {
-            isSkillCountStart = true;
-            SkillSelect();
-        }
-
-        // 보스 사망
-        if(stage == 4 && bossRedDragon.currentHealth <= 0 && !isSkillCountStart)
-        {
-            isSkillCountStart = true;
-            SkillSelect();
-        }
-
+        // 플레이어 체력 UI 갱신
         if(player != null && pastBossPlayerHealth != player.curHealth)
         {
             StartCoroutine("PlayerHPGauge");
@@ -557,8 +562,6 @@ public class BossGameManager : MonoBehaviour
             isPlayerHPDanger = true;
             StartCoroutine("displayDangerPanel");
         }
-
-        // 용암 위에서 경고 On
     }
 
     IEnumerator displayDangerPanel()
@@ -581,65 +584,45 @@ public class BossGameManager : MonoBehaviour
 
     IEnumerator BossHPGauge()
     {
+        int curHP = 0;
+        int maxHP = 0;
+
         if(stage == 1)
         {
-            float reteBossHP = (float)bossAlbinoDragon.currentHealth / bossAlbinoDragon.maxHealth;
-
-            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return new WaitForSeconds(0.5f);
-
-            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return null;
+            curHP = bossAlbino.curHealth;
+            maxHP = bossAlbino.maxHealth;
         }
-        else if(stage == 2)
+        else if (stage == 2)
         {
-            /*float reteBossHP = (float)bossPurpleDragon.currentHealth / bossPurpleDragon.maxHealth;
-
-            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return new WaitForSeconds(0.5f);
-
-            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return null;*/
-
-            float reteBossHP = (float)bossAlbinoDragon.currentHealth / bossAlbinoDragon.maxHealth;
-
-            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return new WaitForSeconds(0.5f);
-
-            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return null;
+            curHP = bossPurple.curHealth;
+            maxHP = bossPurple.maxHealth;
         }
         else if(stage == 3)
         {
-            float reteBossHP = (float)bossBlackDragon.currentHealth / bossBlackDragon.maxHealth;
-
-            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return new WaitForSeconds(0.5f);
-
-            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return null;
+            curHP = bossGrey.curHealth;
+            maxHP = bossGrey.maxHealth;
         }
-        else if(stage == 4)
+        else if (stage == 4)
         {
-            float reteBossHP = (float)bossRedDragon.currentHealth / bossRedDragon.maxHealth;
-
-            bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return new WaitForSeconds(0.5f);
-
-            bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
-
-            yield return null;
+            curHP = bossRed.curHealth;
+            maxHP = bossRed.maxHealth;
         }
 
+        float reteBossHP = (float)curHP / maxHP;
+
+        bossHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+        yield return new WaitForSeconds(0.5f);
+
+        bossTempHealthBar.localScale = new Vector3(reteBossHP, 1, 1);
+
+        yield return null;
+    }
+
+    void AbilitySelect()
+    {
+        // 능력치 추가 나중에 구현
+        return;
     }
 
     void SkillSelect()
