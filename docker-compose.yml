@@ -24,8 +24,11 @@ services:
       - MYSQL_DATABASE=greedytown
       - MYSQL_USER=greedytown
       - MYSQL_PASSWORD=greedytown
+      - TX=Asia/Seoul
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
     volumes:
-      - ./db/MYSQL/res/data/:/var/lib/mysql
+      - ./db/mysql/res/config/mys.config:/var/lib/mysql/my.cnf
 
 
 
