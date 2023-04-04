@@ -142,6 +142,7 @@ public class Commerce : MonoBehaviourPunCallbacks
                     foreach (JObject jobj in response2)
                     {
                         // jobj["itemSeq"]를 찾아서(Find) 보이게(또는 흐리게) 처리 
+                        // 
                     }
 
                 }
@@ -214,7 +215,7 @@ public class Commerce : MonoBehaviourPunCallbacks
     // seq, image, name, price 세팅
     private IEnumerator Market()
     {
-        string url = baseUrl + "item/character-custom";
+        string url = baseUrl + "item/character-custom"; // 내 아이템 조회
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             // header에 accessToken 담기
@@ -241,6 +242,7 @@ public class Commerce : MonoBehaviourPunCallbacks
                     JArray response = JArray.Parse(request.downloadHandler.text);
                     print(response);
                     print(response[0]["itemSeq"]);
+                    print(response[0]["itemPrice"]);
                     // 이미지 여러 장 겹쳐두고
                     foreach(JObject jobj in response)
                     {

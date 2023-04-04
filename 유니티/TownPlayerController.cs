@@ -88,7 +88,7 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
         }
 
         // 추락하면 리스폰
-        if (this.gameObject.transform.position.y < -100)
+        if (this.gameObject.transform.position.y < -50)
         {
             this.gameObject.transform.position = start;
         }
@@ -106,6 +106,27 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
         else if(col.gameObject.name == "PinnedWall")
         {
             StartCoroutine(Ranking());
+        }
+        // 열기구에 가면 뱀서로 이동
+        else if(col.gameObject.name == "HotAirBalloon_Blue")
+        {
+            print("뱀서 간다");
+        }
+        // 상점으로 가면 상점으로 이동
+        else if (col.gameObject.name == "Magic_Shop")
+        {
+            print("상점 간다");
+            SceneManager.LoadScene("Market");
+        }
+        // 키오스크로 가면 카지노로 이동
+        else if (col.gameObject.name == "Kiosk_Shop")
+        {
+            print("카지노 간다");
+        }
+        // 경찰서로 가면 PVP로 이동
+        else if (col.gameObject.name == "PoliceStation_1Light")
+        {
+            print("PVP 간다");
         }
     }
 
