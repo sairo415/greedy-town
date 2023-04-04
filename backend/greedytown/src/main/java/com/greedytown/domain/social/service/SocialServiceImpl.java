@@ -12,6 +12,7 @@ import com.greedytown.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.text.Format;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class SocialServiceImpl implements SocialService {
             User user = userRepository.findUserByUserSeq(stat.getUserSeq().getUserSeq());
             RankingDto rankingDto = RankingDto.builder().
                                     userNickname(user.getUserNickname()).
-                                    clearTime(stat.getUserClearTime().toString()).
+                                    clearTime(String.format("%02d", stat.getUserClearTime().getMinutes())+":"+String.format("%02d", stat.getUserClearTime().getSeconds())).
                                     build();
             list.add(rankingDto);
         }

@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -155,12 +156,24 @@ public class UserServiceImpl implements UserService {
     public StatDto updateStat(User user, StatDto statDto) {
 
         System.out.println(statDto.getUserClearTime());
-        Stat stat = new Stat();
-        stat.setUserClearTime(statDto.getUserClearTime());
-        stat.setStatSeq(user.getUserSeq());
-        statRepository.save(stat);
-
-        
+        Stat best = statRepository.findById(user.getUserSeq()).get();
+        if(null != best.getUserClearTime()) {
+            int now = statDto.getUserClearTime().getMinutes()*60 + statDto.getUserClearTime().getSeconds();
+            int before = best.getUserClearTime().getMinutes()*60 + best.getUserClearTime().getSeconds();
+            System.out.println(now);
+            System.out.println(before);
+            if(now > before) {
+                Stat stat = new Stat();
+                stat.setUserClearTime(statDto.getUserClearTime());
+                stat.setStatSeq(user.getUserSeq());
+                statRepository.save(stat);
+            }
+        } else {
+            Stat stat = new Stat();
+            stat.setUserClearTime(statDto.getUserClearTime());
+            stat.setStatSeq(user.getUserSeq());
+            statRepository.save(stat);
+        }
         return statDto;
     }
 

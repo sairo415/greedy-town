@@ -11,7 +11,7 @@ import java.time.LocalTime;
 public class StatDto {
 
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss", timezone="Asia/Seoul")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "mm:ss", timezone="Asia/Seoul")
     private Timestamp userClearTime;
 
 }
