@@ -28,7 +28,7 @@ services:
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
     volumes:
-      - ./db/mysql/res/config/mys.config:/var/lib/mysql/my.cnf
+      - ./db/MYSQL/res/data/:/var/lib/mysql
 
 
 
