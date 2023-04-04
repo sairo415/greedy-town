@@ -5,6 +5,7 @@ using UnityEngine.AI;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.Rendering;
+using System.Linq;
 
 public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -44,11 +45,8 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
     // 공격 진행중. 공격을 하는 동안 다른 공격을 하지 않도록 제한함.
     bool isAttackING;
 
-    // 박치기 공격 진행중. 공격을 하는 동안 다른 공격을 하지 않도록 제한함.
+    bool startFlying;
     bool isFlyAttackING;
-
-    // 날고있는 동안 무적 상태
-    bool isFly;
 
     // 공격 지점
     public Transform iceBallPos;
@@ -59,11 +57,17 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
     public Transform windPos4;
 
     // 날아다니는 시간
-    float flyTimeDelta; // 측정
-    float flyTime;      // 기준치
+    // float flyTimeDelta; // 측정
+    // float flyTime;      // 기준치
+
+    // 맵 장애물 시간
+    float mapIceTimeDelta; // 측정
+    float mapIceTime;      // 기준치
 
     // 랜덤 스킬 선택 인덱스
     int selectedSkillIdx;
+
+    bool isBossHPLow;
 
     private void Awake()
     {
@@ -77,7 +81,8 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
         changeTargetTime = 10.0f;
 
         // 날아다니는 시간
-        flyTime = 15.0f;
+        mapIceTimeDelta = 100.0f;
+        mapIceTime = 5.0f;
 
         Invoke("ChaseStart", 2);
     }
@@ -129,7 +134,6 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
                 nav.isStopped = true;
                 FreezeVelocity();
                 isChase = false;
-                anim.SetBool("isRun", false);
 
                 // 애니메이션
                 anim.SetTrigger("doDie");
@@ -176,19 +180,27 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
             // 2 : 날아다니며 공격 => 추적
             selectedSkillIdx = Random.Range(0, 3);
 
-            //Test
-            selectedSkillIdx = 1;
-
             if(targetPlayerTransform != null)
             {
-                // 날아다니는 시간 측정
-                flyTimeDelta += Time.deltaTime;
+                if(isFlyAttackING)
+                {
+                    // 비행
+                    nav.isStopped = false;
+                    isChase = true;
+                    anim.SetBool("isFlyMove", true);
+                    nav.SetDestination(targetPlayerTransform.position);
+                }
+
+                mapIceTimeDelta += Time.deltaTime;
+
+                if(((float)curHealth <= (float)maxHealth * 0.3) && (mapIceTimeDelta >= mapIceTime))
+                {
+                    StartCoroutine("MakeIceField");
+                    mapIceTimeDelta = 0.0f;
+                }
 
                 if(isAttackING)
                     return;
-
-                if(isFlyAttackING)
-                    selectedSkillIdx = 2;
 
                 if(selectedSkillIdx == 0)
                 {
@@ -200,16 +212,47 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
                 {
                     // 공격
                     isAttackING = true;
-                    anim.SetTrigger("doTakeOff");
-                    isFly = true;
                     StartCoroutine("DoWindAttack");
                 }
                 else if(selectedSkillIdx == 2)
                 {
-
+                    isAttackING = true;
+                    StartCoroutine("DoFlyingAttack");
                 }
             }
         }
+    }
+
+    IEnumerator MakeIceField()
+	{
+		IceField iceFieldInfo = GameObject.FindObjectOfType<IceField>();
+        GameObject[] iceFieldPosInfo = iceFieldInfo.iceFieldPos;
+        
+        int selectCount = Random.Range(30, 40);
+        GameObject[] selectedPos = new GameObject[selectCount];
+
+        for(int i = 0; i < selectCount; i++)
+        {
+            int index = Random.Range(0, iceFieldPosInfo.Length);
+            selectedPos[i] = iceFieldPosInfo[index];
+            iceFieldPosInfo = iceFieldPosInfo.Where((val, idx) => idx != index).ToArray();
+        }
+
+        for(int i = 0; i < selectedPos.Length; i++)
+        {
+            GameObject iceEffectObj = PhotonNetwork.Instantiate("IceField", selectedPos[i].transform.position, selectedPos[i].transform.rotation);
+            Destroy(iceEffectObj, 3.0f);
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        for(int i = 0; i < selectedPos.Length; i++)
+        {
+            GameObject iceAttackObj = PhotonNetwork.Instantiate("IceBlockFissure", selectedPos[i].transform.position, Quaternion.Euler(-90, 0, 0));
+            Destroy(iceAttackObj, 3.0f);
+        }
+
+        yield return null;
     }
 
 	// 스폰되면 포효
@@ -305,62 +348,42 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
 
     IEnumerator DoWindAttack()
     {
-        //anim.SetTrigger("doFly");
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doTakeOff");
 
         yield return new WaitForSeconds(2.0f);
 
         anim.SetTrigger("doFly");
+
+        yield return new WaitForSeconds(1.0f);
+
+        transform.LookAt(targetPlayerTransform);
 
         GameObject windObj1 = PhotonNetwork.Instantiate("SteelStorm", windPos1.position, windPos1.rotation);
         GameObject windObj2 = PhotonNetwork.Instantiate("SteelStorm", windPos2.position, windPos2.rotation);
         GameObject windObj3 = PhotonNetwork.Instantiate("SteelStorm", windPos3.position, windPos3.rotation);
         GameObject windObj4 = PhotonNetwork.Instantiate("SteelStorm", windPos4.position, windPos4.rotation);
 
-        Rigidbody windObjRigid1 = windObj1.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid2 = windObj2.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid3 = windObj3.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid4 = windObj4.GetComponentInChildren<Rigidbody>();
-
-        windObjRigid1.velocity = windPos1.forward * 50;
-        windObjRigid2.velocity = windPos2.forward * 50;
-        windObjRigid3.velocity = windPos3.forward * 50;
-        windObjRigid4.velocity = windPos4.forward * 50;
-
         yield return new WaitForSeconds(1.0f);
+
+        transform.LookAt(targetPlayerTransform);
 
         GameObject windObj5 = PhotonNetwork.Instantiate("SteelStorm", windPos1.position, windPos1.rotation);
         GameObject windObj6 = PhotonNetwork.Instantiate("SteelStorm", windPos2.position, windPos2.rotation);
         GameObject windObj7 = PhotonNetwork.Instantiate("SteelStorm", windPos3.position, windPos3.rotation);
         GameObject windObj8 = PhotonNetwork.Instantiate("SteelStorm", windPos4.position, windPos4.rotation);
 
-        Rigidbody windObjRigid5 = windObj5.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid6 = windObj6.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid7 = windObj7.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid8 = windObj8.GetComponentInChildren<Rigidbody>();
-
-        windObjRigid5.velocity = windPos1.forward * 50;
-        windObjRigid6.velocity = windPos2.forward * 50;
-        windObjRigid7.velocity = windPos3.forward * 50;
-        windObjRigid8.velocity = windPos4.forward * 50;
-
         yield return new WaitForSeconds(1.0f);
+
+        transform.LookAt(targetPlayerTransform);
 
         GameObject windObj9 = PhotonNetwork.Instantiate("SteelStorm", windPos1.position, windPos1.rotation);
         GameObject windObj10 = PhotonNetwork.Instantiate("SteelStorm", windPos2.position, windPos2.rotation);
         GameObject windObj11 = PhotonNetwork.Instantiate("SteelStorm", windPos3.position, windPos3.rotation);
         GameObject windObj12 = PhotonNetwork.Instantiate("SteelStorm", windPos4.position, windPos4.rotation);
 
-        Rigidbody windObjRigid9 = windObj9.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid10 = windObj10.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid11 = windObj11.GetComponentInChildren<Rigidbody>();
-        Rigidbody windObjRigid12 = windObj12.GetComponentInChildren<Rigidbody>();
-
-        windObjRigid9.velocity = windPos1.forward * 50;
-        windObjRigid10.velocity = windPos2.forward * 50;
-        windObjRigid11.velocity = windPos3.forward * 50;
-        windObjRigid12.velocity = windPos4.forward * 50;
-
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(4.0f);
 
         Destroy(windObj1);
         Destroy(windObj1);
@@ -376,11 +399,64 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
         Destroy(windObj11);
         Destroy(windObj12);
 
-        anim.SetTrigger("doLand");
+        anim.SetTrigger("doIdle");
         isAttackING = false;
-        isFly = false;
 
         yield return null;
+    }
+
+    IEnumerator DoFlyingAttack()
+    {
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doTakeOff");
+
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doFly");
+
+        yield return new WaitForSeconds(1.0f);
+
+        anim.SetBool("isFlyMove", true);
+
+        isFlyAttackING = true;
+
+        InvokeRepeating("CallIceField", 1.0f, 0.5f);
+
+        yield return new WaitForSeconds(15.0f);
+
+        CancelInvoke("CallIceField");
+
+        // 비행 정지
+        isFlyAttackING = false;
+        nav.isStopped = true;
+        FreezeVelocity();
+        isChase = false;
+        anim.SetBool("isFlyMove", false);
+
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doIdle");
+
+        yield return new WaitForSeconds(5.0f);
+
+        isAttackING = false;
+
+        yield return null;
+    }
+
+    void CallIceField()
+    {
+        GameObject iceField = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        Destroy(iceField, 3.0f);
+
+        CallIceAttack();
+    }
+
+    void CallIceAttack()
+    {
+        GameObject iceAttack = PhotonNetwork.Instantiate("IceBlockCrash", flyAttackPos.position, flyAttackPos.rotation);
+        Destroy(iceAttack, 3.0f);
     }
 
     // 플레이어와 물리 충돌이 나면 따라다니질 못하는 문제 해결
@@ -392,9 +468,6 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
     void OnTriggerEnter(Collider other)
     {
         if(isDie)
-            return;
-
-        if(isFly)
             return;
 
         // 여러 클라이언트에서 같은 ViewID 를 가진 클론의 한번의 공격이 클라이언트 마다 중복해서 여러번 적용되는 것을 제한함.
@@ -468,9 +541,6 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
         if(isDie)
             return;
 
-        if(isFly)
-            return;
-
         if(other != null && other.tag == "PlayerAttackDot")
         {
             other.GetComponent<BossPlayerSkill>().isInBoss = false;
@@ -480,9 +550,6 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
     void OnTriggerStay(Collider other)
     {
         if(isDie)
-            return;
-
-        if(isFly)
             return;
 
         if(other != null && other.CompareTag("PlayerAttackDot") && other.GetComponent<BossPlayerSkill>().isInBoss)

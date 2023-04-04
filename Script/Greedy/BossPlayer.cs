@@ -222,6 +222,8 @@ public class BossPlayer : MonoBehaviour
         anim = GetComponentInChildren<Animator>();
         skillSound = GetComponent<AudioSource>();
 
+        maxHealth = 300;
+
         // 체력 초기화
         curHealth = maxHealth;
 
@@ -1017,6 +1019,8 @@ public class BossPlayer : MonoBehaviour
         {
             if(other.GetComponent<BossAttack>() == null)
                 return;
+
+            anim.SetTrigger("doHit");
 
             int damage = other.GetComponent<BossAttack>().damage - defense;
             if(damage < 0)

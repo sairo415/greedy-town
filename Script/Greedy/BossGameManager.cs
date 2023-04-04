@@ -22,6 +22,13 @@ public class BossGameManager : MonoBehaviour
     public GameObject ingamePanel; // 인게임 화면
     public GameObject selectSkillPanel; // 스킬 선택 화면
     public GameObject dangerPanel; // 위험 화면
+    public GameObject deathPanel;   // 사망 화면
+    public GameObject gameEndPanel; // 게임 종료 판넬
+    public GameObject playerCntPanel;   // 0스테이지 포탈앞 인원수 안내 판넬
+
+    // 게임 종료 메시지
+    public GameObject gameOverTxt;
+    public GameObject gameClearTxt;
 
     // 보스
     public GameObject smallBoss;
@@ -53,8 +60,10 @@ public class BossGameManager : MonoBehaviour
     // 플레이어
     public BossPlayer player;
 
-    public RectTransform playerHealthGroup;
+    public GameObject playerHealthGroup;
     public RectTransform playerHealthBar;
+
+    public GameObject playerSkillIconGroup;
 
     int pastBossPlayerHealth; // 이전 플레이어 체력
 
@@ -184,6 +193,12 @@ public class BossGameManager : MonoBehaviour
     public Image imgSelectRightButton;
 
     bool isPlayerHPDanger;
+    bool isPlayerDie;
+
+    bool isGameEnd;
+
+    // 보스 사망 시 플레이어 사망해도, 게임 오버 출력 안하게 함.
+    bool isStageClear;
 
     void Awake()
     {
@@ -532,6 +547,8 @@ public class BossGameManager : MonoBehaviour
         // 보스 사망
         if(stage != 0 && !isSkillCountStart)
         {
+            isStageClear = true;
+
             if(bossAlbino != null && stage == 1 && bossAlbino.curHealth <= 0)
             {
                 isSkillCountStart = true;
@@ -557,10 +574,49 @@ public class BossGameManager : MonoBehaviour
         }
 
         // 체력이 10퍼 이하일 경우 경고 on
-        if(player != null && ((float)player.curHealth <= (float)player.maxHealth * 0.1) && !isPlayerHPDanger)
+        if(player != null && ((float)player.curHealth <= (float)player.maxHealth * 0.1) && !isPlayerHPDanger && player.curHealth > 0)
         {
             isPlayerHPDanger = true;
             StartCoroutine("displayDangerPanel");
+        }
+
+        // 체력이 없으면 사망처리
+        if(player != null && player.curHealth <= 0)
+        {
+            PlayerDie();
+            isPlayerDie = true;
+        }
+
+        // 부활 시 다시 띄움
+        if(player != null && isPlayerDie && player.curHealth > 0)
+        {
+            PlayerAlive();
+            isPlayerDie = false;
+        }
+
+        // 전원 사망 시 나가기 버튼 출력할 것
+        bool allDie = true;
+        BossPlayer[] bossPlayers = FindObjectsOfType<BossPlayer>();
+        foreach(BossPlayer bossPlayer in bossPlayers)
+        {
+            if(!bossPlayer.isDie)
+            {
+                allDie = false;
+                break;
+            }
+        }
+        if(bossPlayers.Length >0 && allDie && !isGameEnd && !isStageClear)
+        {
+            isGameEnd = true;
+            Debug.Log("전원 사망");
+            GameOver();
+        }
+
+        if(bossPlayers.Length > 0 && stage == 4 && bossRed.curHealth <= 0 && !isGameEnd)
+        {
+            isGameEnd = true;
+            Debug.Log("게임 클리어");
+            GameClear();
         }
     }
 
@@ -998,5 +1054,37 @@ public class BossGameManager : MonoBehaviour
         SceneManager.LoadScene("BossScene" + (stage + 1));
 
         yield return null;
+    }
+
+    void PlayerDie()
+    {
+        dangerPanel.SetActive(false);
+        deathPanel.SetActive(true);
+        playerHealthGroup.SetActive(false);
+        playerSkillIconGroup.SetActive(false);
+    }
+
+    void PlayerAlive()
+    {
+        deathPanel.SetActive(false);
+        playerHealthGroup.SetActive(true);
+        playerSkillIconGroup.SetActive(true);
+    }
+
+    public void GoToGreadyTown()
+    {
+        // 마을로 이동
+    }
+
+    public void GameOver()
+    {
+        gameEndPanel.SetActive(true);
+        gameOverTxt.SetActive(true);
+    }
+
+    public void GameClear()
+    {
+        gameEndPanel.SetActive(true);
+        gameClearTxt.SetActive(true);
     }
 }
