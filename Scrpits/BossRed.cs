@@ -5,6 +5,7 @@ using UnityEngine.AI;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.Rendering;
+using System.Linq;
 
 
 public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
@@ -22,7 +23,10 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
     NavMeshAgent nav;
 
     public GameObject targetOnSpot;
+    public GameObject targetOnLongSpot;
     public GameObject clawSpot;
+    public GameObject[] tsunamiSpots;
+    public GameObject fireSpot;
 
     // 타겟 변경시간
     float changeTargetTimeDelta;    // 측정치
@@ -40,7 +44,12 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
     bool isChase;
     bool isAttack;
     bool isDead;
-    bool isLook;
+    public bool isLine;
+
+
+    // 피통 30퍼 이하
+    float mapLavaTimeDelta;   // 측정
+    float mapLavaTime;        // 기준치
 
     Vector3 lookVector;
 
@@ -64,14 +73,18 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         changeTargetTimeDelta = 100.0f;
         changeTargetTime = 10.0f;
 
-        changeSkillDelta = 100.0f;
+        changeSkillDelta = 5.0f;
         changeSkillTime = 2.0f;
+
+        mapLavaTime = 5.0f;
 
         runTime = 10.0f;
         nav.isStopped = true;
+        boxCollider.enabled = false;
         curState = BossState.Scream;
 
-        Invoke("ChaseStart", 2);
+        Invoke("DoScream", 2);
+        Invoke("ChaseStart", 4);
     }
 
 
@@ -90,6 +103,13 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
     {
         isChase = true;
     }
+
+
+    void FixedUpdate()
+    {
+        FreezeVelocity();
+    }
+
 
     void FreezeVelocity()
     {
@@ -123,7 +143,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
 
             changeTargetTimeDelta += Time.deltaTime;
 
-            if (changeTargetTime >= changeTargetTime && !isAttack)
+            if (changeTargetTimeDelta >= changeTargetTime && !isAttack)
             {
                 BossPlayer[] bossPlayers = FindObjectsOfType<BossPlayer>();
                 List<BossPlayer> bossPlayersAlive = new List<BossPlayer>();
@@ -153,7 +173,16 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
 
                 if (!isScreamEnd) return;
 
-                if (isAttack) return;
+                mapLavaTimeDelta += Time.deltaTime;
+
+                if (((float)curHealth <= (float)maxHealth * 0.3) && (mapLavaTimeDelta >= mapLavaTime))
+                {
+                    StartCoroutine("LavaField");
+                    mapLavaTimeDelta = 0.0f;
+                }
+
+                if (isAttack)
+                    return;
 
                 switch (curState)
                 {
@@ -166,9 +195,10 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                         runTimeDelta += Time.deltaTime;
                         if (runTimeDelta >= runTime || targetOnSpot.GetComponent<BossTarget>().isTargetOn)
                         {
+                            anim.SetBool("isRun", false);
+                            transform.LookAt(target);
                             nav.isStopped = true;
                             isChase = false;
-                            anim.SetBool("isRun", false);
 
                             isAttack = true;
                             StartCoroutine("DoClawAttack");
@@ -181,32 +211,20 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                         nav.SetDestination(target.position);
 
                         runTimeDelta += Time.deltaTime;
-                        if (runTimeDelta >= runTime || targetOnSpot.GetComponent<BossTarget>().isTargetOn)
+                        if (runTimeDelta >= runTime || targetOnLongSpot.GetComponent<BossTarget>().isTargetOn)
                         {
+                            anim.SetBool("isRun", false);
+                            transform.LookAt(target);
                             nav.isStopped = true;
                             isChase = false;
-                            anim.SetBool("isRun", false);
 
                             isAttack = true;
-                            StartCoroutine("DoClawAttack");
+                            StartCoroutine("DoBasicAttack");
                         }
                         break;
                     case BossState.Attack3:
-                        anim.SetBool("isRun", true);
-                        nav.isStopped = false;
-                        isChase = true;
-                        nav.SetDestination(target.position);
-
-                        runTimeDelta += Time.deltaTime;
-                        if (runTimeDelta >= runTime || targetOnSpot.GetComponent<BossTarget>().isTargetOn)
-                        {
-                            nav.isStopped = true;
-                            isChase = false;
-                            anim.SetBool("isRun", false);
-
-                            isAttack = true;
-                            StartCoroutine("DoClawAttack");
-                        }
+                        isAttack = true;
+                        StartCoroutine("DoFireShot");
                         break;
                 }
             }
@@ -216,19 +234,22 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
     IEnumerator DoScream()
     {
         isScreamING = true;
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(3.0f);
 
         anim.SetTrigger("doScream");
 
         yield return new WaitForSeconds(4.0f);
         isScreamEnd = true;
+        boxCollider.enabled = true;
+        nav.isStopped = false;
         curState = BossState.Attack1;
     }
 
     IEnumerator DoClawAttack()
     {
         anim.SetTrigger("doClawAttack");
-        yield return new WaitForSeconds(1.0f);
+        FreezeVelocity();
+        yield return new WaitForSeconds(0.7f);
 
         GameObject instantClawEffect = PhotonNetwork.Instantiate("FlameScatter", clawSpot.transform.position, clawSpot.transform.rotation);
 
@@ -236,8 +257,120 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         Destroy(instantClawEffect);
         isAttack = false;
         runTimeDelta = 0.0f;
+    }
 
 
+    IEnumerator DoBasicAttack()
+    {
+        yield return null;
+
+        yield return new WaitForSeconds(1.0f);
+        isLine = true;
+        anim.SetTrigger("doBasicAttack");
+        GameObject instantTsunami1 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[0].transform.position, tsunamiSpots[0].transform.rotation);
+        GameObject instantTsunami2 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[1].transform.position, tsunamiSpots[1].transform.rotation);
+        GameObject instantTsunami3 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[2].transform.position, tsunamiSpots[2].transform.rotation);
+        GameObject instantTsunami4 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[3].transform.position, tsunamiSpots[3].transform.rotation);
+
+        yield return new WaitForSeconds(1.0f);
+        Destroy(instantTsunami1);
+        Destroy(instantTsunami2);
+        Destroy(instantTsunami3);
+        Destroy(instantTsunami4);
+
+
+        yield return new WaitForSeconds(1.0f);
+        isLine = false;
+        anim.SetTrigger("doBasicAttack");
+        GameObject instantTsunami5 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[0].transform.position, tsunamiSpots[0].transform.rotation);
+        GameObject instantTsunami6 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[1].transform.position, tsunamiSpots[1].transform.rotation);
+        GameObject instantTsunami7 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[2].transform.position, tsunamiSpots[2].transform.rotation);
+        GameObject instantTsunami8 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[3].transform.position, tsunamiSpots[3].transform.rotation);
+
+        yield return new WaitForSeconds(1.0f);
+        Destroy(instantTsunami5);
+        Destroy(instantTsunami6);
+        Destroy(instantTsunami7);
+        Destroy(instantTsunami8);
+        isAttack = false;
+        runTimeDelta = 0.0f;
+    }
+
+
+    IEnumerator DoFireShot()
+    {
+        nav.isStopped = true;
+        transform.LookAt(target);
+        FreezeVelocity();
+
+        anim.SetTrigger("doFlameAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject fireShot1 = PhotonNetwork.Instantiate("FireShot", fireSpot.transform.position, fireSpot.transform.rotation);
+
+        yield return new WaitForSeconds(0.5f);
+
+        transform.LookAt(target);
+        FreezeVelocity();
+
+        anim.SetTrigger("doFlameAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject fireShot2 = PhotonNetwork.Instantiate("FireShot", fireSpot.transform.position, fireSpot.transform.rotation);
+
+        yield return new WaitForSeconds(0.5f);
+
+        transform.LookAt(target);
+        FreezeVelocity();
+
+        anim.SetTrigger("doFlameAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject fireShot3 = PhotonNetwork.Instantiate("FireShot", fireSpot.transform.position, fireSpot.transform.rotation);
+
+        yield return new WaitForSeconds(0.5f);
+
+        yield return new WaitForSeconds(2f);
+        isAttack = false;
+        Destroy(fireShot1);
+        Destroy(fireShot2);
+        Destroy(fireShot3);
+    }
+
+    IEnumerator LavaField()
+    {
+        yield return null;
+        LavaSpots lavaSpots = GameObject.FindObjectOfType<LavaSpots>();
+        GameObject[] lavaFields = lavaSpots.lavaSpots;
+
+        int ranCounts = Random.Range(15, 20);
+        GameObject[] selectedFields = new GameObject[ranCounts];
+
+        for (int i = 0; i < ranCounts; i++)
+        {
+            int index = Random.Range(0, lavaFields.Length);
+            selectedFields[i] = lavaFields[index];
+            lavaFields = lavaFields.Where((val, idx) => idx != index).ToArray();
+        }
+
+        for (int i = 0; i < selectedFields.Length; i++)
+        {
+            GameObject instantLavaEffect = PhotonNetwork.Instantiate("LavaStartEffect", selectedFields[i].transform.position, selectedFields[i].transform.rotation);
+            Destroy(instantLavaEffect, 2.0f);
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        for (int i = 0; i < selectedFields.Length; i++)
+        {
+            GameObject instantLavaAttack = PhotonNetwork.Instantiate("MagmaField", selectedFields[i].transform.position, selectedFields[i].transform.rotation);
+            Destroy(instantLavaAttack, 3.0f);
+        }
+
+        yield return null;
     }
 
     void OnTriggerEnter(Collider other)

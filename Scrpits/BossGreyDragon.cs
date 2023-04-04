@@ -5,6 +5,7 @@ using UnityEngine.AI;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.Rendering;
+using System.Linq;
 
 public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -44,16 +45,29 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
     // 공격 진행중. 공격을 하는 동안 다른 공격을 하지 않도록 제한함.
     bool isAttackING;
 
+    bool startFlying;
+    bool isFlyAttackING;
+
     // 공격 지점
     public Transform iceBallPos;
     public Transform flyAttackPos;
+    public Transform windPos1;
+    public Transform windPos2;
+    public Transform windPos3;
+    public Transform windPos4;
 
     // 날아다니는 시간
-    float flyTimeDelta; // 측정
-    float flyTime;      // 기준치
+    // float flyTimeDelta; // 측정
+    // float flyTime;      // 기준치
+
+    // 맵 장애물 시간
+    float mapIceTimeDelta; // 측정
+    float mapIceTime;      // 기준치
 
     // 랜덤 스킬 선택 인덱스
     int selectedSkillIdx;
+
+    bool isBossHPLow;
 
     private void Awake()
     {
@@ -67,7 +81,8 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
         changeTargetTime = 10.0f;
 
         // 날아다니는 시간
-        flyTime = 10.0f;
+        mapIceTimeDelta = 100.0f;
+        mapIceTime = 5.0f;
 
         Invoke("ChaseStart", 2);
     }
@@ -97,37 +112,352 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
         }
 
         // 포효
-        //StartCoroutine("DoScream");
+        StartCoroutine("DoScream");
     }
 
     void Update()
     {
         // 포효가 종료되면 보스 공격 시작됨
-        //if(!isSreamEnd)
-        //    return;
+        if(!isSreamEnd)
+            return;
 
         if(photonView.IsMine)
         {
+            // 죽음
+            if(!isDie && curHealth <= 0)
+            {
+                // 모든 오브젝트가 통과할 수 있는 레이어
+                gameObject.layer = 11;
+                isDie = true;
 
+                // 추적 중단
+                nav.isStopped = true;
+                FreezeVelocity();
+                isChase = false;
+
+                // 애니메이션
+                anim.SetTrigger("doDie");
+
+                // 일정 시간 뒤 파괴
+                Destroy(gameObject, 4);
+            }
+
+            // 죽었으면 이후 로직을 실행할 필요 없음
+            if(isDie)
+                return;
+
+            // 타겟 변경 시간 측정
+            changeTargetTimeDelta += Time.deltaTime;
+
+            // 살아있는 플레이어 중 타겟을 랜덤 선택
+            if(changeTargetTimeDelta >= changeTargetTime && !isAttackING)
+            {
+                BossPlayer[] bossPlayers = FindObjectsOfType<BossPlayer>();
+                List<BossPlayer> bossPlayersAlive = new List<BossPlayer>();
+
+                foreach(BossPlayer bossPlayer in bossPlayers)
+                {
+                    if(!bossPlayer.isDie)
+                    {
+                        bossPlayersAlive.Add(bossPlayer);
+                    }
+                }
+
+                if(bossPlayersAlive.Count == 0)
+                    return;
+
+                int index = Random.Range(0, bossPlayersAlive.Count);
+                targetPlayer = bossPlayersAlive[index];
+                targetPlayerTransform = targetPlayer.transform;
+
+                changeTargetTimeDelta = 0.0f;
+            }
+
+
+            // 공격 패턴 랜덤 선택
+            // 0 : 아이스 볼
+            // 1 : 회오리 소환
+            // 2 : 날아다니며 공격 => 추적
+            selectedSkillIdx = Random.Range(0, 3);
+
+            if(targetPlayerTransform != null)
+            {
+                if(isFlyAttackING)
+                {
+                    // 비행
+                    nav.isStopped = false;
+                    isChase = true;
+                    anim.SetBool("isFlyMove", true);
+                    nav.SetDestination(targetPlayerTransform.position);
+                }
+
+                mapIceTimeDelta += Time.deltaTime;
+
+                if(((float)curHealth <= (float)maxHealth * 0.3) && (mapIceTimeDelta >= mapIceTime))
+                {
+                    StartCoroutine("MakeIceField");
+                    mapIceTimeDelta = 0.0f;
+                }
+
+                if(isAttackING)
+                    return;
+
+                if(selectedSkillIdx == 0)
+                {
+                    // 공격
+                    isAttackING = true;
+                    StartCoroutine("DoIceBall");
+                }
+                else if(selectedSkillIdx == 1)
+                {
+                    // 공격
+                    isAttackING = true;
+                    StartCoroutine("DoWindAttack");
+                }
+                else if(selectedSkillIdx == 2)
+                {
+                    isAttackING = true;
+                    StartCoroutine("DoFlyingAttack");
+                }
+            }
         }
     }
 
-    // 스폰되면 포효
-    /*IEnumerator DoScream()
+    IEnumerator MakeIceField()
+	{
+		IceField iceFieldInfo = GameObject.FindObjectOfType<IceField>();
+        GameObject[] iceFieldPosInfo = iceFieldInfo.iceFieldPos;
+        
+        int selectCount = Random.Range(30, 40);
+        GameObject[] selectedPos = new GameObject[selectCount];
+
+        for(int i = 0; i < selectCount; i++)
+        {
+            int index = Random.Range(0, iceFieldPosInfo.Length);
+            selectedPos[i] = iceFieldPosInfo[index];
+            iceFieldPosInfo = iceFieldPosInfo.Where((val, idx) => idx != index).ToArray();
+        }
+
+        for(int i = 0; i < selectedPos.Length; i++)
+        {
+            GameObject iceEffectObj = PhotonNetwork.Instantiate("IceField", selectedPos[i].transform.position, selectedPos[i].transform.rotation);
+            Destroy(iceEffectObj, 3.0f);
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        for(int i = 0; i < selectedPos.Length; i++)
+        {
+            GameObject iceAttackObj = PhotonNetwork.Instantiate("IceBlockFissure", selectedPos[i].transform.position, Quaternion.Euler(-90, 0, 0));
+            Destroy(iceAttackObj, 3.0f);
+        }
+
+        yield return null;
+    }
+
+	// 스폰되면 포효
+	IEnumerator DoScream()
+	{
+		yield return new WaitForSeconds(1.0f);
+
+		anim.SetTrigger("doScream");
+		skillSound.clip = dragonSreamSound;
+		skillSound.loop = false;
+		skillSound.Play();
+
+		yield return new WaitForSeconds(4.0f);
+
+		isSreamEnd = true;
+
+		yield return null;
+	}
+
+    // 아이스 브레스
+    IEnumerator DoIceBall()
     {
+        transform.LookAt(targetPlayerTransform);
+
+        anim.SetTrigger("doIceBall");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject iceBallObj1 = PhotonNetwork.Instantiate("IceFatalWheel", iceBallPos.position, iceBallPos.rotation);
+        Rigidbody iceBallObjRigid1 = iceBallObj1.GetComponentInChildren<Rigidbody>();
+        iceBallObjRigid1.velocity = iceBallPos.forward * 50;
+
+        yield return new WaitForSeconds(0.3f);
+
+        transform.LookAt(targetPlayerTransform);
+
+        anim.SetTrigger("doIceBall");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject iceBallObj2 = PhotonNetwork.Instantiate("IceFatalWheel", iceBallPos.position, iceBallPos.rotation);
+        Rigidbody iceBallObjRigid2 = iceBallObj2.GetComponentInChildren<Rigidbody>();
+        iceBallObjRigid2.velocity = iceBallPos.forward * 50;
+
+        yield return new WaitForSeconds(0.3f);
+
+        transform.LookAt(targetPlayerTransform);
+
+        anim.SetTrigger("doIceBall");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject iceBallObj3 = PhotonNetwork.Instantiate("IceFatalWheel", iceBallPos.position, iceBallPos.rotation);
+        Rigidbody iceBallObjRigid3 = iceBallObj3.GetComponentInChildren<Rigidbody>();
+        iceBallObjRigid3.velocity = iceBallPos.forward * 50;
+
+        yield return new WaitForSeconds(0.3f);
+
+        transform.LookAt(targetPlayerTransform);
+
+        anim.SetTrigger("doIceBall");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject iceBallObj4 = PhotonNetwork.Instantiate("IceFatalWheel", iceBallPos.position, iceBallPos.rotation);
+        Rigidbody iceBallObjRigid4 = iceBallObj4.GetComponentInChildren<Rigidbody>();
+        iceBallObjRigid4.velocity = iceBallPos.forward * 50;
+
+        yield return new WaitForSeconds(0.3f);
+
+        transform.LookAt(targetPlayerTransform);
+
+        anim.SetTrigger("doIceBall");
+
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject iceBallObj5 = PhotonNetwork.Instantiate("IceFatalWheel", iceBallPos.position, iceBallPos.rotation);
+        Rigidbody iceBallObjRigid5 = iceBallObj5.GetComponentInChildren<Rigidbody>();
+        iceBallObjRigid5.velocity = iceBallPos.forward * 50;
+
+        yield return new WaitForSeconds(5.0f);
+
+        isAttackING = false;
+
+        Destroy(iceBallObj1);
+        Destroy(iceBallObj2);
+        Destroy(iceBallObj3);
+        Destroy(iceBallObj4);
+        Destroy(iceBallObj5);
+
+        yield return null;
+    }
+
+    IEnumerator DoWindAttack()
+    {
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doTakeOff");
+
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doFly");
+
         yield return new WaitForSeconds(1.0f);
 
-        anim.SetTrigger("doScream");
-        skillSound.clip = dragonSreamSound;
-        skillSound.loop = false;
-        skillSound.Play();
+        transform.LookAt(targetPlayerTransform);
+
+        GameObject windObj1 = PhotonNetwork.Instantiate("SteelStorm", windPos1.position, windPos1.rotation);
+        GameObject windObj2 = PhotonNetwork.Instantiate("SteelStorm", windPos2.position, windPos2.rotation);
+        GameObject windObj3 = PhotonNetwork.Instantiate("SteelStorm", windPos3.position, windPos3.rotation);
+        GameObject windObj4 = PhotonNetwork.Instantiate("SteelStorm", windPos4.position, windPos4.rotation);
+
+        yield return new WaitForSeconds(1.0f);
+
+        transform.LookAt(targetPlayerTransform);
+
+        GameObject windObj5 = PhotonNetwork.Instantiate("SteelStorm", windPos1.position, windPos1.rotation);
+        GameObject windObj6 = PhotonNetwork.Instantiate("SteelStorm", windPos2.position, windPos2.rotation);
+        GameObject windObj7 = PhotonNetwork.Instantiate("SteelStorm", windPos3.position, windPos3.rotation);
+        GameObject windObj8 = PhotonNetwork.Instantiate("SteelStorm", windPos4.position, windPos4.rotation);
+
+        yield return new WaitForSeconds(1.0f);
+
+        transform.LookAt(targetPlayerTransform);
+
+        GameObject windObj9 = PhotonNetwork.Instantiate("SteelStorm", windPos1.position, windPos1.rotation);
+        GameObject windObj10 = PhotonNetwork.Instantiate("SteelStorm", windPos2.position, windPos2.rotation);
+        GameObject windObj11 = PhotonNetwork.Instantiate("SteelStorm", windPos3.position, windPos3.rotation);
+        GameObject windObj12 = PhotonNetwork.Instantiate("SteelStorm", windPos4.position, windPos4.rotation);
 
         yield return new WaitForSeconds(4.0f);
 
-        isSreamEnd = true;
+        Destroy(windObj1);
+        Destroy(windObj1);
+        Destroy(windObj2);
+        Destroy(windObj3);
+        Destroy(windObj4);
+        Destroy(windObj5);
+        Destroy(windObj6);
+        Destroy(windObj7);
+        Destroy(windObj8);
+        Destroy(windObj9);
+        Destroy(windObj10);
+        Destroy(windObj11);
+        Destroy(windObj12);
+
+        anim.SetTrigger("doIdle");
+        isAttackING = false;
 
         yield return null;
-    }*/
+    }
+
+    IEnumerator DoFlyingAttack()
+    {
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doTakeOff");
+
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doFly");
+
+        yield return new WaitForSeconds(1.0f);
+
+        anim.SetBool("isFlyMove", true);
+
+        isFlyAttackING = true;
+
+        InvokeRepeating("CallIceField", 1.0f, 0.5f);
+
+        yield return new WaitForSeconds(15.0f);
+
+        CancelInvoke("CallIceField");
+
+        // 비행 정지
+        isFlyAttackING = false;
+        nav.isStopped = true;
+        FreezeVelocity();
+        isChase = false;
+        anim.SetBool("isFlyMove", false);
+
+        yield return new WaitForSeconds(2.0f);
+
+        anim.SetTrigger("doIdle");
+
+        yield return new WaitForSeconds(5.0f);
+
+        isAttackING = false;
+
+        yield return null;
+    }
+
+    void CallIceField()
+    {
+        GameObject iceField = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        Destroy(iceField, 3.0f);
+
+        CallIceAttack();
+    }
+
+    void CallIceAttack()
+    {
+        GameObject iceAttack = PhotonNetwork.Instantiate("IceBlockCrash", flyAttackPos.position, flyAttackPos.rotation);
+        Destroy(iceAttack, 3.0f);
+    }
 
     // 플레이어와 물리 충돌이 나면 따라다니질 못하는 문제 해결
     void FixedUpdate()

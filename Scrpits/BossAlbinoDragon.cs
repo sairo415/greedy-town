@@ -224,6 +224,8 @@ public class BossAlbinoDragon : MonoBehaviourPunCallbacks, IPunObservable
                     isChase = false;
                     anim.SetBool("isRun", false);
 
+                    transform.LookAt(targetPlayerTransform);
+
                     // АјАн
                     isAttackING = true;
                     anim.SetTrigger("doAttack");
