@@ -75,6 +75,7 @@ public class ShopItemManager : MonoBehaviour
         dressNum = 0;
         backNum = 100;
 
+        StartCoroutine(Market());
 
 
         //test
@@ -95,6 +96,11 @@ public class ShopItemManager : MonoBehaviour
     {
         // 모든 아이템 보이게 처리 후
         StartCoroutine(Market());
+    }
+
+    public void ToTheTown()
+    {
+        SceneManager.LoadScene("Town");
     }
 
     // 상점 조회 : seq, price, name, image, type 필요
@@ -135,37 +141,47 @@ public class ShopItemManager : MonoBehaviour
                     {
                         // jobj["itemSeq"]를 찾아서(Find) 안 보이게(또는 흐리게) 처리 
                         int itemSeq = int.Parse(jobj["itemSeq"].ToString());
-                        if(itemSeq <= 13)
+                        Debug.Log(itemSeq);
+                        if (itemSeq <= 14)
                         {
+                            itemSeq -= 1;
                             HatSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("HatSlots").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else if (itemSeq <= 33)
+                        }
+                        else if (itemSeq <= 34)
                         {
-                            itemSeq -= 13;
-                            HeadSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("HeadSlot").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else if(itemSeq <= 72)
+                            itemSeq -= 15;
+                            HeadSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("HeadSlots").GetChild(itemSeq).gameObject.SetActive(false);
+                        }
+                        else if (itemSeq <= 73)
                         {
-                            itemSeq -= 33;
-                            AcsSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("AcsSlot").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else if(itemSeq <= 85)
+                            itemSeq -= 35;
+                            Debug.Log("악세사리에서 index : " + itemSeq);
+                            AcsSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("AcsSlots").GetChild(itemSeq).gameObject.SetActive(false);
+                        }
+                        else if (itemSeq <= 86)
                         {
-                            itemSeq -= 72;
-                            HairSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("HairSlot").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else if(itemSeq <= 115)
+                            itemSeq -= 74;
+                            HairSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("HairSlots").GetChild(itemSeq).gameObject.SetActive(false);
+                        }
+                        else if (itemSeq <= 116)
                         {
-                            itemSeq -= 85;
-                            WeaponSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("WeaponSlot").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else if(itemSeq <= 135)
+                            itemSeq -= 87;
+                            WeaponSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("WeaponSlots").GetChild(itemSeq).gameObject.SetActive(false);
+                        }
+                        else if (itemSeq <= 136)
                         {
-                            itemSeq -= 115;
-                            SheildSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("SheildSlot").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else if(itemSeq <= 155)
+                            itemSeq -= 117;
+                            SheildSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("SheildSlots").GetChild(itemSeq).gameObject.SetActive(false);
+                        }
+                        else if (itemSeq <= 156)
                         {
-                            itemSeq -= 135;
-                            DressSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("DressSlot").GetChild(itemSeq).gameObject.SetActive(false);
-                        } else
+                            itemSeq -= 137;
+                            DressSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("DressSlots").GetChild(itemSeq).gameObject.SetActive(false);
+                        }
+                        else
                         {
-                            itemSeq -= 155;
-                            BackSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("BackSlot").GetChild(itemSeq).gameObject.SetActive(false);
+                            itemSeq -= 157;
+                            BackSlot.GetComponent<Transform>().Find("Viewport").Find("Content").Find("BackSlots").GetChild(itemSeq).gameObject.SetActive(false);
                         }
                     }
                 }
@@ -228,12 +244,13 @@ public class ShopItemManager : MonoBehaviour
         Transform item = Item.GetComponent<Transform>();
         int num = item.GetSiblingIndex();
 
-        switch (ActiveSlot) {
+        switch (ActiveSlot)
+        {
             case 0:
                 //벗어주기
                 if (hatNum != 100) player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(hatNum + 96).gameObject.SetActive(false);
                 //착용안함 (그냥 벗기)
-                if (num == 15){ hatNum = 100; break; }
+                if (num == 15) { hatNum = 100; break; }
                 //입어주기
                 player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(num + 96).gameObject.SetActive(true);
                 hatNum = num;
@@ -242,7 +259,7 @@ public class ShopItemManager : MonoBehaviour
                 //벗어주기
                 player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(headNum + 76).gameObject.SetActive(false);
                 //착용 안함이면 0번째 머리로 입어주기           
-                if(num == 20) num = 0; 
+                if (num == 20) num = 0;
                 player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(num + 76).gameObject.SetActive(true);
                 headNum = num;
                 Debug.Log("몇번이길래.." + num);
@@ -255,20 +272,21 @@ public class ShopItemManager : MonoBehaviour
                 break;
             case 3:
                 if (acsNum != 100) player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(acsNum).gameObject.SetActive(false);
-                if (num == 39) { hairNum = 100; break; }
+                if (num == 39) { acsNum = 100; break; }
                 player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(num).gameObject.SetActive(true);
                 acsNum = num;
+                Debug.Log("악세사리 넘버? : " + acsNum);
                 break;
             case 4:
-                if (weaponNum != 100) player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(weaponNum+1).gameObject.SetActive(false);
+                if (weaponNum != 100) player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(weaponNum + 1).gameObject.SetActive(false);
                 if (num == 30) num = 0;
-                player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(num+1).gameObject.SetActive(true);
+                player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(num + 1).gameObject.SetActive(true);
                 weaponNum = num;
                 break;
             case 5:
-                if (sheildNum != 100) player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(sheildNum+17).gameObject.SetActive(false);
+                if (sheildNum != 100) player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(sheildNum + 17).gameObject.SetActive(false);
                 if (num == 20) { sheildNum = 100; break; }
-                player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(num+17).gameObject.SetActive(true);
+                player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(num + 17).gameObject.SetActive(true);
                 sheildNum = num;
                 break;
             case 6:
@@ -301,17 +319,17 @@ public class ShopItemManager : MonoBehaviour
                         else player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(backNum - 3).gameObject.SetActive(false);
                     }
                     //착용안함
-                    if (num == 6) {backNum = 100; break; }
-                    
-                    player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(num-3).gameObject.SetActive(true);
+                    if (num == 6) { backNum = 100; break; }
+
+                    player.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(num - 3).gameObject.SetActive(true);
                 }
 
                 backNum = num;
                 break;
         }
 
-        
-    
+
+
     }
 
 
@@ -319,11 +337,11 @@ public class ShopItemManager : MonoBehaviour
     public void OnClickParts(GameObject input)
     {
         if (input.GetComponent<Transform>().GetSiblingIndex() == 7)
-           player.transform.rotation = Quaternion.Euler(0, 0, 0);
-        
+            player.transform.rotation = Quaternion.Euler(0, 0, 0);
+
         else player.transform.rotation = Quaternion.Euler(0, 158.131f, 0);
-            
-        
+
+
         HatSlot.SetActive(false);
         HeadSlot.SetActive(false);
         AcsSlot.SetActive(false);
@@ -339,5 +357,46 @@ public class ShopItemManager : MonoBehaviour
         ActiveSlot = it.GetSiblingIndex();
 
 
+    }
+
+    //구입하기 해보자
+
+    public void OnClickBuy()
+    {
+        //현재 활성화 되어있는 슬롯
+        int itemNumber = 0;
+
+
+        switch(ActiveSlot) 
+        {
+            //모자
+            case 0:itemNumber = hatNum+1;
+            break;
+            //두상
+            case 1:itemNumber = headNum+15;
+            break;
+            //헤어
+            case 2:itemNumber = hairNum + 74;
+                break;
+            //악세
+            case 3:itemNumber = acsNum + 35;
+                break;
+            //무기
+            case 4:itemNumber = weaponNum+87;
+            break;
+            //방패
+            case 5:itemNumber = sheildNum+117;
+            break;
+            //옷
+            case 6:itemNumber = dressNum+137;
+            break;
+            //백
+            case 7:itemNumber = backNum+157;
+            break;
+        }
+
+        Debug.Log("슬롯 : " + ActiveSlot + " 아이템 넘버 : " + itemNumber);
+        StartCoroutine(GetComponent<Commerce>().Buy(itemNumber));
+        
     }
 }

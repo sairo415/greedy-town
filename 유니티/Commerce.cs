@@ -35,7 +35,7 @@ public class Commerce : MonoBehaviourPunCallbacks
 
     public void PostEarn()
     {
-        StartCoroutine(Earn());
+        StartCoroutine(Earn(1000));
     }
 
     public void GetMyItem()
@@ -50,13 +50,13 @@ public class Commerce : MonoBehaviourPunCallbacks
     }
 
     // 아이템 구매 : response가 소유한 아이템 조회와 똑같다. : itemSeq, itemPrice 
-    public IEnumerator Buy()
+    public IEnumerator Buy(int itemSeq)
     {
         string url = baseUrl + "item/market";
 
-        long itemSeq = 1; // 임시 : 어떻게 받아옴? : 클릭한 버튼의 seq 가져오기
-        int itemPrice = 1000; // 임시 : 클릭한 버튼의 가격 가져오기
-        BuyRequest buyRequest = new BuyRequest(itemSeq, itemPrice);
+        //long itemSeq = 1; // 임시 : 어떻게 받아옴? : 클릭한 버튼의 seq 가져오기
+        //int itemPrice = 1000; // 임시 : 클릭한 버튼의 가격 가져오기
+        BuyRequest buyRequest = new BuyRequest(itemSeq, 0);
         string data = JsonConvert.SerializeObject(buyRequest);
 
         using (UnityWebRequest request = UnityWebRequest.Post(url, data))
@@ -82,7 +82,7 @@ public class Commerce : MonoBehaviourPunCallbacks
                     print("토큰 만료");
                     // accesToken 재발급 후 재시도 (refreshToken 삭제해야 하므로)
                     StartCoroutine(Reissue());
-                    StartCoroutine(Buy());
+                    StartCoroutine(Buy(itemSeq));
                 }
                 else
                 {
@@ -94,13 +94,14 @@ public class Commerce : MonoBehaviourPunCallbacks
                     JArray response2 = JArray.Parse(response["userItems"].ToString());
                     JArray response3 = JArray.Parse(response["wearingDtos"].ToString());
                     print(response);
-                    print(response[0]["itemSeq"]);
                     // 이미지 여러 장 겹쳐두고
                     foreach (JObject jobj in response2)
                     {
                         // jobj["itemSeq"]를 찾아서(Find) 보이게(또는 흐리게) 처리 
+                        Debug.Log(jobj["itemSeq"]);
                     }
                     PlayerPrefs.SetString("money", response["userMoney"].ToString());
+                    Debug.Log(PlayerPrefs.GetString("money"));
                 }
             }
             request.Dispose();
@@ -143,6 +144,8 @@ public class Commerce : MonoBehaviourPunCallbacks
                     {
                         // jobj["itemSeq"]를 찾아서(Find) 보이게(또는 흐리게) 처리 
                         // 
+
+
                     }
 
                 }
@@ -262,28 +265,29 @@ public class Commerce : MonoBehaviourPunCallbacks
         }
     }
 
-    public IEnumerator Earn()
+    public IEnumerator Earn(long gold)
     {
         string url = baseUrl + "user/money";
 
         // 보낼 정보
         // 씬 위치에 따라 gameinfo 숫자 설정
         Scene scene = SceneManager.GetActiveScene();
-        if(scene.name.Equals("Town")) // 카지노
+        if(scene.name.Equals("Casino")) // 카지노
         {
             gameInfo = 1;
         } else if(scene.name.Equals("레이드"))
         {
             gameInfo = 2;
 
-        } else if(scene.name.Equals("뱀서"))
+        } else if(scene.name.Equals("Vamsu-LSJ"))
         {
             gameInfo = 3;
         }
         print(gameInfo);
-        long getMoney = long.Parse(income.text); // 번 돈 설정
-        print(getMoney);
-        EarnRequest earnRequest = new EarnRequest(gameInfo, getMoney);
+        /*long getMoney = long.Parse(income.text); // 번 돈 설정
+        print(getMoney);*/
+
+        EarnRequest earnRequest = new EarnRequest(gameInfo, gold);
         string data = JsonConvert.SerializeObject(earnRequest);
         print(data);
 
@@ -310,7 +314,7 @@ public class Commerce : MonoBehaviourPunCallbacks
                     print("토큰 만료");
                     // accesToken 재발급 후 재시도 (refreshToken 삭제해야 하므로)
                     StartCoroutine(Reissue());
-                    StartCoroutine(Earn());
+                    StartCoroutine(Earn(1000));
                 }
                 else
                 {
@@ -401,7 +405,7 @@ public class EarnRequest
 
 public class ItemDto
 {
-    public long itemSeq;
+    public long itemSeq { get; set; }
     public string itemName;
     public int itemPrice;
 

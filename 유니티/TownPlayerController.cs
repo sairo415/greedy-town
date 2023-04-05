@@ -61,17 +61,32 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
         PV = photonView;
         NM = GameObject.FindWithTag("TownNetworkManager").GetComponent<TownNetworkManager>();
 
-        Debug.Log(transform.Find("Body04").GetSiblingIndex()+" 몇번째임?");
+        Debug.Log(PlayerPrefs.GetInt("dressNum"));
+        Debug.Log(PlayerPrefs.GetInt("backNum"));
+        Debug.Log(PlayerPrefs.GetInt("sheildNum"));
+        Debug.Log(PlayerPrefs.GetInt("weaponNum"));
+        Debug.Log(PlayerPrefs.GetInt("acsNum"));
+        Debug.Log(PlayerPrefs.GetInt("hairNum"));
+        Debug.Log(PlayerPrefs.GetInt("headNum"));
+        Debug.Log(PlayerPrefs.GetInt("hatNum"));
         
-        transform.Find("Body04").gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(0).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").Find("Shield05").gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").Find("OHS16_Sword").gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("AC05_Horn04").gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Hair13").gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Head05_Santa").gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Hat13").gameObject.SetActive(true);
+        
+        transform.GetChild(PlayerPrefs.GetInt("dressNum")).gameObject.SetActive(true);
+        if(PlayerPrefs.GetInt("backNum") < 3)
+        {
+            transform.GetChild(PlayerPrefs.GetInt("backNum")+20).gameObject.SetActive(true);
+        } else
+        {
+            transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(PlayerPrefs.GetInt("backNum")-3).gameObject.SetActive(true);
+        }
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(PlayerPrefs.GetInt("sheildNum") + 17).gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(PlayerPrefs.GetInt("weaponNum") + 1).gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("acsNum")).gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("hairNum") + 63).gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("headNum") + 76).gameObject.SetActive(true);
+        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("hatNum") + 96).gameObject.SetActive(true);
         transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Eyebrow02").gameObject.SetActive(true);
+
 
     }
     void Update()
@@ -111,6 +126,7 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
         else if(col.gameObject.name == "HotAirBalloon_Blue")
         {
             print("뱀서 간다");
+            SceneManager.LoadScene("Vamsu-LSJ");
         }
         // 상점으로 가면 상점으로 이동
         else if (col.gameObject.name == "Magic_Shop")
@@ -122,12 +138,18 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
         else if (col.gameObject.name == "Kiosk_Shop")
         {
             print("카지노 간다");
+            SceneManager.LoadScene("Casino");
         }
         // 경찰서로 가면 PVP로 이동
         else if (col.gameObject.name == "PoliceStation_1Light")
         {
             print("PVP 간다");
         }
+    }
+
+    public void Alert(string message)
+    {
+
     }
 
     public void ToTheBossLobby()

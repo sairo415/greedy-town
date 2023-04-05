@@ -43,7 +43,7 @@ public class  ItemServiceImpl implements ItemService{
     //아이템 구입하기
     public BuyItemReturnDto buyStoreItem(BuyItemDto buyItemDto, User user){
 
-        Integer price = buyItemDto.getItemPrice();
+        //Integer price = buyItemDto.getItemPrice();
         Item item = itemRepository.findById(buyItemDto.getItemSeq()).get();
 
         // 현금 흐름 반영
@@ -52,12 +52,13 @@ public class  ItemServiceImpl implements ItemService{
                 .moneyLogTime(new Date())
                 .moneyLogIteminfo(item)
                 .userSeq(user)
-                .moneyLogMoney(price.longValue())
+                .moneyLogMoney(-item.getItemPrice().longValue())
                 .build();
         moneyLogRepository.save(moneyLog);
 
         //내 돈 없애기
-        user.setUserMoney(user.getUserMoney()-price);
+        user.setUserMoney(user.getUserMoney()-item.getItemPrice().longValue());
+        userRepository.save(user);
         //내 아이템 목록 업데이트하기
         ItemUserList itemUserList = new ItemUserList(user,item);
 
@@ -111,16 +112,15 @@ public class  ItemServiceImpl implements ItemService{
         getMyDress(user,buyItemReturnDto);
         //여기서 내 옷 입어주기
 
+        wearingRepository.deleteAllByUserSeq_UserSeq(user.getUserSeq());
         for(WearingDto wearingNow : wearingDtos) {
-            System.out.println(wearingNow.getItemDto().getItemTypeSeq().getClass()+ " 이치헌");
-            System.out.println(user.getUserSeq().getClass()+ " 이승진");
-            wearingRepository.deleteByItemSeq_ItemTypeSeq_ItemTypeSeqAndUserSeq_UserSeq(wearingNow.getItemDto().getItemTypeSeq() , user.getUserSeq());
+            //System.out.println(wearingNow.getItemDto().getItemTypeSeq().getClass()+ " 이치헌");
+            //System.out.println(user.getUserSeq().getClass()+ " 이승진");
             Wearing wearing = new Wearing();
             Item item = itemRepository.findByItemSeq(wearingNow.getItemDto().getItemSeq());
             wearing.setItemSeq(item);
             wearing.setUserSeq(user);
             wearingRepository.save(wearing);
-
         }
 
         return getMyWearingDress(user,buyItemReturnDto);
@@ -136,19 +136,17 @@ public class  ItemServiceImpl implements ItemService{
 
         List<WearingDto> wearingList = buyItemReturnDto.getWearingDtos();
 
+        List<Wearing> wearings = wearingRepository.findAllByUserSeq_UserSeq(user.getUserSeq());
+        System.out.println(wearings.get(0));
         //내가 입고 있는 아이템 정보 습득
-        for(Wearing wearing : wearingRepository.findAllByUserSeq_UserSeq(user.getUserSeq())){
+        for(Wearing wearing : wearings){
             //아이템 정보
+            System.out.println(wearing.getItemSeq());
+            System.out.println(wearing.getItemSeq().getItemSeq());
             Item item = itemRepository.findByItemSeq(wearing.getItemSeq().getItemSeq());
 
             ItemDto itemDto = ItemDto.builder().
                               itemSeq(item.getItemSeq()).
-                              itemPrice(item.getItemPrice()).
-                              itemTypeSeq(item.getItemTypeSeq().getItemTypeSeq()).
-                              itemTypeName(item.getItemTypeSeq().getItemTypeName()).
-                              itemColorSeq(item.getItemColorSeq().getItemColorSeq()).
-                              itemColorName(item.getItemColorSeq().getItemColorName()).
-                              itemImage(item.getItemImage()).
                               build();
 
             WearingDto wearingDto = WearingDto.builder().

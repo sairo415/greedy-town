@@ -10,5 +10,5 @@ public interface WearingRepository extends JpaRepository<Wearing, Long> {
 
     List<Wearing> findAllByUserSeq_UserSeq(Long userSeq);
 
-    long deleteByItemSeq_ItemTypeSeq_ItemTypeSeqAndUserSeq_UserSeq(Integer itemTypeSeq, Long userSeq);
+    long deleteAllByUserSeq_UserSeq(Long userSeq);
 }

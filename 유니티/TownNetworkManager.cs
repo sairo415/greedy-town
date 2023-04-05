@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
@@ -21,9 +22,15 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-
-        PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions { MaxPlayers = 20 }, null);
+        if(SceneManager.GetActiveScene().name != "Vamsu-LSJ")
        
+        {
+            if (!PhotonNetwork.InRoom) PhotonNetwork.JoinOrCreateRoom("Town", new RoomOptions { MaxPlayers = 20 }, null);
+            else PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0));
+        }
+      
+        
+
     }
 
     public void ToTheBossLobby()
@@ -36,7 +43,6 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
     {
         if (SceneManager.GetActiveScene().name == "Town")
         {
-
             SceneManager.LoadScene("BossLobby");
 
             return;
@@ -45,18 +51,9 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
 
 
 
-    public override void OnConnectedToMaster()
-    {
-
-        Debug.Log("타운 룸으로 입장!");
-
-        PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions { MaxPlayers = 20 }, null);
-        //PhotonNetwork.JoinLobby();
-    }
-
+   
     public override void OnJoinedRoom()
     {
-        
         PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0));
     }
 
@@ -96,7 +93,10 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
                     int i = 0;
                     foreach (JObject jobj in response)
                     {
-                        print(response[i]["clearTime"]); 
+                        print(response[i]["clearTime"]);
+                        string[] tmp = response[i]["clearTime"].ToString().Split("_15:");
+                        string[] tmp2 = tmp[1].Split(".");
+                        print("클리어 타임 : " + tmp2[0]);
                         print(response[i++]["userNickname"]); 
                     }
 
@@ -109,12 +109,16 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
     }
 
     // 뱀서
-    public IEnumerator ClearTime()
+    public IEnumerator ClearTime(float clearSeconds)
     {
         string url = baseUrl + "user/stat";
 
+        string hhmmssTime = string.Format("{0:D2}", Mathf.FloorToInt(clearSeconds/60)) + ":" + string.Format("{0:D2}", Mathf.FloorToInt(clearSeconds%60));
+        
+        Debug.Log(hhmmssTime);
+
         Dictionary<string, string> clearTime = new Dictionary<string, string>();
-        clearTime.Add("userClearTime", PlayerPrefs.GetString("userClearTime")); // userClearTime에 뱀서 클리어 타임 입력 필요 ("HH:mm:ss")
+        clearTime.Add("userClearTime", hhmmssTime); // userClearTime에 뱀서 클리어 타임 입력 필요 ("HH:mm:ss")
         string data = JsonConvert.SerializeObject(clearTime);
 
         using (UnityWebRequest request = UnityWebRequest.Post(url, data))
@@ -140,7 +144,7 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
                     print("토큰 만료");
                     // accesToken 재발급 후 재시도 (refreshToken 삭제해야 하므로)
                     StartCoroutine(Reissue());
-                    StartCoroutine(ClearTime());
+                    StartCoroutine(ClearTime(clearSeconds));
                 }
                 else
                 {

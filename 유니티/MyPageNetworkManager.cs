@@ -23,16 +23,20 @@ public class MyPageNetworkManager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
+        PhotonNetwork.JoinLobby();
         // 유저 정보 조회
         StartCoroutine(Userinfo());
         // 소유 아이템 조회
-        StartCoroutine(MyItem());
-        PhotonNetwork.JoinLobby();
+        StartCoroutine(GetComponent<ItemManager>().MyItem());
         check = true;
     }
     public void ChangeScene()
     {
-        if(check) SceneManager.LoadScene("Town");
+        if (check)
+        {
+            StartCoroutine(GetComponent<ItemManager>().Custom());
+            SceneManager.LoadScene("Town");
+        }
     
     }
 
@@ -105,10 +109,10 @@ public class MyPageNetworkManager : MonoBehaviourPunCallbacks
                     print(loginUser.GetUserMoney());
                     print(loginUser.GetUserJoinDate());
                     PlayerPrefs.SetString("userNickname", loginUser.GetUserNickname());
-                    PlayerPrefs.SetString("userMoney", loginUser.GetUserMoney().ToString());
+                    PlayerPrefs.SetString("money", loginUser.GetUserMoney().ToString());
                     PlayerPrefs.SetString("userJoinDate", loginUser.GetUserJoinDate().ToString());
                     print(PlayerPrefs.GetString("userNickname"));
-                    print(PlayerPrefs.GetString("userMoney"));
+                    print(PlayerPrefs.GetString("money"));
                     print(PlayerPrefs.GetString("userJoinDate"));
                 }       
             }
@@ -235,31 +239,4 @@ public class MyPageNetworkManager : MonoBehaviourPunCallbacks
 
 }
 
-public class LoginUser
-{
-    public string userNickname;
-    public long userMoney;
-    public DateTime userJoinDate;
 
-    public LoginUser(string userNickname, long userMoney, DateTime userJoinDate)
-    {
-        this.userNickname = userNickname;
-        this.userMoney = userMoney;
-        this.userJoinDate = userJoinDate;
-    }
-
-    public string GetUserNickname()
-    {
-        return this.userNickname;
-    }
-
-    public long GetUserMoney()
-    {
-        return this.userMoney;
-    }
-
-    public DateTime GetUserJoinDate()
-    {
-        return this.userJoinDate;
-    }
-}

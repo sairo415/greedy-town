@@ -76,6 +76,11 @@ public class ItemController {
     @PostMapping("/character-custom")
     public ResponseEntity<?> changeMyDress(HttpServletRequest request, @RequestBody @ApiParam(value = "아이템 정보.", required = true)List<WearingDto> wearingDto) throws Exception {
         User user = (User) request.getAttribute("USER");
+        System.out.println(wearingDto);
+        for (WearingDto w: wearingDto) {
+            System.out.println(w.getItemDto());
+            System.out.println(w.getItemDto().getItemSeq());
+        }
         return new ResponseEntity<BuyItemReturnDto>(itemService.changeMyDress(user,wearingDto), HttpStatus.OK);
     }
 
