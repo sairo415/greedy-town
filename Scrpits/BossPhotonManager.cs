@@ -9,7 +9,7 @@ public class BossPhotonManager : MonoBehaviourPunCallbacks
     // 버전 입력
     private readonly string version = "1.1f";
     // 사용자 아이디 입력
-    public string userId = "BK";
+    public string userId = PlayerPrefs.GetString("userNickname");
 
 	private void Awake()
     {

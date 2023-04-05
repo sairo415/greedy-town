@@ -1080,6 +1080,7 @@ public class BossGameManager : MonoBehaviour
     {
         gameEndPanel.SetActive(true);
         gameOverTxt.SetActive(true);
+        Debug.Log("´Ù Á×À½");
     }
 
     public void GameClear()
