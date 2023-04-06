@@ -137,7 +137,7 @@ public class  ItemServiceImpl implements ItemService{
         List<WearingDto> wearingList = buyItemReturnDto.getWearingDtos();
 
         List<Wearing> wearings = wearingRepository.findAllByUserSeq_UserSeq(user.getUserSeq());
-        System.out.println(wearings.get(0));
+
         //내가 입고 있는 아이템 정보 습득
         for(Wearing wearing : wearings){
             //아이템 정보
