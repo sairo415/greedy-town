@@ -238,18 +238,34 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
             iceFieldPosInfo = iceFieldPosInfo.Where((val, idx) => idx != index).ToArray();
         }
 
+        GameObject[] iceEffectObj = new GameObject[selectedPos.Length];
+
         for(int i = 0; i < selectedPos.Length; i++)
         {
-            GameObject iceEffectObj = PhotonNetwork.Instantiate("IceField", selectedPos[i].transform.position, selectedPos[i].transform.rotation);
-            Destroy(iceEffectObj, 3.0f);
+            iceEffectObj[i] = PhotonNetwork.Instantiate("IceField", selectedPos[i].transform.position, selectedPos[i].transform.rotation);
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        GameObject[] iceAttackObj = new GameObject[selectedPos.Length];
+
+        for(int i = 0; i < selectedPos.Length; i++)
+        {
+            iceAttackObj[i] = PhotonNetwork.Instantiate("IceBlockFissure", selectedPos[i].transform.position, Quaternion.Euler(-90, 0, 0));
         }
 
         yield return new WaitForSeconds(1.5f);
 
         for(int i = 0; i < selectedPos.Length; i++)
         {
-            GameObject iceAttackObj = PhotonNetwork.Instantiate("IceBlockFissure", selectedPos[i].transform.position, Quaternion.Euler(-90, 0, 0));
-            Destroy(iceAttackObj, 3.0f);
+            PhotonNetwork.Destroy(iceEffectObj[i]);
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        for(int i = 0; i < selectedPos.Length; i++)
+        {
+            PhotonNetwork.Destroy(iceAttackObj[i]);
         }
 
         yield return null;
@@ -337,11 +353,11 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
 
         isAttackING = false;
 
-        Destroy(iceBallObj1);
-        Destroy(iceBallObj2);
-        Destroy(iceBallObj3);
-        Destroy(iceBallObj4);
-        Destroy(iceBallObj5);
+        PhotonNetwork.Destroy(iceBallObj1);
+        PhotonNetwork.Destroy(iceBallObj2);
+        PhotonNetwork.Destroy(iceBallObj3);
+        PhotonNetwork.Destroy(iceBallObj4);
+        PhotonNetwork.Destroy(iceBallObj5);
 
         yield return null;
     }
@@ -385,19 +401,20 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
 
         yield return new WaitForSeconds(4.0f);
 
-        Destroy(windObj1);
-        Destroy(windObj1);
-        Destroy(windObj2);
-        Destroy(windObj3);
-        Destroy(windObj4);
-        Destroy(windObj5);
-        Destroy(windObj6);
-        Destroy(windObj7);
-        Destroy(windObj8);
-        Destroy(windObj9);
-        Destroy(windObj10);
-        Destroy(windObj11);
-        Destroy(windObj12);
+        // Null 예외처리
+        PhotonNetwork.Destroy(windObj1);
+        PhotonNetwork.Destroy(windObj1);
+        PhotonNetwork.Destroy(windObj2);
+        PhotonNetwork.Destroy(windObj3);
+        PhotonNetwork.Destroy(windObj4);
+        PhotonNetwork.Destroy(windObj5);
+        PhotonNetwork.Destroy(windObj6);
+        PhotonNetwork.Destroy(windObj7);
+        PhotonNetwork.Destroy(windObj8);
+        PhotonNetwork.Destroy(windObj9);
+        PhotonNetwork.Destroy(windObj10);
+        PhotonNetwork.Destroy(windObj11);
+        PhotonNetwork.Destroy(windObj12);
 
         anim.SetTrigger("doIdle");
         isAttackING = false;
@@ -421,11 +438,24 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
 
         isFlyAttackING = true;
 
-        InvokeRepeating("CallIceField", 1.0f, 0.5f);
+        //InvokeRepeating("CallIceField", 1.0f, 0.5f);
+        GameObject[] iceFieldArray = new GameObject[25];
+        GameObject[] iceAttackArray = new GameObject[25];
+        for(int i = 0; i < 20; i++)
+        {
+            iceFieldArray[i] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+            //iceAttackArray[i] = PhotonNetwork.Instantiate("IceBlockCrash", flyAttackPos.position, flyAttackPos.rotation);
+            StartCoroutine("CallIceAttack");
 
-        yield return new WaitForSeconds(15.0f);
+            yield return new WaitForSeconds(0.5f);
+        }
 
-        CancelInvoke("CallIceField");
+        for(int i = 0; i < 20; i++)
+        {
+            PhotonNetwork.Destroy(iceFieldArray[i]);
+        }
+        
+        yield return new WaitForSeconds(2.0f);
 
         // 비행 정지
         isFlyAttackING = false;
@@ -445,22 +475,162 @@ public class BossGreyDragon : MonoBehaviourPunCallbacks, IPunObservable
         yield return null;
     }
 
-    void CallIceField()
+    /*IEnumerator CallIceField()
     {
-        GameObject iceField = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
-        Destroy(iceField, 3.0f);
+        GameObject[] iceFieldArray = new GameObject[20];
 
-        CallIceAttack();
-    }
+        iceFieldArray[0] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
 
-    void CallIceAttack()
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[1] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[2] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[3] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[4] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[5] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[6] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[0]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[7] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[1]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[8] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[2]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[9] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[3]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[10] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[4]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[11] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[5]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[12] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[6]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[13] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[7]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[14] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[8]);
+
+        yield return new WaitForSeconds(0.5f);
+        
+        iceFieldArray[15] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[9]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[16] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[10]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[17] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[11]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[18] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[12]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        iceFieldArray[19] = PhotonNetwork.Instantiate("IceField", flyAttackPos.position, flyAttackPos.rotation);
+        StartCoroutine("CallIceAttack");
+        PhotonNetwork.Destroy(iceFieldArray[13]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        PhotonNetwork.Destroy(iceFieldArray[14]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        PhotonNetwork.Destroy(iceFieldArray[15]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        PhotonNetwork.Destroy(iceFieldArray[16]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        PhotonNetwork.Destroy(iceFieldArray[17]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        PhotonNetwork.Destroy(iceFieldArray[18]);
+
+        yield return new WaitForSeconds(0.5f);
+
+        PhotonNetwork.Destroy(iceFieldArray[19]);
+
+        yield return null;
+    }*/
+
+    IEnumerator CallIceAttack()
     {
         GameObject iceAttack = PhotonNetwork.Instantiate("IceBlockCrash", flyAttackPos.position, flyAttackPos.rotation);
-        Destroy(iceAttack, 3.0f);
+
+        yield return new WaitForSeconds(3.0f);
+
+        PhotonNetwork.Destroy(iceAttack);
+
+        yield return null;
     }
 
-    // 플레이어와 물리 충돌이 나면 따라다니질 못하는 문제 해결
-    void FixedUpdate()
+	// 플레이어와 물리 충돌이 나면 따라다니질 못하는 문제 해결
+	void FixedUpdate()
     {
         FreezeVelocity();
     }

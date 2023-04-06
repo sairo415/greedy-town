@@ -282,7 +282,7 @@ public class BossAlbinoDragon : MonoBehaviourPunCallbacks, IPunObservable
 		// 공격 지속 시간
 		yield return new WaitForSeconds(1.0f);
 
-        Destroy(skillAreaObj);
+        PhotonNetwork.Destroy(skillAreaObj);
 
         // 공격 후 대기
         yield return new WaitForSeconds(2.0f);
@@ -337,11 +337,11 @@ public class BossAlbinoDragon : MonoBehaviourPunCallbacks, IPunObservable
         skillAreaObj4.SetActive(false);
         skillAreaObj5.SetActive(false);
 
-        Destroy(skillAreaObj1);
-        Destroy(skillAreaObj2);
-        Destroy(skillAreaObj3);
-        Destroy(skillAreaObj4);
-        Destroy(skillAreaObj5);
+        PhotonNetwork.Destroy(skillAreaObj1);
+        PhotonNetwork.Destroy(skillAreaObj2);
+        PhotonNetwork.Destroy(skillAreaObj3);
+        PhotonNetwork.Destroy(skillAreaObj4);
+        PhotonNetwork.Destroy(skillAreaObj5);
 
         yield return null;
     }
@@ -355,7 +355,7 @@ public class BossAlbinoDragon : MonoBehaviourPunCallbacks, IPunObservable
 
         yield return new WaitForSeconds(1.0f);
 
-        Destroy(skillAreaObj);
+        PhotonNetwork.Destroy(skillAreaObj);
 
         yield return new WaitForSeconds(2.0f);
 
@@ -427,7 +427,7 @@ public class BossAlbinoDragon : MonoBehaviourPunCallbacks, IPunObservable
                 // 적과 닿았을 때 이펙트 삭제되도록 Destroy() 호출
                 if(other.tag == "PlayerAttack")
                 {
-                    Destroy(other.gameObject);
+                    PhotonNetwork.Destroy(other.gameObject);
                     other.gameObject.SetActive(false);
                 }
 

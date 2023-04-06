@@ -53,7 +53,7 @@ public class BossMemberManager : MonoBehaviour
 		BossPlayer[] bossPlayers = FindObjectsOfType<BossPlayer>();
 		foreach(BossPlayer bossPlayer in bossPlayers)
 		{
-			playerInfoList[bossPlayer.pv.ViewID] = (bossPlayer.bossPlayerName, (bossPlayer.maxHealth, bossPlayer.curHealth));
+			playerInfoList[bossPlayer.pv.ViewID] = (PlayerPrefs.GetString("userNickname"), (bossPlayer.maxHealth, bossPlayer.curHealth));
 		}
 	}
 

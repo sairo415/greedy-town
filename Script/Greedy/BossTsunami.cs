@@ -17,9 +17,9 @@ public class BossTsunami : MonoBehaviour
     private void Awake()
     {
         // bossRed = GetComponent<BossRed>();
-        BossRed bossRed = FindObjectOfType<BossRed>();
+        /*BossRed bossRed = FindObjectOfType<BossRed>();
         tsunamiVector = bossRed.target.transform.position - transform.position;
-        tsunamiVector *= -1.0f;
+        tsunamiVector *= -1.0f;*/
     }
     void Start()
     {

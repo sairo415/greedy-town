@@ -15,19 +15,19 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
 
     // 목표물 지정
     [SerializeField]
-    public BossPlayer targetPlayer;
-    public Transform target;
+    private BossPlayer targetPlayer;
+    private Transform target;
 
     Rigidbody rigid;
     BoxCollider boxCollider;
     Animator anim;
     NavMeshAgent nav;
 
-    public GameObject attackSpot;
     public GameObject targetOnSpot;
     public GameObject clawSpot;
     // public GameObject clawEffect;
     public GameObject flameSpot;
+    public GameObject targetBody;
     // public GameObject flameEffect;
     // public GameObject basicEffect;
 
@@ -49,16 +49,14 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
     public bool isChase;
     bool isAttack;
     bool isDead;
-    bool isLook;
-
-    Vector3 lookVector;
 
     PhotonView pv;
 
     bool isScreamEnd;
     bool isScreamING;
 
-    int selectedSkillIdx;
+    AudioSource skillSound;
+    public AudioClip dragonScreamSound;
 
     enum BossState { Attack1, Attack2, Attack3, Scream };
     BossState curState;
@@ -70,6 +68,7 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
         boxCollider = GetComponent<BoxCollider>();
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
+        skillSound = GetComponent<AudioSource>();
 
         changeTargetTimeDelta = 100.0f;
         changeTargetTime = 10.0f;
@@ -121,8 +120,6 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
 
         if (photonView.IsMine)
         {
-            if (isDead) return;
-
             if (!isDead && curHealth <= 0)
             {
                 gameObject.layer = LayerMask.NameToLayer("BossDead");
@@ -135,6 +132,8 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
 
                 Destroy(gameObject, 4);
             }
+
+            if (isDead) return;
 
             // 타겟 변경 시간
             changeTargetTimeDelta += Time.deltaTime;
@@ -186,6 +185,7 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
                         if (runTimeDelta >= runTime || targetOnSpot.GetComponent<BossTarget>().isTargetOn)
                         {
                             nav.isStopped = true;
+                            FreezeVelocity();
                             isChase = false;
                             anim.SetBool("isRun", false);
 
@@ -201,9 +201,10 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
                         nav.SetDestination(target.position);
 
                         runTimeDelta += Time.deltaTime;
-                        if (runTimeDelta >= runTime || targetOnSpot.GetComponent<BossTarget>().isTargetOn)
+                        if (runTimeDelta >= runTime || targetBody.GetComponent<BossTarget>().isTargetOn)
                         {
                             nav.isStopped = true;
+                            FreezeVelocity();
                             isChase = false;
                             anim.SetBool("isRun", false);
 
@@ -222,6 +223,7 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
                         if (runTimeDelta >= runTime || targetOnSpot.GetComponent<BossTarget>().isTargetOn)
                         {
                             nav.isStopped = true;
+                            FreezeVelocity();
                             isChase = false;
                             anim.SetBool("isRun", false);
 
@@ -240,6 +242,9 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
         yield return new WaitForSeconds(1.0f);
 
         anim.SetTrigger("doScream");
+        skillSound.clip = dragonScreamSound;
+        skillSound.loop = false;
+        skillSound.Play();
 
         yield return new WaitForSeconds(4.0f);
         isScreamEnd = true;
@@ -255,7 +260,7 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
         // attackSpot.SetActive(true);
 
         yield return new WaitForSeconds(2.0f);
-        Destroy(instantClawEffect);
+        PhotonNetwork.Destroy(instantClawEffect);
         // attackSpot.SetActive(false);
         isAttack = false;
         runTimeDelta = 0.0f;
@@ -272,7 +277,7 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
 
         yield return new WaitForSeconds(3.0f);
         // flameEffect.SetActive(false);
-        Destroy(instantAbyss);
+        PhotonNetwork.Destroy(instantAbyss);
 
         yield return new WaitForSeconds(1f);
         isAttack = false;
@@ -281,20 +286,32 @@ public class BossPurple : MonoBehaviourPunCallbacks, IPunObservable
 
     IEnumerator DoBasicAttack()
     {
+        transform.LookAt(target);
         anim.SetTrigger("doBasicAttack");
         yield return new WaitForSeconds(0.5f);
 
-        GameObject instantBasicEffect = PhotonNetwork.Instantiate("BasicReleaseEffect", flameSpot.transform.position, flameSpot.transform.rotation);
+        GameObject instantBasicEffect1 = PhotonNetwork.Instantiate("BasicReleaseEffect", flameSpot.transform.position, flameSpot.transform.rotation);
 
-        // attackSpot.SetActive(true);
-        // basicEffect.SetActive(true);
+        yield return new WaitForSeconds(1.0f);
+        PhotonNetwork.Destroy(instantBasicEffect1);
 
-        // yield return new WaitForSeconds(0.5f);
-        // basicEffect.SetActive(false);
+        transform.LookAt(target);
+        anim.SetTrigger("doBasicAttack");
+        yield return new WaitForSeconds(0.5f);
 
-        yield return new WaitForSeconds(1.5f);
-        // attackSpot.SetActive(false);
-        Destroy(instantBasicEffect);
+        GameObject instantBasicEffect2 = PhotonNetwork.Instantiate("BasicReleaseEffect", flameSpot.transform.position, flameSpot.transform.rotation);
+
+        yield return new WaitForSeconds(1.0f);
+        PhotonNetwork.Destroy(instantBasicEffect2);
+
+        transform.LookAt(target);
+        anim.SetTrigger("doBasicAttack");
+        yield return new WaitForSeconds(0.5f);
+
+        GameObject instantBasicEffect3 = PhotonNetwork.Instantiate("BasicReleaseEffect", flameSpot.transform.position, flameSpot.transform.rotation);
+
+        yield return new WaitForSeconds(1.0f);
+        PhotonNetwork.Destroy(instantBasicEffect3);
 
         yield return new WaitForSeconds(0.5f);
         isAttack = false;

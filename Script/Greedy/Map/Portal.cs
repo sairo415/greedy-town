@@ -17,7 +17,7 @@ public class Portal : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        BossGameManager gameManager = GameManager.FindObjectOfType<BossGameManager>();
+        BossGameManager gameManager = GameObject.FindObjectOfType<BossGameManager>();
         if(gameManager == null)
             return;
 

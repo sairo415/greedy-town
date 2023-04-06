@@ -14,8 +14,8 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
     public int curHealth;
 
     [SerializeField]
-    public BossPlayer targetPlayer;
-    public Transform target;
+    private BossPlayer targetPlayer;
+    private Transform target;
 
     Rigidbody rigid;
     BoxCollider boxCollider;
@@ -51,12 +51,11 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
     float mapLavaTimeDelta;   // 측정
     float mapLavaTime;        // 기준치
 
-    Vector3 lookVector;
-
-    PhotonView pv;
-
     bool isScreamEnd;
     bool isScreamING;
+
+    AudioSource skillSound;
+    public AudioClip dragonScreamSound;
 
     enum BossState { Attack1, Attack2, Attack3, Scream };
     BossState curState;
@@ -64,11 +63,11 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
 
     void Awake()
     {
-        pv = GetComponent<PhotonView>();
         rigid = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
+        skillSound = GetComponent<AudioSource>();
 
         changeTargetTimeDelta = 100.0f;
         changeTargetTime = 10.0f;
@@ -79,7 +78,6 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         mapLavaTime = 5.0f;
 
         runTime = 10.0f;
-        nav.isStopped = true;
         boxCollider.enabled = false;
         curState = BossState.Scream;
 
@@ -126,8 +124,6 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
 
         if (photonView.IsMine)
         {
-            if (isDead) return;
-
             if (!isDead && curHealth <= 0)
             {
                 gameObject.layer = LayerMask.NameToLayer("BossDead");
@@ -140,6 +136,8 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
 
                 Destroy(gameObject, 4);
             }
+
+            if (isDead) return;
 
             changeTargetTimeDelta += Time.deltaTime;
 
@@ -165,7 +163,21 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                 changeTargetTimeDelta = 0.0f;
             }
 
-            curState = (BossState)UnityEngine.Random.Range(0, 3);
+            int ranAction = Random.Range(0, 100);
+
+            if (ranAction < 40)
+            {
+                curState = BossState.Attack1;
+            }
+            else if (ranAction < 80)
+            {
+                curState = BossState.Attack2;
+            }
+            else
+            {
+                curState = BossState.Attack3;
+            }
+            // curState = (BossState)UnityEngine.Random.Range(0, 3);
 
             if (target != null)
             {
@@ -198,6 +210,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                             anim.SetBool("isRun", false);
                             transform.LookAt(target);
                             nav.isStopped = true;
+                            FreezeVelocity();
                             isChase = false;
 
                             isAttack = true;
@@ -216,6 +229,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                             anim.SetBool("isRun", false);
                             transform.LookAt(target);
                             nav.isStopped = true;
+                            FreezeVelocity();
                             isChase = false;
 
                             isAttack = true;
@@ -224,6 +238,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                         break;
                     case BossState.Attack3:
                         isAttack = true;
+                        FreezeVelocity();
                         StartCoroutine("DoFireShot");
                         break;
                 }
@@ -237,6 +252,9 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         yield return new WaitForSeconds(3.0f);
 
         anim.SetTrigger("doScream");
+        skillSound.clip = dragonScreamSound;
+        skillSound.loop = false;
+        skillSound.Play();
 
         yield return new WaitForSeconds(4.0f);
         isScreamEnd = true;
@@ -254,7 +272,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         GameObject instantClawEffect = PhotonNetwork.Instantiate("FlameScatter", clawSpot.transform.position, clawSpot.transform.rotation);
 
         yield return new WaitForSeconds(2.0f);
-        Destroy(instantClawEffect);
+        PhotonNetwork.Destroy(instantClawEffect);
         isAttack = false;
         runTimeDelta = 0.0f;
     }
@@ -272,14 +290,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         GameObject instantTsunami3 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[2].transform.position, tsunamiSpots[2].transform.rotation);
         GameObject instantTsunami4 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[3].transform.position, tsunamiSpots[3].transform.rotation);
 
-        yield return new WaitForSeconds(1.0f);
-        Destroy(instantTsunami1);
-        Destroy(instantTsunami2);
-        Destroy(instantTsunami3);
-        Destroy(instantTsunami4);
-
-
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(1.5f);
         isLine = false;
         anim.SetTrigger("doBasicAttack");
         GameObject instantTsunami5 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[0].transform.position, tsunamiSpots[0].transform.rotation);
@@ -288,10 +299,14 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
         GameObject instantTsunami8 = PhotonNetwork.Instantiate("FlameTsunami", tsunamiSpots[3].transform.position, tsunamiSpots[3].transform.rotation);
 
         yield return new WaitForSeconds(1.0f);
-        Destroy(instantTsunami5);
-        Destroy(instantTsunami6);
-        Destroy(instantTsunami7);
-        Destroy(instantTsunami8);
+        PhotonNetwork.Destroy(instantTsunami1);
+        PhotonNetwork.Destroy(instantTsunami2);
+        PhotonNetwork.Destroy(instantTsunami3);
+        PhotonNetwork.Destroy(instantTsunami4);
+        PhotonNetwork.Destroy(instantTsunami5);
+        PhotonNetwork.Destroy(instantTsunami6);
+        PhotonNetwork.Destroy(instantTsunami7);
+        PhotonNetwork.Destroy(instantTsunami8);
         isAttack = false;
         runTimeDelta = 0.0f;
     }
@@ -335,9 +350,9 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
 
         yield return new WaitForSeconds(2f);
         isAttack = false;
-        Destroy(fireShot1);
-        Destroy(fireShot2);
-        Destroy(fireShot3);
+        PhotonNetwork.Destroy(fireShot1);
+        PhotonNetwork.Destroy(fireShot2);
+        PhotonNetwork.Destroy(fireShot3);
     }
 
     IEnumerator LavaField()
@@ -356,18 +371,36 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
             lavaFields = lavaFields.Where((val, idx) => idx != index).ToArray();
         }
 
+        GameObject[] beforeEffect = new GameObject[selectedFields.Length];
+
         for (int i = 0; i < selectedFields.Length; i++)
         {
-            GameObject instantLavaEffect = PhotonNetwork.Instantiate("LavaStartEffect", selectedFields[i].transform.position, selectedFields[i].transform.rotation);
-            Destroy(instantLavaEffect, 2.0f);
+            beforeEffect[i] = PhotonNetwork.Instantiate("LavaStartEffect", selectedFields[i].transform.position, selectedFields[i].transform.rotation);
+            // PhotonNetwork.Destroy(instantLavaEffect, 2.0f);
         }
 
         yield return new WaitForSeconds(1.5f);
 
+        GameObject[] hitEffect = new GameObject[selectedFields.Length];
+
         for (int i = 0; i < selectedFields.Length; i++)
         {
-            GameObject instantLavaAttack = PhotonNetwork.Instantiate("MagmaField", selectedFields[i].transform.position, selectedFields[i].transform.rotation);
-            Destroy(instantLavaAttack, 3.0f);
+            hitEffect[i] = PhotonNetwork.Instantiate("MagmaField", selectedFields[i].transform.position, selectedFields[i].transform.rotation);
+            // PhotonNetwork.Destroy(instantLavaAttack, 3.0f);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        for (int i = 0; i < selectedFields.Length; i++)
+        {
+            PhotonNetwork.Destroy(beforeEffect[i]);
+        }
+
+        yield return new WaitForSeconds(2.0f);
+
+        for (int i = 0; i < selectedFields.Length; i++)
+        {
+            PhotonNetwork.Destroy(hitEffect[i]);
         }
 
         yield return null;
@@ -420,7 +453,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                 int sendRPCBossHP = curHealth;
 
                 // 서버 보스 체력과 동기화
-                pv.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
+                photonView.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
 
                 // 적과 닿았을 때 이펙트 삭제되도록 Destroy() 호출
                 // tag PlayerAttack => 닿으면 삭제되는 이펙트
@@ -487,7 +520,7 @@ public class BossRed : MonoBehaviourPunCallbacks, IPunObservable
                 int sendRPCBossHP = curHealth;
 
                 // 서버 보스 체력과 동기화
-                pv.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
+                photonView.RPC("SyncBossHealth", RpcTarget.Others, sendRPCBossHP);
 
                 StartCoroutine("OnDamage");
 
