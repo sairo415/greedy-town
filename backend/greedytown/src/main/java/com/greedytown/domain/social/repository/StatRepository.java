@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface StatRepository extends JpaRepository<Stat, Long> {
 
-    List<Stat> findAllByOrderByUserClearTimeDesc();
+    List<Stat> findAllStatSeqByUserClearTimeIsNotNullOrderByUserClearTimeDesc();
 }

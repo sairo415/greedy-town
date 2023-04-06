@@ -19,42 +19,34 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
 
     private string baseUrl = "http://j8a808.p.ssafy.io:8080/";
     //    private string baseUrl = "localhost:8080/";
+    public TownPlayerController townPlayer;
 
     private void Start()
     {
-        if(SceneManager.GetActiveScene().name != "Vamsu-LSJ")
-       
+        if (!PhotonNetwork.InRoom)
         {
-            if (!PhotonNetwork.InRoom) PhotonNetwork.JoinOrCreateRoom("Town", new RoomOptions { MaxPlayers = 20 }, null);
-            else PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0));
+            RoomOptions ro = new RoomOptions();
+            ro.IsOpen = true;
+            ro.IsVisible = false;
+            ro.MaxPlayers = 20;
+            PhotonNetwork.JoinOrCreateRoom("Town", ro, null);
         }
-      
-        
+        else townPlayer = PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0)).GetComponent<TownPlayerController>();
 
     }
 
-    public void ToTheBossLobby()
+   
+
+
+    public void OnClickRanking()
     {
-        PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.LeaveRoom();
+        PhotonNetwork.Destroy(townPlayer.gameObject);
+        SceneManager.LoadScene("Achievements");
     }
-
-    public override void OnLeftRoom()
-    {
-        if (SceneManager.GetActiveScene().name == "Town")
-        {
-            SceneManager.LoadScene("BossLobby");
-
-            return;
-        }
-    }
-
-
-
    
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0));
+        townPlayer = PhotonNetwork.Instantiate("TownPlayer", start, Quaternion.Euler(0, 180, 0)).GetComponent<TownPlayerController>();
     }
 
 
@@ -205,6 +197,12 @@ public class TownNetworkManager : MonoBehaviourPunCallbacks
             }
             request.Dispose();
         }
+    }
+
+    //다시 마이페이지
+    public void OnClickMyPage()
+    {
+        SceneManager.LoadScene("MyPageCustom");
     }
 
 }

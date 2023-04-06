@@ -32,7 +32,7 @@ public class SocialServiceImpl implements SocialService {
     @Override
     public List<RankingDto> getUserRanking() {
         List<RankingDto> list = new ArrayList<>();
-        for(Stat stat : statRepository.findAllByOrderByUserClearTimeDesc()){
+        for(Stat stat : statRepository.findAllStatSeqByUserClearTimeIsNotNullOrderByUserClearTimeDesc()){
             User user = userRepository.findUserByUserSeq(stat.getUserSeq().getUserSeq());
             RankingDto rankingDto = RankingDto.builder().
                                     userNickname(user.getUserNickname()).

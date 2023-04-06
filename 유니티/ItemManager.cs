@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine.SceneManagement;
 using System;
 
-public class ItemManager : MonoBehaviour
+public class ItemManager : MonoBehaviourPunCallbacks
 {
     //슬롯 버튼들
 
@@ -38,14 +38,16 @@ public class ItemManager : MonoBehaviour
     public Transform player;
 
     //현재 입은 아이템 num
-    private int hatNum;
-    private int headNum;
-    private int acsNum;
-    private int hairNum;
-    private int weaponNum;
-    private int sheildNum;
-    private int dressNum;
-    private int backNum;
+    public int hatNum;
+    public int headNum;
+    public int acsNum;
+    public int hairNum;
+    public int weaponNum;
+    public int sheildNum;
+    public int dressNum;
+    public int backNum;
+
+    private bool check;
 
     private string baseUrl = "http://j8a808.p.ssafy.io:8080/";
     //    private string baseUrl = "localhost:8080/";
@@ -56,6 +58,12 @@ public class ItemManager : MonoBehaviour
         PhotonNetwork.JoinLobby();
         // 유저 정보 조회
         StartCoroutine(Userinfo());
+        PhotonNetwork.JoinLobby();
+        // 유저 정보 조회
+        StartCoroutine(Userinfo());
+/*        // 소유 아이템 조회
+        StartCoroutine(MyItem());*/
+        check = true;
 
         ActiveSlot = 0; //처음엔 모자가 엑티스 슬롯
         player = player.GetComponent<Transform>();
@@ -128,7 +136,26 @@ public class ItemManager : MonoBehaviour
 
     }
 
+    public void ChangeScene()
+    {
+        if (check)
+        {
+            StartCoroutine(GetComponent<ItemManager>().Custom());
+            SceneManager.LoadScene("Town");
+        }
 
+    }
+
+    public override void OnJoinedLobby()
+    {
+        Debug.Log("로비연결");
+    }
+    public override void OnJoinedRoom()
+    {
+        Debug.Log("방 입장");
+        PhotonNetwork.Instantiate("TownPlayer", new Vector3(-25.88f, 5, -17.61119f), Quaternion.identity);
+
+    }
 
     public void ClickItem(Button Item)
 
@@ -280,6 +307,73 @@ public class ItemManager : MonoBehaviour
                     JArray response2 = JArray.Parse(response["userItems"].ToString());
                     JArray response3 = JArray.Parse(response["wearingDtos"].ToString());
                     print(response);
+
+                    // 내 옷 조회
+                    GameObject player = GameObject.Find("MyPagePlayer");
+                    if(response3.HasValues)
+                    {
+
+                    foreach (JObject jobj in response3)
+                    {
+                        int itemSeq = int.Parse(jobj["itemDto"]["itemSeq"].ToString());
+                        if (itemSeq <= 14)
+                        {
+                                hatNum = itemSeq - 1;
+                            player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(hatNum + 96).gameObject.SetActive(true);
+                        }
+                        else if (itemSeq <= 34)
+                        {
+                            headNum = itemSeq - 15;
+                                player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(headNum + 76).gameObject.SetActive(true);
+                            }
+                        else if (itemSeq <= 73)
+                        {
+                            acsNum = itemSeq - 35;
+                                player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(acsNum).gameObject.SetActive(true);
+                            }
+                        else if (itemSeq <= 86)
+                        {
+                                hairNum  = itemSeq - 74;
+                                player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(hairNum + 63).gameObject.SetActive(true);
+                            }
+                        else if (itemSeq <= 116)
+                        {
+                                weaponNum = itemSeq - 87;
+                                player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(weaponNum + 1).gameObject.SetActive(true);
+                            }
+                        else if (itemSeq <= 136)
+                        {
+                                sheildNum = itemSeq - 117;
+                                player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(sheildNum + 17).gameObject.SetActive(true);
+                            }
+                        else if (itemSeq <= 156)
+                        {
+                                dressNum = itemSeq - 137;
+                                player.transform.GetChild(dressNum).gameObject.SetActive(true);
+                            }
+                        else
+                        {
+                                backNum = itemSeq - 157;
+                                if (backNum != 100)
+                                {
+                                    if (backNum < 3)
+                                    {
+                                        player.transform.GetChild(backNum + 20).gameObject.SetActive(true);
+                                    }
+                                    else
+                                    {
+                                        player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(backNum - 3).gameObject.SetActive(true);
+                                    }
+                                }
+                            }
+                    }
+                    } else
+                    {
+                        player.transform.GetChild(dressNum).gameObject.SetActive(true);
+                        player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(weaponNum + 1).gameObject.SetActive(true);
+                        player.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(headNum + 76).gameObject.SetActive(true);
+                    }
+
                     // 이미지 여러 장 겹쳐두고
                     foreach (JObject jobj in response2)
                     {
@@ -539,25 +633,6 @@ public class ItemManager : MonoBehaviour
 
         }
 
-        PlayerPrefs.SetInt("hatNum", hatNum);
-        PlayerPrefs.SetInt("headNum ", headNum);
-        PlayerPrefs.SetInt("acsNum ", acsNum);
-        PlayerPrefs.SetInt("hairNum ", hairNum);
-        PlayerPrefs.SetInt("weaponNum ", weaponNum);
-        PlayerPrefs.SetInt("sheildNum ", sheildNum);
-        PlayerPrefs.SetInt("dressNum ", dressNum);
-        PlayerPrefs.SetInt("backNum ", backNum);
-
-        Debug.Log(PlayerPrefs.GetInt("dressNum"));
-        Debug.Log(PlayerPrefs.GetInt("backNum"));
-        Debug.Log(PlayerPrefs.GetInt("sheildNum"));
-        Debug.Log(PlayerPrefs.GetInt("weaponNum"));
-        Debug.Log(PlayerPrefs.GetInt("acsNum"));
-        Debug.Log(PlayerPrefs.GetInt("hairNum"));
-        Debug.Log(PlayerPrefs.GetInt("headNum"));
-        Debug.Log(PlayerPrefs.GetInt("hatNum"));
-
-        Debug.Log("---------------------");
 
         Debug.Log(dressNum);
         Debug.Log(backNum);
@@ -567,6 +642,16 @@ public class ItemManager : MonoBehaviour
         Debug.Log(hairNum);
         Debug.Log(headNum);
         Debug.Log(hatNum);
+        Debug.Log("---------------------");
+
+        PlayerPrefs.SetInt("hatNum", hatNum);
+        PlayerPrefs.SetInt("headNum", headNum);
+        PlayerPrefs.SetInt("acsNum", acsNum);
+        PlayerPrefs.SetInt("hairNum", hairNum);
+        PlayerPrefs.SetInt("weaponNum", weaponNum);
+        PlayerPrefs.SetInt("sheildNum", sheildNum);
+        PlayerPrefs.SetInt("dressNum", dressNum);
+        PlayerPrefs.SetInt("backNum", backNum);
 
         //WearingDto wearingDto = new WearingDto(1, itemDto);
 

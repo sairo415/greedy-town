@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Photon.Realtime;
 using Photon.Pun;
 using Cinemachine;
@@ -12,9 +13,13 @@ using Newtonsoft.Json.Linq;
 public class TownPlayerController : MonoBehaviourPun, IPunObservable
 {
     public float speed;
-
+    GameObject moveUI;
+    string moveDest = "";
+    Text moveText;
     float hAxis;
     float vAxis;
+
+   
 
     private Vector3 start = new Vector3(-18, 5, -12);
 
@@ -43,56 +48,156 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
     PhotonView PV;
 
 
+    int dressNum;
+    int backNum;
+    int sheildNum;
+    int weaponNum;
+    int acsNum;
+    int hairNum;
+    int headNum;
+    int hatNum;
+
 
     private void Awake()
     {
 
         rigid = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
-        
+
+        /*      moveUI = GameObject.Find("Canvas").transform.Find("MoveYesNo").gameObject;
+              moveText = moveUI.GetComponentInChildren<Text>();*/
     }
 
+    [PunRPC]
+    void GetOtherPlayer(int viewId)
+    {
+        TownPlayerController responsePlayer = PhotonView.Find(viewId).gameObject.GetComponent<TownPlayerController>();
+        dressNum = responsePlayer.dressNum;
+        backNum = responsePlayer.backNum;
+        sheildNum = responsePlayer.sheildNum;
+        weaponNum = responsePlayer.weaponNum;
+        acsNum = responsePlayer.acsNum;
+        hairNum = responsePlayer.hairNum;
+        headNum = responsePlayer.headNum;
+        hatNum = responsePlayer.hatNum;
+
+        PV.RPC("SyncClothes", RpcTarget.Others, viewId, dressNum, backNum, sheildNum, weaponNum, acsNum, hairNum, headNum, hatNum);
+    }
+
+    [PunRPC]
+    void SyncClothes(int viewId, int dressNum, int backNum, int sheildNum, int weaponNum, int acsNum, int hairNum, int headNum, int hatNum)
+    {
+        TownPlayerController me = PhotonView.Find(viewId).GetComponent<TownPlayerController>();
+
+        me.transform.GetChild(dressNum).gameObject.SetActive(true);
+        if (backNum != 100)
+        {
+            if (backNum < 3)
+            {
+                me.transform.GetChild(backNum + 20).gameObject.SetActive(true);
+            }
+            else
+            {
+                me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(backNum - 3).gameObject.SetActive(true);
+            }
+        }
+        if (sheildNum != 100)
+        {
+            me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(sheildNum + 17).gameObject.SetActive(true);
+        }
+        me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(weaponNum + 1).gameObject.SetActive(true);
+        if (acsNum != 100)
+        {
+            me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(acsNum).gameObject.SetActive(true);
+        }
+        if (hairNum != 100)
+        {
+            me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(hairNum + 63).gameObject.SetActive(true);
+        }
+        me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(headNum + 76).gameObject.SetActive(true);
+        if (hatNum != 100)
+        {
+            me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(hatNum + 96).gameObject.SetActive(true);
+        }
+        me.transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Eyebrow02").gameObject.SetActive(true);
+    }
 
 
     void Start()
     {
-       
+
+        dressNum = PlayerPrefs.GetInt("dressNum");
+        backNum = PlayerPrefs.GetInt("backNum");
+        sheildNum = PlayerPrefs.GetInt("sheildNum");
+        weaponNum = PlayerPrefs.GetInt("weaponNum");
+        acsNum = PlayerPrefs.GetInt("acsNum");
+        hairNum = PlayerPrefs.GetInt("hairNum");
+        headNum = PlayerPrefs.GetInt("headNum");
+        hatNum = PlayerPrefs.GetInt("hatNum");
 
         PV = photonView;
         NM = GameObject.FindWithTag("TownNetworkManager").GetComponent<TownNetworkManager>();
-
-        Debug.Log(PlayerPrefs.GetInt("dressNum"));
-        Debug.Log(PlayerPrefs.GetInt("backNum"));
-        Debug.Log(PlayerPrefs.GetInt("sheildNum"));
-        Debug.Log(PlayerPrefs.GetInt("weaponNum"));
-        Debug.Log(PlayerPrefs.GetInt("acsNum"));
-        Debug.Log(PlayerPrefs.GetInt("hairNum"));
-        Debug.Log(PlayerPrefs.GetInt("headNum"));
-        Debug.Log(PlayerPrefs.GetInt("hatNum"));
-        
-        
-        transform.GetChild(PlayerPrefs.GetInt("dressNum")).gameObject.SetActive(true);
-        if(PlayerPrefs.GetInt("backNum") < 3)
+        //PV.RPC("SyncClothes", RpcTarget.All, PV.ViewID, PlayerPrefs.GetInt("dressNum"), PlayerPrefs.GetInt("backNum"), PlayerPrefs.GetInt("sheildNum"), PlayerPrefs.GetInt("weaponNum"), PlayerPrefs.GetInt("acsNum"), PlayerPrefs.GetInt("hairNum"), PlayerPrefs.GetInt("headNum"), PlayerPrefs.GetInt("hatNum"));
+        if (PV.IsMine)
         {
-            transform.GetChild(PlayerPrefs.GetInt("backNum")+20).gameObject.SetActive(true);
+            PV.RPC("SyncClothes", RpcTarget.All, PV.ViewID, dressNum, backNum, sheildNum, weaponNum, acsNum, hairNum, headNum, hatNum);
         } else
         {
-            transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(PlayerPrefs.GetInt("backNum")-3).gameObject.SetActive(true);
+            PV.RPC("GetOtherPlayer", RpcTarget.Others, PV.ViewID);
         }
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(PlayerPrefs.GetInt("sheildNum") + 17).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(PlayerPrefs.GetInt("weaponNum") + 1).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("acsNum")).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("hairNum") + 63).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("headNum") + 76).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("hatNum") + 96).gameObject.SetActive(true);
-        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Eyebrow02").gameObject.SetActive(true);
 
+            /*if(PV.IsMine)
+            {
+                Debug.Log(PlayerPrefs.GetInt("dressNum"));
+                Debug.Log(PlayerPrefs.GetInt("backNum"));
+                Debug.Log(PlayerPrefs.GetInt("sheildNum"));
+                Debug.Log(PlayerPrefs.GetInt("weaponNum"));
+                Debug.Log(PlayerPrefs.GetInt("acsNum"));
+                Debug.Log(PlayerPrefs.GetInt("hairNum"));
+                Debug.Log(PlayerPrefs.GetInt("headNum"));
+                Debug.Log(PlayerPrefs.GetInt("hatNum"));
 
-    }
-    void Update()
+                transform.GetChild(PlayerPrefs.GetInt("dressNum")).gameObject.SetActive(true);
+                if(PlayerPrefs.GetInt("backNum") != 100)
+                {
+                    if(PlayerPrefs.GetInt("backNum") < 3) 
+                    {
+                        transform.GetChild(PlayerPrefs.GetInt("backNum") + 20).gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("BackpackBone").GetChild(PlayerPrefs.GetInt("backNum") - 3).gameObject.SetActive(true);
+                    }
+                } 
+                if(PlayerPrefs.GetInt("sheildNum") != 100)
+                {
+                    transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_l").Find("upperarm_l").Find("lowerarm_l").Find("hand_l").Find("weapon_l").GetChild(PlayerPrefs.GetInt("sheildNum") + 17).gameObject.SetActive(true);
+                }
+                transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("clavicle_r").Find("upperarm_r").Find("lowerarm_r").Find("hand_r").Find("weapon_r").GetChild(PlayerPrefs.GetInt("weaponNum") + 1).gameObject.SetActive(true);
+                if(PlayerPrefs.GetInt("acsNum") != 100)
+                {
+                    transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("acsNum")).gameObject.SetActive(true);
+                }
+                if(PlayerPrefs.GetInt("hairNum") != 100)
+                {
+                    transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("hairNum") + 63).gameObject.SetActive(true);
+                }
+                transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("headNum") + 76).gameObject.SetActive(true);
+                if(PlayerPrefs.GetInt("hatNum") != 100)
+                {
+                    transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").GetChild(PlayerPrefs.GetInt("hatNum") + 96).gameObject.SetActive(true);
+                }
+                transform.Find("root").Find("pelvis").Find("spine_01").Find("spine_02").Find("spine_03").Find("neck_01").Find("head").Find("Eyebrow02").gameObject.SetActive(true);
+
+            }*/
+
+        }
+        void Update()
     {
         if (PV.IsMine)
         {
+            moveUI = GameObject.Find("Canvas").transform.Find("MoveYesNo").gameObject;
+            moveText = moveUI.GetComponentInChildren<Text>();
             var CM = GameObject.Find("CMCamera").GetComponent<CinemachineVirtualCamera>();
             CM.Follow = transform;
             CM.LookAt = transform;
@@ -107,45 +212,59 @@ public class TownPlayerController : MonoBehaviourPun, IPunObservable
         {
             this.gameObject.transform.position = start;
         }
-
-
     }
     void OnCollisionEnter(Collision col)
     {
-        // 배에 닿으면 보스레이드 로비로 이동
+        string place = "";
         if (col.gameObject.name == "Boat")
         {
-            ToTheBossLobby();
+            place = "레이드";
+            moveDest = "Boat";
         }
         // 랭킹 표지판에 가면 랭킹 조회
-        else if(col.gameObject.name == "PinnedWall")
+        else if (col.gameObject.name == "PinnedWall")
         {
             StartCoroutine(Ranking());
+            return;
         }
         // 열기구에 가면 뱀서로 이동
-        else if(col.gameObject.name == "HotAirBalloon_Blue")
+        else if (col.gameObject.name == "HotAirBalloon_Blue")
         {
             print("뱀서 간다");
-            SceneManager.LoadScene("Vamsu-LSJ");
+            moveDest = "HotAirBalloon_Blue";
+            place = "서바이벌";
         }
         // 상점으로 가면 상점으로 이동
         else if (col.gameObject.name == "Magic_Shop")
         {
             print("상점 간다");
-            SceneManager.LoadScene("Market");
+            moveDest = "Magic_Shop";
+            place = "상점";
         }
         // 키오스크로 가면 카지노로 이동
         else if (col.gameObject.name == "Kiosk_Shop")
         {
             print("카지노 간다");
-            SceneManager.LoadScene("Casino");
+            moveDest = "Kiosk_Shop";
+            place = "카지노";
         }
         // 경찰서로 가면 PVP로 이동
         else if (col.gameObject.name == "PoliceStation_1Light")
         {
             print("PVP 간다");
+            moveDest = "PoliceStation_1Light";
+            place = "PVP";
         }
+        else
+        {
+            return;
+        }
+        moveText.text = place + "에 가시겠습니까?";
+        moveUI.GetComponent<RectTransform>().localScale = Vector3.one;
+        moveUI.GetComponent<TownUI>().moveDest = moveDest;
     }
+
+
 
     public void Alert(string message)
     {

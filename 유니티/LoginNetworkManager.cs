@@ -186,6 +186,7 @@ public class LoginNetworkManager : MonoBehaviourPunCallbacks
     private IEnumerator Signin()
     {
         print("signin 호출");
+        PlayerPrefs.DeleteAll();
         string url = baseUrl + "login";
 
         // 로그인 정보

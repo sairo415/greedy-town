@@ -23,12 +23,8 @@ public class MyPageNetworkManager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        PhotonNetwork.JoinLobby();
-        // 유저 정보 조회
-        StartCoroutine(Userinfo());
-        // 소유 아이템 조회
-        StartCoroutine(GetComponent<ItemManager>().MyItem());
-        check = true;
+        
+
     }
     public void ChangeScene()
     {
