@@ -2,6 +2,9 @@
 
 # greedy town 포팅 매뉴얼
 
+# greedy town 다운로드 링크 
+- https://drive.google.com/file/d/1uNhMQr2z4PIvNbeO2GYRyGGupBnfPgSa/view?usp=share_link
+
 ## 목차
 
 1. 환경 설정
