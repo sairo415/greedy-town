@@ -74,6 +74,12 @@ public class SlotMachine : MonoBehaviour
 		textCredits.text = $"남은 돈 : {credits}";
 	}
 
+	void OnEnable()
+	{
+		credits = CasinoManager.instance.gold;
+		textCredits.text = $"남은 돈 : {credits}";
+	}
+
 	private void Update()
 	{
 		if ( !isStartSpin ) return;
@@ -144,9 +150,14 @@ public class SlotMachine : MonoBehaviour
 
 		int parse = int.Parse(inputBetAmount.text);
 
-		if ( credits - parse >= 0 )
+		if(parse <= 0)
+        {
+			OnMessage(Color.red, "1원 이상이 필요합니다.");
+		}
+		else if ( credits - parse >= 0 )
 		{
 			credits -= parse;
+			//CasinoManager.instance.gold -= parse;
 			textCredits.text = $"남은 돈 : {credits}";
 
 			isStartSpin = true;
@@ -165,6 +176,7 @@ public class SlotMachine : MonoBehaviour
 		if ( firstReelResult == secondReelResult && secondReelResult == thirdReelResult )
 		{
 			credits += betAmount * 100;//int.Parse(inputBetAmount.text) * 100;
+			CasinoManager.instance.EarnGold(betAmount * 99);
 			//textCredits.text = $"Credits : {credits}";
 
 			textResult.text = "잭팟이 터졌습니다!!!! 100배 당첨!!!";// "YOU WIN!";
@@ -177,15 +189,18 @@ public class SlotMachine : MonoBehaviour
 		else if ( firstReelResult == secondReelResult )
 		{
 			credits += (int)(betAmount * 0.5f);
+			CasinoManager.instance.EarnGold((int)(betAmount * 0.5f) * -1);
 			textResult.text = "아쉽네요~ 절반을 돌려드리겠습니다.";
 		}
 		else if ( firstReelResult == thirdReelResult )
 		{
 			credits += betAmount * 2;
+			CasinoManager.instance.EarnGold(betAmount);
 			textResult.text = "대칭 보너스!. 2배로 돌려드립니다.";
 		}
 		else
 		{
+			CasinoManager.instance.EarnGold(betAmount * -1);
 			textResult.text = "꽝입니다!";
 		}
 

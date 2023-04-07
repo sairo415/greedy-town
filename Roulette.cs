@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using UnityEngine.Events;
 using UnityEngine;
+using TMPro;
 
 public class Roulette : MonoBehaviour
 {
@@ -20,7 +22,9 @@ public class Roulette : MonoBehaviour
 	[SerializeField]
 	private	Transform			spinningRoulette;			// 실제 회전하는 회전판 Transfrom
 	[SerializeField]
-	private	AnimationCurve		spinningCurve;				// 회전 속도 제어를 위한 그래프
+	private	AnimationCurve		spinningCurve;              // 회전 속도 제어를 위한 그래프
+	[SerializeField]
+	private TextMeshProUGUI		textCredits;            // 플레이어 소지 금액
 
 	private	float				pieceAngle;					// 정보 하나가 배치되는 각도
 	private	float				halfPieceAngle;				// 정보 하나가 배치되는 각도의 절반 크기
@@ -28,7 +32,8 @@ public class Roulette : MonoBehaviour
 	
 	private	int					accumulatedWeight;			// 가중치 계산을 위한 변수
 	private	bool				isSpinning = false;			// 현재 회전중인지
-	private	int					selectedIndex = 0;			// 룰렛에서 선택된 아이템
+	private	int					selectedIndex = 0;          // 룰렛에서 선택된 아이템
+	private int					credits = 10000; //현재 소지 금액
 
 	private void Awake()
 	{
@@ -41,6 +46,12 @@ public class Roulette : MonoBehaviour
 
 		// Debug..
 		//Debug.Log($"Index : {GetRandomIndex()}");
+	}
+
+	void OnEnable()
+	{
+		credits = CasinoManager.instance.gold;
+		textCredits.text = $"남은 돈 : {credits}";
 	}
 
 	private void SpawnPiecesAndLines()
@@ -80,7 +91,7 @@ public class Roulette : MonoBehaviour
 
 	private int GetRandomIndex()
 	{
-		int weight = Random.Range(0, accumulatedWeight);
+		int weight = UnityEngine.Random.Range(0, accumulatedWeight);
 
 		for ( int i = 0; i < roulettePieceData.Length; ++ i )
 		{
@@ -95,7 +106,11 @@ public class Roulette : MonoBehaviour
 
 	public void Spin(UnityAction<RoulettePieceData> action=null)
 	{
-		if ( isSpinning == true ) return;
+		if ( isSpinning == true || credits < 100) return;
+
+		//CasinoManager.instance.gold -= 100;
+		credits -= 100;
+		textCredits.text = $"남은 돈 : {credits}";
 
 		// 룰렛의 결과 값 선택
 		selectedIndex = GetRandomIndex();
@@ -104,16 +119,19 @@ public class Roulette : MonoBehaviour
 		// 정확히 중심이 아닌 결과 값 범위 안의 임의의 각도 선택
 		float leftOffset	= (angle - halfPieceAngleWithPaddings) % 360;
 		float rightOffset	= (angle + halfPieceAngleWithPaddings) % 360;
-		float randomAngle	= Random.Range(leftOffset, rightOffset);
+		float randomAngle	= UnityEngine.Random.Range(leftOffset, rightOffset);
 
 		// 목표 각도(targetAngle) = 결과 각도 + 360 * 회전 시간 * 회전 속도
 		int	  rotateSpeed	= 2;
 		float targetAngle	= (randomAngle + 360 * spinDuration * rotateSpeed);
 
 		//결과 값
-		Debug.Log($"SelectedIndex:{selectedIndex}, Angle:{angle}");
+		/*Debug.Log($"SelectedIndex:{selectedIndex}, Angle:{angle}");
 		Debug.Log($"left/right/random:{leftOffset}/{rightOffset}/{randomAngle}");
-		Debug.Log($"targetAngle:{targetAngle}");
+		Debug.Log($"targetAngle:{targetAngle}");*/
+
+		//Debug.Log(roulettePieceData[selectedIndex].description);
+
 
 		isSpinning = true;
 		StartCoroutine(OnSpin(targetAngle, action));
@@ -136,6 +154,11 @@ public class Roulette : MonoBehaviour
 		}
 
 		isSpinning = false;
+
+		int parse = Int32.Parse(roulettePieceData[selectedIndex].description);
+		CasinoManager.instance.EarnGold(parse - 100);//사용금액까지 한 번에 처리
+		credits += parse;
+		textCredits.text = $"남은 돈 : {credits}";
 
 		if ( action != null ) action.Invoke(roulettePieceData[selectedIndex]);
 	}

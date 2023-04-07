@@ -53,13 +53,18 @@ public class ShuffleManager : MonoBehaviour
 
 	void Awake()
     {
-		textCredits.text = $"≥≤¿∫ µ∑ : {credits}";
 		buttonFirstCard.interactable = false;
 		buttonSecondCard.interactable = false;
 		buttonThirdCard.interactable = false;
 	}
 
-	void Update()
+    void OnEnable()
+    {
+		credits = CasinoManager.instance.gold;
+		textCredits.text = $"≥≤¿∫ µ∑ : {credits}";
+	}
+
+    void Update()
     {
 		if (!isStart)
 			return;
@@ -172,6 +177,7 @@ public class ShuffleManager : MonoBehaviour
 	{
 		int betAmount = int.Parse(inputBetAmount.text);
 		credits += (int)(betAmount * magni);
+		CasinoManager.instance.EarnGold((int)(betAmount * magni));
 		textCredits.text = $"≥≤¿∫ µ∑ : {credits}";
 		textResult.text = "∏ÿ√ËΩ¿¥œ¥Ÿ.";
 		magni = 2;
@@ -195,10 +201,15 @@ public class ShuffleManager : MonoBehaviour
 
 		int parse = int.Parse(inputBetAmount.text);
 
-		if (credits - parse >= 0)
+		if (parse <= 0)
+		{
+			OnMessage(Color.red, "1ø¯ ¿ÃªÛ¿Ã « ø‰«’¥œ¥Ÿ.");
+		}
+		else if (credits - parse >= 0)
 		{
 			credits -= parse;
 			textCredits.text = $"≥≤¿∫ µ∑ : {credits}";
+			CasinoManager.instance.EarnGold(parse * -1);
 
 			//isStart = true;//Ω√¿€
 			CardShuffle();

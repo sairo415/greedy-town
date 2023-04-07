@@ -19,14 +19,16 @@ public class CasinoPlay : MonoBehaviour
     {
         if(isClose && Input.GetKeyDown(KeyCode.F))
         {
-            gameUI.GetComponent<RectTransform>().localScale = Vector3.one;
+            //gameUI.GetComponent<RectTransform>().localScale = Vector3.one;
+            gameUI.SetActive(true);
             CasinoManager.instance.player.moveOn = false;
         }
     }
     
     public void GameCancel()
     {
-        gameUI.GetComponent<RectTransform>().localScale = Vector3.zero;
+        //gameUI.GetComponent<RectTransform>().localScale = Vector3.zero;
+        gameUI.SetActive(false);
         CasinoManager.instance.player.moveOn = true;
     }
 
