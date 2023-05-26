@@ -1,0 +1,35 @@
+version: "3.3"
+services:
+
+  db_redis:
+    image: redis
+    command: redis-server --requirepass greedytown --port 6379
+    container_name: db_redis
+    ports:
+      - 6379:6379
+    hostname: db_redis
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    volumes:
+      - ./db/redis/res/data:/var/lib/redis
+
+  db_mysql:
+    image: mysql:8.0.31
+    container_name: db_mysql
+    ports:
+      - 3305:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=greedytown
+      - MYSQL_DATABASE=greedytown
+      - MYSQL_USER=greedytown
+      - MYSQL_PASSWORD=greedytown
+      - TX=Asia/Seoul
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    volumes:
+      - ./db/MYSQL/res/data/:/var/lib/mysql
+
+
+
+
